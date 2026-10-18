@@ -7,15 +7,15 @@
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:15px system-ui,sans-serif;background:#111;color:#eee}
 #map{position:fixed;inset:0}
 #hud{position:fixed;top:8px;left:8px;right:8px;z-index:1000;text-align:center;pointer-events:none}
-#hud span{display:inline-block;background:#000c;padding:6px 12px;border-radius:14px;margin:2px;font-weight:600}
+#hud span{display:inline-flex;align-items:center;gap:6px;background:#000c;padding:6px 12px;border-radius:14px;margin:2px;font-weight:600}
 #hud .w{background:#c1121fdd}
-#panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:55vh;overflow:auto;background:#111e;backdrop-filter:blur(6px);padding:12px 14px 18px;border-radius:16px 16px 0 0}
+#panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:42vh;overflow:auto;background:#111e;backdrop-filter:blur(6px);padding:6px 14px 10px;border-radius:16px 16px 0 0;transition:transform .2s}
 h2{margin:0 0 8px}button,input{font:inherit;padding:10px;border-radius:10px;border:1px solid #444;background:#222;color:#eee}
-button{background:#c1121f;border:0;font-weight:600;margin:3px 0}button.g{background:#333}button.s{padding:6px 10px;margin:0 2px}
+button{background:#c1121f;border:0;font-weight:600;margin:2px 0;padding:8px}button.g{background:#333}button.s{padding:4px 9px;margin:0 2px;font-size:13px}
 input{width:100%;margin:3px 0}.row{display:flex;gap:6px}.row>*{flex:1}
 .grid{display:grid;grid-template-columns:1fr 90px;gap:4px;align-items:center}
-.code{font-size:34px;font-weight:800;letter-spacing:6px}.pl{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #333}
-small{color:#aaa}#ph{padding:2px 0 12px;cursor:pointer;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c #pb{display:none}#panel.c{padding-bottom:6px}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
+.code{font-size:24px;font-weight:800;letter-spacing:6px}.pl{display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #333}
+small{color:#aaa}#ph{padding:4px 0 10px;cursor:grab;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c{transform:translateY(calc(100% - 28px))}.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}.g2 label{display:flex;justify-content:space-between;align-items:center;font-size:13px}.g2 input{width:60px;padding:4px 6px;margin:0}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
 </style></head><body>
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div></div><div id="toast"></div>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
@@ -45,6 +45,7 @@ const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos
 const P=()=>(G&&G.players)||{};
 const rs=g=>g.startAt+g.s.head*6e4;
 const Rad=(g,t)=>!g.startAt?g.s.r0:Math.max(g.s.rMin,g.s.r0*Math.pow(.8,Math.max(0,Math.floor((t-rs(g))/(g.s.shrink*6e4)))));
+const AR='<svg width=24 height=14 viewBox="0 0 24 14" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M1 7h9M7 4l3 3-3 3M23 7h-9M17 4l-3 3 3 3"/></svg>';
 const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
 function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
@@ -102,13 +103,16 @@ function fin(){if(confirm('Spiel beenden und alle Daten löschen?'))db.ref('game
 function leave(){localStorage.removeItem('c');location.reload()}
 const endNow=()=>{if(confirm('Spiel wirklich beenden?'))db.ref('games/'+code).update({status:'over',winner:'hider'})};
 
-// Panel ein-/ausklappen (Tippen oder Wischen am Griff)
-const tg=()=>$('panel').classList.toggle('c');
-{let y=0;const ph=$('ph');
- ph.addEventListener('touchstart',e=>{y=e.touches[0].clientY},{passive:true});
- ph.addEventListener('touchend',e=>{e.preventDefault();const d=e.changedTouches[0].clientY-y;
-   if(d>25)$('panel').classList.add('c');else if(d<-25)$('panel').classList.remove('c');else tg()});
- ph.addEventListener('click',tg)}
+// Panel ziehen: folgt dem Finger, rastet beim Loslassen ein
+{const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0;
+ const lim=()=>P_.offsetHeight-28;
+ ph.addEventListener('pointerdown',e=>{on=1;y0=e.clientY;dy=0;P_.style.transition='none';ph.setPointerCapture(e.pointerId)});
+ ph.addEventListener('pointermove',e=>{if(!on)return;dy=e.clientY-y0;const H=lim(),c=P_.classList.contains('c');
+   P_.style.transform=`translateY(${Math.min(H,Math.max(0,(c?H:0)+dy))}px)`});
+ const end=()=>{if(!on)return;on=0;const H=lim(),c=P_.classList.contains('c'),p=Math.min(H,Math.max(0,(c?H:0)+dy));
+   P_.style.transition='';P_.style.transform='';
+   if(Math.abs(dy)<6){if(c)P_.classList.remove('c')}else P_.classList.toggle('c',p>H/3)};
+ ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
 // Panel
 function panel(force){const el=$('pb');
   if(!G){el.innerHTML=`<h2>Blown Cover</h2><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16>
@@ -120,10 +124,10 @@ function panel(force){const el=$('pb');
   if(!force&&sig===lastSig)return;lastSig=sig;
   const pl=Object.entries(P());let h='';
   if(g.status==='lobby'){
-    h=`<div>Spiel-Code</div><div class=code>${esc(code)}</div>`+pl.map(([k,p])=>`<div class=pl><span>${esc(p.name)}${k===g.host?' 👑':''}</span><span>${k===uid?
+    h=`<small>Spiel-Code</small> <span class=code>${esc(code)}</span>`+pl.map(([k,p])=>`<div class=pl><span>${esc(p.name)}${k===g.host?' 👑':''}</span><span>${k===uid?
       `<button class="s ${p.role==='hunter'?'':'g'}" onclick="setRole('hunter')">Hunter</button><button class="s ${p.role==='hider'?'':'g'}" onclick="setRole('hider')">Hider</button>`:(p.role==='hunter'?'Hunter':'Hider')}</span></div>`).join('');
-    const L_=[['r0','Startradius (m)'],['rMin','Mindestradius (m)'],['shrink','Schrumpfen alle (Min)'],['head','Headstart (Min)'],['dur','Spieldauer (Min)'],['ping','Ping alle (Sek)'],['pen','Strafzeit außerhalb (Min)']];
-    h+=host?`<p><small>Zone verschieben: roten Punkt ziehen oder auf die Karte tippen.</small> <button class="s g" onclick="ctr()">Auf meine Position</button></p><div class=grid>`+L_.map(([k,l])=>`<span>${l}</span><input type=number value="${g.s[k]}" onchange="setS('${k}',this.value)">`).join('')+`</div><button style="width:100%;margin-top:10px" onclick="st()">Spiel starten</button><button class=g style="width:100%" onclick="fin()">Spiel beenden</button>`
+    const L_=[['r0','Startradius m'],['rMin','Min.-Radius m'],['shrink','Schrumpfen Min'],['head','Headstart Min'],['dur','Dauer Min'],['ping','Ping alle Sek'],['pen','Strafzeit Min']];
+    h+=host?`<p style="margin:6px 0"><small>Zone: roten Punkt ziehen oder Karte tippen.</small> <button class="s g" onclick="ctr()">Auf meine Position</button></p><div class=g2>`+L_.map(([k,l])=>`<label>${l}<input type=number value="${g.s[k]}" onchange="setS('${k}',this.value)"></label>`).join('')+`</div><div class=row style="margin-top:8px"><button onclick="st()">Spiel starten</button><button class=g onclick="fin()">Spiel beenden</button></div>`
       :`<p><small>Warte auf den Host… Zone ${g.s.r0} m, Dauer ${g.s.dur} Min, Ping alle ${g.s.ping} s.</small></p>`;
   }else if(g.status==='over'){
     h=`<h2>${g.winner==='hunter'?'Hunter gewinnen':'Hider gewinnen'}</h2>`+(host?`<button onclick="fin()">Daten löschen &amp; beenden</button>`:`<button class=g onclick="leave()">Verlassen</button>`);
@@ -170,7 +174,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   if(t<g.startAt)h=`<span>Start in ${fmt(g.startAt-t)}</span>`;
   else if(t<R0)h=m.role==='hunter'?`<span>Hunter starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
   else{const el=t-R0,nextS=g.s.shrink*6e4-el%(g.s.shrink*6e4),nextP=g.s.ping*1000-el%(g.s.ping*1000);
-    h=`<span>⏱ ${fmt(g.s.dur*6e4-el)}</span>`+(Rad(g,t)>g.s.rMin?`<span>→← ${fmt(nextS)}</span>`:'')+`<span>Ping in ${fmt(nextP)}</span>`}
+    h=`<span>⏱ ${fmt(g.s.dur*6e4-el)}</span>`+(Rad(g,t)>g.s.rMin?`<span>${AR}${fmt(nextS)}</span>`:'')+`<span>Ping in ${fmt(nextP)}</span>`}
   // Hider: Zone & GPS
   if(m.role==='hider'&&m.state==='alive'&&t>=g.startAt){
     const gap=Date.now()-lastFix;
