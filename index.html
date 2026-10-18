@@ -283,7 +283,7 @@ function draw(){lay.clearLayers();if(!G)return;const g=G,t=now(),r=Rad(g,t),m=P(
   else{if(cm){map.removeLayer(cm);cm=null}if(g.status==='lobby')dot(c0,'#d62828','Zentrum',5)}
   Object.entries(P()).forEach(([k,p])=>{if(!p.lat)return;const ll=[p.lat,p.lng];
     if(k===uid)return;
-    if(p.role===m.role&&p.state==='alive')dot(ll,'#2a9d4a',esc(p.name));
+    if(p.role===m.role&&p.state==='alive'){if(!(m.role==='hider'&&g.status==='running'))dot(ll,'#2a9d4a',esc(p.name))}
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))dot(ll,'#e11','⚠ '+esc(p.name),10)});
   if(ping)Object.values(ping.pts).forEach(p=>dot([p.lat,p.lng],'#f77f00',m.role==='hunter'?esc(p.name)+' (Ping)':'Dein letzter Ping',m.role==='hunter'?9:14));
   if(ping&&ping.grey)Object.values(ping.grey).forEach(p=>dot([p.lat,p.lng],'#888',esc(p.name)+' (nicht ortbar)',9,.55));
