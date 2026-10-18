@@ -83,17 +83,17 @@ function randPts(c,R,n,d,have){const o=(have||[]).slice(),out=[];let k=0;
   while(out.length<n&&k++<800){const a=Math.random()*6.2832,r=R*Math.sqrt(Math.random()),
     p={lat:c.lat+r*Math.cos(a)/111320,lng:c.lng+r*Math.sin(a)/(111320*Math.cos(c.lat*Math.PI/180))};
     if(o.every(q=>D(p,q)>=d)){o.push(p);out.push(p)}}return out}
-async function ovPost(q){for(const h of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
-  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),9000);
+async function ovPost(q){for(const h of['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
+  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),14000);
     const r=await fetch(h,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});
     clearTimeout(tm);if(r.ok)return await r.json()}catch(e){}}return null}
 async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${Math.round(R)},${c.lat},${c.lng})`;
-  const j1=await ovPost(`[out:json][timeout:20];way${A}["highway"~"^(footway|pedestrian|path|cycleway|living_street)$"]["access"!~"^(private|no)$"];out geom 300;way${A}["leisure"~"^(park|playground|garden)$"];out center 100;`);
+  const j1=await ovPost(`[out:json][timeout:20];way${A}["highway"]["highway"!~"^(motorway|motorway_link|trunk|trunk_link|construction|proposed|raceway|bus_guideway|primary|primary_link|secondary|secondary_link)$"]["access"!~"^(private|no)$"];out geom 600;way${A}["leisure"~"^(park|playground|garden)$"];out center 100;`);
   let sel=pickSpaced(ovPts(j1,c,R),n,d);
-  if(j1&&sel.length<n){const x=ovPts(await ovPost(`[out:json][timeout:20];way${A}["highway"~"^(residential|unclassified)$"]["access"!~"^(private|no)$"];out geom 200;`),c,R).filter(p=>sel.every(q=>D(p,q)>=d));
+  if(j1&&sel.length<n){const x=ovPts(await ovPost(`[out:json][timeout:20];way${A}["highway"~"^(primary|primary_link|secondary|secondary_link)$"]["access"!~"^(private|no)$"];out geom 500;`),c,R).filter(p=>sel.every(q=>D(p,q)>=d));
     sel=sel.concat(pickSpaced(x,n-sel.length,d))}
-  let fb=false;if(sel.length<n){sel=sel.concat(randPts(c,R,n-sel.length,d,sel));fb=true}
-  return{pts:sel,fb}}
+  let fb=false;const real=sel.length;if(sel.length<n){sel=sel.concat(randPts(c,R,n-sel.length,d,sel));fb=true}
+  return{pts:sel,fb,net:!j1,real,n}}
 // </helpers>
 
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
@@ -148,7 +148,7 @@ async function st(){const v=Object.values(P());
     const startAt=now()+5000,R0=startAt+s.head*6e4,tasks={};
     need.forEach((id,i)=>{const a=r.pts.slice(i*4,i*4+4);
       tasks[id]={t0:id==='ev'?R0+Math.max(0,s.dur-s.evT)*6e4:R0+Math.min(s.shT,s.dur-1)*6e4,loc:a[0],alt:a.slice(1),rr:0}});
-    if(r&&r.fb)toast('Keine Kartendaten erreichbar: Zufallsorte');
+    if(r&&r.fb)toast(r.net?'Kartendienst nicht erreichbar: Zufallsorte':'Nur '+r.real+' von '+r.n+' Orten aus Kartendaten, Rest zufällig');
     const u={status:'running',startAt};if(need.length)u.tasks=tasks;
     await db.ref('games/'+code).update(u)}
   catch(e){toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.textContent='Spiel starten'}}}
