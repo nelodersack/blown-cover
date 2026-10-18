@@ -51,9 +51,10 @@ firebase.initializeApp({
   appId:"1:438869180715:web:23b80fe08b035bc56d456e"
 });
 const db=firebase.database();
+const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let lk={},lastTV='',radar=null,ddLock=0;
-let me={name:localStorage.n||''};
+let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
@@ -146,10 +147,15 @@ else{const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
 const lay=L.layerGroup().addTo(map);
-map.on('click',e=>{if(G&&G.status==='lobby'&&G.host===uid)db.ref(`games/${code}/c`).set({lat:e.latlng.lat,lng:e.latlng.lng})});
+map.on('click',e=>{if(G&&G.status==='lobby'&&G.host===uid)return db.ref(`games/${code}/c`).set({lat:e.latlng.lat,lng:e.latlng.lng});
+  if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
+if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
 
 // GPS
 function startGPS(){if(startGPS.on)return;startGPS.on=1;
+  if(TEST){const put=(la,ln)=>{pos={lat:la,lng:ln};lastFix=Date.now();write(1)};
+    navigator.geolocation.getCurrentPosition(q=>put(q.coords.latitude,q.coords.longitude),()=>{const c=map.getCenter();put(c.lat,c.lng)},{timeout:4000});
+    setInterval(()=>{if(pos)lastFix=Date.now()},5000);return}
   navigator.geolocation.watchPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()},
     e=>toast('GPS: '+e.message),{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
@@ -157,20 +163,20 @@ function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<40
   db.ref(`games/${code}/players/${uid}`).update({lat:pos.lat,lng:pos.lng,ts:now()})}
 
 // Start / Beitritt
-async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);localStorage.n=me.name;startGPS();
+async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
   if(!pos){const b=$('mkb');b.textContent='GPS wird gesucht…';b.disabled=true;
     for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
     if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
   const c=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
   await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:500,rMin:200,shrink:5,head:2,dur:30,ping:60,pen:2,mode:'survive',taskR:0,imm:120,shOn:true,shT:10,evT:5,ddN:1,ddT:5,bon:true}});join(c)}
-function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);localStorage.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
+function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
 async function join(c){const s=await db.ref('games/'+c).get();
-  if(!s.exists()){localStorage.removeItem('c');return toast('Code unbekannt')}
+  if(!s.exists()){LS.removeItem('c');return toast('Code unbekannt')}
   const g=s.val(),had=g.players&&g.players[uid];
   if(g.status!=='lobby'&&!had)return toast('Spiel läuft bereits');
-  code=c;localStorage.c=c;
+  code=c;LS.c=c;
   if(!had)await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'hider',state:'alive'});
-  db.ref('games/'+c).on('value',s=>{if(!s.exists()){localStorage.removeItem('c');location.reload();return}G=s.val();onData()})}
+  db.ref('games/'+c).on('value',s=>{if(!s.exists()){LS.removeItem('c');location.reload();return}G=s.val();onData()})}
 
 // Lobby-Aktionen
 const setRole=r=>db.ref(`games/${code}/players/${uid}/role`).set(r);
@@ -206,7 +212,7 @@ function rq(h){cand=[];db.ref(`games/${code}/catches/${h}`).set({hunter:uid,t:no
 function ok(){db.ref(`games/${code}/players/${uid}/state`).set('caught');db.ref(`games/${code}/catches/${uid}/status`).set('done')}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
 async function fin(){if(!confirm('Spiel beenden und alle Daten löschen?'))return;try{await db.ref('chats/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
-function leave(){localStorage.removeItem('c');location.reload()}
+function leave(){LS.removeItem('c');location.reload()}
 const endNow=()=>{if(confirm('Spiel wirklich beenden?'))db.ref('games/'+code).update({status:'over',winner:'hider'})};
 
 // Aufgaben
@@ -406,7 +412,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     else if(t-R0>=g.s.dur*6e4)db.ref('games/'+code).update({status:'over',winner:missionOk(g)?'hider':'hunter'})}
   $('hud').innerHTML=h;panel()},1000);
 
-firebase.auth().signInAnonymously().then(u=>{uid=u.user.uid;
-  if(localStorage.c){startGPS();join(localStorage.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
+(TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
+  if(LS.c){startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
 panel();
 </script></body></html>
