@@ -20,7 +20,7 @@ small{color:#aaa}#cb{position:fixed;right:10px;top:62px;z-index:1200;display:non
 #chat{position:fixed;left:0;right:0;bottom:0;height:52vh;max-height:440px;z-index:1600;background:#111;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px #0008;display:none;flex-direction:column}
 #chat.open{display:flex}#chh{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #333;font-weight:700}
 #chh button{background:#333;padding:4px 12px;margin:0}
-#chm{flex:1;overflow:auto;padding:8px 14px}#chm .chc{display:none;flex-direction:column;gap:6px}#chm .chc.on{display:flex}#cht{display:flex;gap:6px;flex-wrap:wrap}#cht .s{padding:3px 8px;font-size:12px}
+#chm{flex:1;overflow:auto;padding:8px 14px}#chm .chc{display:none;flex-direction:column;gap:6px}#chm .chc.on{display:flex}#cht{display:flex;gap:6px;flex-wrap:wrap}#cht .s{padding:5px 10px;font-size:13px}#cht .s.on{background:#d62828;color:#fff;box-shadow:0 0 0 2px #fff;font-weight:700}#cht .s.g{opacity:.5}
 #chm .m{max-width:85%;background:#262626;padding:6px 10px;border-radius:12px;align-self:flex-start;word-break:break-word}
 #chm .m.me{align-self:flex-end;background:#7a1219}#chm .m b{display:block;font-size:11px;color:#aaa;font-weight:600}
 #chr{display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid #333}#chr input{margin:0;flex:1;width:auto}#chr button{margin:0}#ph{padding:4px 0 10px;cursor:grab;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c{transform:translateY(calc(100% - 28px))}.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}.g2 label{display:flex;justify-content:space-between;align-items:center;font-size:13px}.g2 input{width:60px;padding:4px 6px;margin:0}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
@@ -32,6 +32,7 @@ button:disabled{opacity:.55}details small{display:block;margin:6px 0 2px}
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div></div><div id="toast"></div>
 <button id=cb onclick="chToggle()">Chat<span id=cbn></span></button>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chm></div>
+<div id=chro style="display:none;padding:10px 14px 14px;border-top:1px solid #333;color:#aaa;font-size:13px">Nur lesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</div>
 <div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()"><button onclick="chSend()">Senden</button></div></div>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -205,9 +206,9 @@ async function st(){const v=Object.values(P());
     await db.ref('games/'+code).update(u)}
   catch(e){toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.textContent='Spiel starten'}}}
 // Fangen
-function cc(){if(!pos)return;const t=now();
-  cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&p.lat&&t-p.ts<30000&&D(pos,p)<=40);
-  if(!cand.length)toast('Kein Hider in 40 m');panel(1)}
+function cc(){const t=now();
+  cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
+  if(!cand.length)toast('Keine Hider mehr');panel(1)}
 function rq(h){cand=[];const q=P()[h]||{},c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
   db.ref(`games/${code}/catches/${h}`).set(c);toast('Anfrage gesendet');panel(1)}
 function ok(){db.ref(`games/${code}/players/${uid}/state`).set('caught');db.ref(`games/${code}/catches/${uid}/status`).set('done')}
@@ -281,8 +282,8 @@ function chChans(){const m=P()[uid];if(!m||!m.role)return[];return isSpec(m)?['o
 const chCanWrite=ch=>{const m=P()[uid]||{};return isSpec(m)?ch==='out':ch===m.role};
 function chBadge(){const b=$('cbn');b.textContent=chUnread;b.style.display=chUnread?'inline-block':'none'}
 function chShow(ch){chCur=ch;document.querySelectorAll('#chm .chc').forEach(e=>e.classList.toggle('on',e.dataset.ch===ch));
-  $('chr').style.display=chCanWrite(ch)?'flex':'none';chTabs();const b=$('chm');b.scrollTop=b.scrollHeight}
-function chTabs(){const cs=chChans();$('cht').innerHTML=cs.length>1?cs.map(c=>`<button class="s ${c===chCur?'':'g'}" onclick="chShow('${c}')">${chName[c]}${chCanWrite(c)?'':' 👁'}</button>`).join(' '):'Team-Chat: '+chName[cs[0]||'hider']}
+  $('chr').style.display=chCanWrite(ch)?'flex':'none';$('chro').style.display=chCanWrite(ch)?'none':'block';chTabs();const b=$('chm');b.scrollTop=b.scrollHeight}
+function chTabs(){const cs=chChans();$('cht').innerHTML=cs.length>1?cs.map(c=>`<button class="s ${c===chCur?'on':'g'}" onclick="chShow('${c}')">${chName[c]}${chCanWrite(c)?'':' 👁'}</button>`).join(' '):'Team-Chat: '+chName[cs[0]||'hider']}
 function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);
   if(chOpen){chUnread=0;chBadge();const b=$('chm');b.scrollTop=b.scrollHeight}}
 function chSend(){const i=$('chi'),x=i.value.trim().slice(0,200);if(!x||!code||!chCur||!chCanWrite(chCur))return;
@@ -344,7 +345,7 @@ function panel(force){const el=$('pb');
       if(c&&c.status==='pending')h+=`<p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div>`;
       h+=hTasks(g,t)+hInv(g,me_,t)}
     else{h=`<h2>Du bist Hunter</h2>`;
-      if(run)h+=cand.length?`<p>Wen hast du gefangen?</p>`+cand.map(([k,p])=>`<button style="width:100%" onclick="rq('${k}')">${esc(p.name)}</button>`).join(''):`<button style="width:100%" onclick="cc()">Fang melden</button>`;
+      if(run)h+=cand.length?`<p>Wen hast du gefangen?</p>`+cand.map(([k,p])=>`<button style="width:100%" onclick="rq('${k}')">${esc(p.name)}</button>`).join('')+`<button class=g style="width:100%" onclick="cand=[];panel(1)">Abbrechen</button>`:`<button style="width:100%" onclick="cc()">Fang melden</button>`;
       else h+=`<small>Warte auf das Ende des Headstarts.</small>`}
     if(host)h+=`<details><summary>Host-Menü</summary><button class=g onclick="endNow()">Spiel beenden</button></details>`;
   }
