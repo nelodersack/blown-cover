@@ -15,9 +15,20 @@ button{background:#c1121f;border:0;font-weight:600;margin:2px 0;padding:8px}butt
 input{width:100%;margin:3px 0}.row{display:flex;gap:6px}.row>*{flex:1}
 .grid{display:grid;grid-template-columns:1fr 90px;gap:4px;align-items:center}
 .code{font-size:24px;font-weight:800;letter-spacing:6px}.pl{display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #333}
-small{color:#aaa}#ph{padding:4px 0 10px;cursor:grab;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c{transform:translateY(calc(100% - 28px))}.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}.g2 label{display:flex;justify-content:space-between;align-items:center;font-size:13px}.g2 input{width:60px;padding:4px 6px;margin:0}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
+small{color:#aaa}#cb{position:fixed;right:10px;top:62px;z-index:1200;display:none;background:#000c;border:1px solid #555;border-radius:18px;padding:6px 12px}
+#cbn{background:#d62828;border-radius:9px;padding:0 6px;margin-left:6px;font-size:12px;display:none}
+#chat{position:fixed;left:0;right:0;bottom:0;height:52vh;max-height:440px;z-index:1600;background:#111;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px #0008;display:none;flex-direction:column}
+#chat.open{display:flex}#chh{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #333;font-weight:700}
+#chh button{background:#333;padding:4px 12px;margin:0}
+#chm{flex:1;overflow:auto;padding:8px 14px;display:flex;flex-direction:column;gap:6px}
+#chm .m{max-width:85%;background:#262626;padding:6px 10px;border-radius:12px;align-self:flex-start;word-break:break-word}
+#chm .m.me{align-self:flex-end;background:#7a1219}#chm .m b{display:block;font-size:11px;color:#aaa;font-weight:600}
+#chr{display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid #333}#chr input{margin:0;flex:1;width:auto}#chr button{margin:0}#ph{padding:4px 0 10px;cursor:grab;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c{transform:translateY(calc(100% - 28px))}.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}.g2 label{display:flex;justify-content:space-between;align-items:center;font-size:13px}.g2 input{width:60px;padding:4px 6px;margin:0}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
 </style></head><body>
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div></div><div id="toast"></div>
+<button id=cb onclick="chToggle()">Chat<span id=cbn></span></button>
+<div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chm></div>
+<div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()"><button onclick="chSend()">Senden</button></div></div>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
@@ -99,10 +110,29 @@ function cc(){if(!pos)return;const t=now();
 function rq(h){cand=[];db.ref(`games/${code}/catches/${h}`).set({hunter:uid,t:now(),status:'pending'});toast('Anfrage gesendet');panel(1)}
 function ok(){db.ref(`games/${code}/players/${uid}/state`).set('caught');db.ref(`games/${code}/catches/${uid}/status`).set('done')}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
-function fin(){if(confirm('Spiel beenden und alle Daten löschen?'))db.ref('games/'+code).remove()}
+async function fin(){if(!confirm('Spiel beenden und alle Daten löschen?'))return;try{await db.ref('chats/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function leave(){localStorage.removeItem('c');location.reload()}
 const endNow=()=>{if(confirm('Spiel wirklich beenden?'))db.ref('games/'+code).update({status:'over',winner:'hider'})};
 
+// Team-Chat (Hunter und Hider haben je einen eigenen Kanal)
+let chRole=null,chRef=null,chOpen=false,chUnread=0,chSince=0;
+function chBadge(){const b=$('cbn');b.textContent=chUnread;b.style.display=chUnread?'inline-block':'none'}
+function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);
+  if(chOpen){chUnread=0;chBadge();const b=$('chm');b.scrollTop=b.scrollHeight}}
+function chSend(){const i=$('chi'),x=i.value.trim().slice(0,200);if(!x||!code||!chRole)return;
+  const m=P()[uid]||{};db.ref(`chats/${code}/${chRole}`).push({u:uid,n:(m.name||'Agent').slice(0,16),t:now(),x});i.value=''}
+function chatSync(){const m=P()[uid],r=m&&m.role;$('cb').style.display=(code&&r)?'block':'none';
+  if(!code||!r||r===chRole)return;
+  if(chRef)chRef.off();
+  chRole=r;$('chm').innerHTML='';chUnread=0;chBadge();$('cht').textContent='Team-Chat: '+(r==='hunter'?'Hunter':'Hider');chSince=now()-1000;
+  chRef=db.ref(`chats/${code}/${r}`).limitToLast(50);
+  chRef.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;
+    const d=document.createElement('div');d.className='m'+(c.u===uid?' me':'');
+    const n=document.createElement('b');n.textContent=c.u===uid?'Du':String(c.n||'?');
+    const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
+    const box=$('chm'),low=box.scrollHeight-box.scrollTop-box.clientHeight<60;box.appendChild(d);
+    if(low||c.u===uid)box.scrollTop=box.scrollHeight;
+    if(!chOpen&&c.u!==uid&&c.t>chSince){chUnread++;chBadge()}},()=>{})}
 // Panel ziehen: folgt dem Finger, rastet beim Loslassen ein
 {const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0;
  const lim=()=>P_.offsetHeight-28;
@@ -111,7 +141,7 @@ const endNow=()=>{if(confirm('Spiel wirklich beenden?'))db.ref('games/'+code).up
    P_.style.transform=`translateY(${Math.min(H,Math.max(0,(c?H:0)+dy))}px)`});
  const end=()=>{if(!on)return;on=0;const H=lim(),c=P_.classList.contains('c'),p=Math.min(H,Math.max(0,(c?H:0)+dy));
    P_.style.transition='';P_.style.transform='';
-   if(Math.abs(dy)<6){if(c)P_.classList.remove('c')}else P_.classList.toggle('c',p>H/3)};
+   if(Math.abs(dy)<6)P_.classList.toggle('c');else P_.classList.toggle('c',p>H/3)};
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
 // Panel
 function panel(force){const el=$('pb');
@@ -159,12 +189,12 @@ function draw(){lay.clearLayers();if(!G)return;const g=G,t=now(),r=Rad(g,t),m=P(
     if(k===uid)return;
     if(p.role===m.role&&p.state==='alive')dot(ll,'#2a9d4a',esc(p.name));
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))dot(ll,'#e11','⚠ '+esc(p.name),10)});
-  if(m.role==='hunter'&&ping)Object.values(ping.pts).forEach(p=>dot([p.lat,p.lng],'#f77f00',esc(p.name)+' (Ping)',9));
+  if(ping)Object.values(ping.pts).forEach(p=>dot([p.lat,p.lng],'#f77f00',m.role==='hunter'?esc(p.name)+' (Ping)':'Dein letzter Ping',m.role==='hunter'?9:14));
   if(pos)dot([pos.lat,pos.lng],'#1e7cf0','',9)}
 
 function onData(){
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
-  panel();draw()}
+  panel();draw();chatSync()}
 
 // Sekundentakt
 setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
@@ -184,6 +214,10 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
       if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`}}
+  // Hider: eigener letzter Ping
+  if(m.role==='hider'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
+    if(k>=1&&k!==lastK){lastK=k;const q=P()[uid];
+      if(q&&q.lat){ping={k,pts:{[uid]:{lat:q.lat,lng:q.lng,name:q.name}}};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort');draw()}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
     if(k>=1&&k!==lastK){lastK=k;ping={k,pts:{}};Object.entries(P()).forEach(([id,p])=>{if(p.role==='hider'&&p.state==='alive'&&p.lat)ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
