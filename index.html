@@ -54,7 +54,7 @@ firebase.initializeApp({
 const db=firebase.database();
 const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
-let lk={},lastTV='',radar=null,ddLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
+let lk={},lastTV='',radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
@@ -510,8 +510,8 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     lastLv=Math.max(lastLv,lv);
     const xs=Object.values(g.xp||{}).map(e=>e.t),mx=xs.length?Math.max(...xs):0;
     if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die Hunter orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
-  if(g.host===uid&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t),ks=Object.keys(up);
-    if(ks.length){ddLock=t+2500;ks.forEach(i=>db.ref(`games/${code}/tasks/${i}`).update(up[i]))}}
+  if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t),ks=Object.keys(up);
+    if(ks.length){ddLock=t+2500;ks.forEach(i=>db.ref(`games/${code}/tasks/${i}`).update(up[i]).catch(()=>{}))}}
   if(m.role==='hider'&&m.state==='alive')mtTick(g);
   // Hider: eigener letzter Ping
   if(m.role==='hider'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
@@ -531,10 +531,10 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     else if(c.status==='pending'&&t-c.t>30000){const p=P()[k];
       if(p&&pos&&p.lat&&D(pos,p)<=50){db.ref(`games/${code}/players/${k}/state`).set('caught');db.ref(`games/${code}/catches/${k}/status`).set('done')}
       else db.ref(`games/${code}/catches/${k}/status`).set('denied')}});
-  // Spielende (nur Host schreibt)
-  if(g.host===uid&&t>=R0){const hs=Object.values(P()).filter(p=>p.role==='hider'),alive=hs.filter(p=>p.state==='alive').length,safe=hs.filter(p=>p.state==='safe').length;
-    if(!alive)db.ref('games/'+code).update({status:'over',winner:safe&&missionOk(g)?'hider':'hunter'});
-    else if(t-R0>=g.s.dur*6e4)db.ref('games/'+code).update({status:'over',winner:missionOk(g)?'hider':'hunter'})}
+  // Spielende: jeder Mitspieler prüft, das erste gültige Schreiben gewinnt
+  if(m.role&&t>=R0&&t>=endLock){const hs=Object.values(P()).filter(p=>p.role==='hider'),alive=hs.filter(p=>p.state==='alive').length,safe=hs.filter(p=>p.state==='safe').length;
+    const w=!alive?(safe&&missionOk(g)?'hider':'hunter'):(t-R0>=g.s.dur*6e4?(missionOk(g)?'hider':'hunter'):null);
+    if(w){endLock=t+4000;db.ref('games/'+code).update({status:'over',winner:w}).catch(()=>{})}}
   $('hud').innerHTML=h;panel()},1000);
 
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
