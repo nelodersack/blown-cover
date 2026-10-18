@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Blown Cover</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font:15px system-ui,sans-serif;background:#111;color:#eee}
+#map{position:fixed;inset:0}
+#hud{position:fixed;top:8px;left:8px;right:8px;z-index:1000;text-align:center;pointer-events:none}
+#hud span{display:inline-block;background:#000c;padding:6px 12px;border-radius:14px;margin:2px;font-weight:600}
+#hud .w{background:#c1121fdd}
+#panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:55vh;overflow:auto;background:#111e;backdrop-filter:blur(6px);padding:12px 14px 18px;border-radius:16px 16px 0 0}
+h2{margin:0 0 8px}button,input{font:inherit;padding:10px;border-radius:10px;border:1px solid #444;background:#222;color:#eee}
+button{background:#c1121f;border:0;font-weight:600;margin:3px 0}button.g{background:#333}button.s{padding:6px 10px;margin:0 2px}
+input{width:100%;margin:3px 0}.row{display:flex;gap:6px}.row>*{flex:1}
+.grid{display:grid;grid-template-columns:1fr 90px;gap:4px;align-items:center}
+.code{font-size:34px;font-weight:800;letter-spacing:6px}.pl{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #333}
+small{color:#aaa}#ph{padding:2px 0 12px;cursor:pointer;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c #pb{display:none}#panel.c{padding-bottom:6px}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
+</style></head><body>
+<div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div></div><div id="toast"></div>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD0T2moi4bFBaOpJyiRWRD7iBinnuyh9N0",
+  authDomain:"blown-cover.firebaseapp.com",
+  databaseURL:"https://blown-cover-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"blown-cover",
+  storageBucket:"blown-cover.firebasestorage.app",
+  messagingSenderId:"438869180715",
+  appId:"1:438869180715:web:23b80fe08b035bc56d456e"
+});
+const db=firebase.database();
+let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
+let me={name:localStorage.n||''};
+db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
+const now=()=>Date.now()+off,$=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos((a.lat+b.lat)*t/2);return 6371000*Math.hypot(x,y)};
+const P=()=>(G&&G.players)||{};
+const rs=g=>g.startAt+g.s.head*6e4;
+const Rad=(g,t)=>!g.startAt?g.s.r0:Math.max(g.s.rMin,g.s.r0*Math.pow(.8,Math.max(0,Math.floor((t-rs(g))/(g.s.shrink*6e4)))));
+const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
+let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
+async function lock(){try{wl=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.status==='running')lock()});
+
+// Karte
+const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
+if(L.maplibreGL)L.maplibreGL({style:'https://tiles.openfreemap.org/styles/positron',attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'}).addTo(map);
+else{const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+  L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
+  L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
+const lay=L.layerGroup().addTo(map);
+map.on('click',e=>{if(G&&G.status==='lobby'&&G.host===uid)db.ref(`games/${code}/c`).set({lat:e.latlng.lat,lng:e.latlng.lng})});
+
+// GPS
+function startGPS(){if(startGPS.on)return;startGPS.on=1;
+  navigator.geolocation.watchPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
+    const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()},
+    e=>toast('GPS: '+e.message),{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
+function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
+  db.ref(`games/${code}/players/${uid}`).update({lat:pos.lat,lng:pos.lng,ts:now()})}
+
+// Start / Beitritt
+async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);localStorage.n=me.name;startGPS();
+  if(!pos){const b=$('mkb');b.textContent='GPS wird gesucht…';b.disabled=true;
+    for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
+    if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
+  const c=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
+  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:500,rMin:100,shrink:5,head:2,dur:30,ping:60,pen:2}});join(c)}
+function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);localStorage.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
+async function join(c){const s=await db.ref('games/'+c).get();
+  if(!s.exists()){localStorage.removeItem('c');return toast('Code unbekannt')}
+  const g=s.val(),had=g.players&&g.players[uid];
+  if(g.status!=='lobby'&&!had)return toast('Spiel läuft bereits');
+  code=c;localStorage.c=c;
+  if(!had)await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'hider',state:'alive'});
+  db.ref('games/'+c).on('value',s=>{if(!s.exists()){localStorage.removeItem('c');location.reload();return}G=s.val();onData()})}
+
+// Lobby-Aktionen
+const setRole=r=>db.ref(`games/${code}/players/${uid}/role`).set(r);
+const setS=(k,v)=>db.ref(`games/${code}/s/${k}`).set(Math.max(1,+v||1));
+function ctr(){if(pos)db.ref(`games/${code}/c`).set(pos)}
+function st(){const v=Object.values(P());
+  if(!v.some(p=>p.role==='hunter')||!v.some(p=>p.role==='hider'))return toast('Mindestens 1 Hunter und 1 Hider nötig');
+  db.ref('games/'+code).update({status:'running',startAt:now()+5000})}
+// Fangen
+function cc(){if(!pos)return;const t=now();
+  cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&p.lat&&t-p.ts<30000&&D(pos,p)<=40);
+  if(!cand.length)toast('Kein Hider in 40 m');panel(1)}
+function rq(h){cand=[];db.ref(`games/${code}/catches/${h}`).set({hunter:uid,t:now(),status:'pending'});toast('Anfrage gesendet');panel(1)}
+function ok(){db.ref(`games/${code}/players/${uid}/state`).set('caught');db.ref(`games/${code}/catches/${uid}/status`).set('done')}
+function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
+function fin(){if(confirm('Spiel beenden und alle Daten löschen?'))db.ref('games/'+code).remove()}
+function leave(){localStorage.removeItem('c');location.reload()}
+const endNow=()=>{if(confirm('Spiel wirklich beenden?'))db.ref('games/'+code).update({status:'over',winner:'hider'})};
+
+// Panel ein-/ausklappen (Tippen oder Wischen am Griff)
+const tg=()=>$('panel').classList.toggle('c');
+{let y=0;const ph=$('ph');
+ ph.addEventListener('touchstart',e=>{y=e.touches[0].clientY},{passive:true});
+ ph.addEventListener('touchend',e=>{e.preventDefault();const d=e.changedTouches[0].clientY-y;
+   if(d>25)$('panel').classList.add('c');else if(d<-25)$('panel').classList.remove('c');else tg()});
+ ph.addEventListener('click',tg)}
+// Panel
+function panel(force){const el=$('pb');
+  if(!G){el.innerHTML=`<h2>Blown Cover</h2><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16>
+  <button id=mkb style="width:100%" onclick="mk()">Neues Spiel erstellen</button>
+  <div class=row><input id=cd placeholder="Code" maxlength=4 style="text-transform:uppercase"><button class=g onclick="jn()">Beitreten</button></div>
+  <small id=gs>${pos?'GPS bereit ✓':'GPS wird beim Start angefragt'}</small>`;return}
+  const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
+  const sig=JSON.stringify([g.status,g.s,g.winner,g.host,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state]),g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand]);
+  if(!force&&sig===lastSig)return;lastSig=sig;
+  const pl=Object.entries(P());let h='';
+  if(g.status==='lobby'){
+    h=`<div>Spiel-Code</div><div class=code>${esc(code)}</div>`+pl.map(([k,p])=>`<div class=pl><span>${esc(p.name)}${k===g.host?' 👑':''}</span><span>${k===uid?
+      `<button class="s ${p.role==='hunter'?'':'g'}" onclick="setRole('hunter')">Hunter</button><button class="s ${p.role==='hider'?'':'g'}" onclick="setRole('hider')">Hider</button>`:(p.role==='hunter'?'Hunter':'Hider')}</span></div>`).join('');
+    const L_=[['r0','Startradius (m)'],['rMin','Mindestradius (m)'],['shrink','Schrumpfen alle (Min)'],['head','Headstart (Min)'],['dur','Spieldauer (Min)'],['ping','Ping alle (Sek)'],['pen','Strafzeit außerhalb (Min)']];
+    h+=host?`<p><small>Zone verschieben: roten Punkt ziehen oder auf die Karte tippen.</small> <button class="s g" onclick="ctr()">Auf meine Position</button></p><div class=grid>`+L_.map(([k,l])=>`<span>${l}</span><input type=number value="${g.s[k]}" onchange="setS('${k}',this.value)">`).join('')+`</div><button style="width:100%;margin-top:10px" onclick="st()">Spiel starten</button><button class=g style="width:100%" onclick="fin()">Spiel beenden</button>`
+      :`<p><small>Warte auf den Host… Zone ${g.s.r0} m, Dauer ${g.s.dur} Min, Ping alle ${g.s.ping} s.</small></p>`;
+  }else if(g.status==='over'){
+    h=`<h2>${g.winner==='hunter'?'Hunter gewinnen':'Hider gewinnen'}</h2>`+(host?`<button onclick="fin()">Daten löschen &amp; beenden</button>`:`<button class=g onclick="leave()">Verlassen</button>`);
+  }else{
+    const c=g.catches&&g.catches[uid];
+    if(me_.state==='caught')h=`<h2>Du wurdest gefangen 🎯</h2><small>Schau von außen zu.</small>`;
+    else if(me_.state==='dq')h=`<h2>Disqualifiziert (GPS-Signal verloren)</h2>`;
+    else if(me_.role==='hider'){h=`<h2>Du bist Hider</h2><small>Bleib in der Zone und lass dich nicht fangen.</small>`;
+      if(c&&c.status==='pending')h+=`<p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div>`}
+    else{h=`<h2>Du bist Hunter</h2>`;
+      if(run)h+=cand.length?`<p>Wen hast du gefangen?</p>`+cand.map(([k,p])=>`<button style="width:100%" onclick="rq('${k}')">${esc(p.name)}</button>`).join(''):`<button style="width:100%" onclick="cc()">Fang melden</button>`;
+      else h+=`<small>Warte auf das Ende des Headstarts.</small>`}
+    if(host)h+=`<details><summary>Host-Menü</summary><button class=g onclick="endNow()">Spiel beenden</button></details>`;
+  }
+  const o=el.querySelector('details[open]');el.innerHTML=h;if(o){const d=el.querySelector('details');if(d)d.open=true}}
+
+// Karte zeichnen
+const dot=(ll,col,tip,r=8)=>L.circleMarker(ll,{radius:r,color:'#fff',weight:2,fillColor:col,fillOpacity:1}).bindTooltip(tip,{permanent:!!tip,direction:'top'}).addTo(lay);
+function draw(){lay.clearLayers();if(!G)return;const g=G,t=now(),r=Rad(g,t),m=P()[uid]||{},c0=[g.c.lat,g.c.lng];
+  const z=L.circle(c0,{radius:r,color:'#d62828',fillColor:'#d62828',fillOpacity:.07,weight:2}).addTo(lay);
+  const key=r+(g.host===uid?'':c0.join());
+  if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;map.fitBounds(z.getBounds())}
+  if(g.status==='lobby'&&g.host===uid){
+    if(!cm){cm=L.marker(c0,{draggable:true,icon:L.divIcon({className:'',html:'<div class=cm>✥</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
+      cm.on('dragstart',()=>drag=1);cm.on('dragend',()=>{drag=0;const p=cm.getLatLng();db.ref(`games/${code}/c`).set({lat:p.lat,lng:p.lng})})}
+    else if(!drag)cm.setLatLng(c0)}
+  else{if(cm){map.removeLayer(cm);cm=null}if(g.status==='lobby')dot(c0,'#d62828','Zentrum',5)}
+  Object.entries(P()).forEach(([k,p])=>{if(!p.lat)return;const ll=[p.lat,p.lng];
+    if(k===uid)return;
+    if(p.role===m.role&&p.state==='alive')dot(ll,'#2a9d4a',esc(p.name));
+    else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))dot(ll,'#e11','⚠ '+esc(p.name),10)});
+  if(m.role==='hunter'&&ping)Object.values(ping.pts).forEach(p=>dot([p.lat,p.lng],'#f77f00',esc(p.name)+' (Ping)',9));
+  if(pos)dot([pos.lat,pos.lng],'#1e7cf0','',9)}
+
+function onData(){
+  if(G.status==='running'&&!onData.l){onData.l=1;lock()}
+  panel();draw()}
+
+// Sekundentakt
+setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
+  if(g.status==='lobby'){$('hud').innerHTML='';return}
+  if(g.status==='over'){$('hud').innerHTML='<span>Spiel vorbei</span>';return}
+  const R0=rs(g);
+  if(t<g.startAt)h=`<span>Start in ${fmt(g.startAt-t)}</span>`;
+  else if(t<R0)h=m.role==='hunter'?`<span>Hunter starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
+  else{const el=t-R0,nextS=g.s.shrink*6e4-el%(g.s.shrink*6e4),nextP=g.s.ping*1000-el%(g.s.ping*1000);
+    h=`<span>⏱ ${fmt(g.s.dur*6e4-el)}</span>`+(Rad(g,t)>g.s.rMin?`<span>→← ${fmt(nextS)}</span>`:'')+`<span>Ping in ${fmt(nextP)}</span>`}
+  // Hider: Zone & GPS
+  if(m.role==='hider'&&m.state==='alive'&&t>=g.startAt){
+    const gap=Date.now()-lastFix;
+    if(gap>20000)h+=`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,60-Math.floor(gap/1000))} s</span>`;
+    if(gap>60000){db.ref(`games/${code}/players/${uid}/state`).set('dq')}
+    if(pos){const out=D(pos,g.c)>Rad(g,t);
+      if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
+      if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
+      if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`}}
+  // Hunter: Ping-Snapshot
+  if(m.role==='hunter'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
+    if(k>=1&&k!==lastK){lastK=k;ping={k,pts:{}};Object.entries(P()).forEach(([id,p])=>{if(p.role==='hider'&&p.state==='alive'&&p.lat)ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
+      navigator.vibrate&&navigator.vibrate(300);toast('📡 Ping!');draw()}}
+  // Fang-Anfragen
+  Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid)return;
+    if(c.status==='denied'){toast((P()[k]||{}).name+' hat den Fang abgelehnt');db.ref(`games/${code}/catches/${k}`).remove()}
+    else if(c.status==='pending'&&t-c.t>30000){const p=P()[k];
+      if(p&&pos&&p.lat&&D(pos,p)<=50){db.ref(`games/${code}/players/${k}/state`).set('caught');db.ref(`games/${code}/catches/${k}/status`).set('done')}
+      else db.ref(`games/${code}/catches/${k}/status`).set('denied')}});
+  // Spielende (nur Host schreibt)
+  if(g.host===uid&&t>=R0){const alive=Object.values(P()).filter(p=>p.role==='hider'&&p.state==='alive').length;
+    if(!alive)db.ref('games/'+code).update({status:'over',winner:'hunter'});
+    else if(t-R0>=g.s.dur*6e4)db.ref('games/'+code).update({status:'over',winner:'hider'})}
+  $('hud').innerHTML=h;panel()},1000);
+
+firebase.auth().signInAnonymously().then(u=>{uid=u.user.uid;
+  if(localStorage.c){startGPS();join(localStorage.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
+panel();
+</script></body></html>
