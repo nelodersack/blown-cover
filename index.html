@@ -20,7 +20,7 @@ small{color:#aaa}#cb{position:fixed;right:10px;top:62px;z-index:1200;display:non
 #chat{position:fixed;left:0;right:0;bottom:0;height:52vh;max-height:440px;z-index:1600;background:#111;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px #0008;display:none;flex-direction:column}
 #chat.open{display:flex}#chh{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #333;font-weight:700}
 #chh button{background:#333;padding:4px 12px;margin:0}
-#chm{flex:1;overflow:auto;padding:8px 14px;display:flex;flex-direction:column;gap:6px}
+#chm{flex:1;overflow:auto;padding:8px 14px}#chm .chc{display:none;flex-direction:column;gap:6px}#chm .chc.on{display:flex}#cht{display:flex;gap:6px;flex-wrap:wrap}#cht .s{padding:3px 8px;font-size:12px}
 #chm .m{max-width:85%;background:#262626;padding:6px 10px;border-radius:12px;align-self:flex-start;word-break:break-word}
 #chm .m.me{align-self:flex-end;background:#7a1219}#chm .m b{display:block;font-size:11px;color:#aaa;font-weight:600}
 #chr{display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid #333}#chr input{margin:0;flex:1;width:auto}#chr button{margin:0}#ph{padding:4px 0 10px;cursor:grab;touch-action:none}#ph i{display:block;width:48px;height:5px;border-radius:3px;background:#777;margin:0 auto}#panel.c{transform:translateY(calc(100% - 28px))}.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}.g2 label{display:flex;justify-content:space-between;align-items:center;font-size:13px}.g2 input{width:60px;padding:4px 6px;margin:0}.cm{width:30px;height:30px;border-radius:50%;background:#d62828;border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}details{margin-top:10px;border-top:1px solid #333;padding-top:8px}summary{cursor:pointer;color:#aaa}#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;background:#fff;color:#000;padding:8px 14px;border-radius:12px;display:none}
@@ -93,11 +93,11 @@ function myTk(g,t){const T=g.tasks||{},o=[];['sh','ev'].forEach(id=>{if(tv(g,id,
 const tkMsg=x=>x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?'Dead Drop verfallen: dein Partner fiel aus':/s$/.test(x)?'Dead Drop: Du musst allein ran':'Neue Aufgabe: Dead Drop';
 const tv=(g,id,t)=>{const k=g.tasks&&g.tasks[id];return !!k&&t>=k.t0};
 const rankOf=(inn,u)=>{const a=Object.entries(inn||{}).sort((x,y)=>x[1].t-y[1].t||(x[0]<y[0]?-1:1));return a.findIndex(e=>e[0]===u)+1};
-function myItems(g){const r=rankOf(g.tasks&&g.tasks.sh&&g.tasks.sh.in,uid),im=g.s.imm||120,o=[];
+function myItems(g,u=uid){const r=rankOf(g.tasks&&g.tasks.sh&&g.tasks.sh.in,u),im=g.s.imm||120,o=[];
   if(r===1)o.push({id:'sh',type:'imm',sec:im});else if(r===2)o.push({id:'sh',type:'imm',sec:Math.round(im/2)});
   if(bonOn(g))Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isDd(id)||k.sol)return;
-    if(k.dep&&k.dep.u===uid)o.push({id:id+'a',type:'radar'});
-    if(k.pick&&k.pick.u===uid)o.push({id:id+'b',type:'radar'})});
+    if(k.dep&&k.dep.u===u)o.push({id:id+'a',type:'radar'});
+    if(k.pick&&k.pick.u===u)o.push({id:id+'b',type:'radar'})});
   return o}
 function ovPts(j,c,R){const o=[];((j&&j.elements)||[]).forEach(e=>{
   if(e.geometry)e.geometry.forEach(n=>o.push({lat:n.lat,lng:n.lon}));
@@ -208,7 +208,8 @@ async function st(){const v=Object.values(P());
 function cc(){if(!pos)return;const t=now();
   cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&p.lat&&t-p.ts<30000&&D(pos,p)<=40);
   if(!cand.length)toast('Kein Hider in 40 m');panel(1)}
-function rq(h){cand=[];db.ref(`games/${code}/catches/${h}`).set({hunter:uid,t:now(),status:'pending'});toast('Anfrage gesendet');panel(1)}
+function rq(h){cand=[];const q=P()[h]||{},c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
+  db.ref(`games/${code}/catches/${h}`).set(c);toast('Anfrage gesendet');panel(1)}
 function ok(){db.ref(`games/${code}/players/${uid}/state`).set('caught');db.ref(`games/${code}/catches/${uid}/status`).set('done')}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
 async function fin(){if(!confirm('Spiel beenden und alle Daten löschen?'))return;try{await db.ref('chats/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
@@ -247,11 +248,24 @@ function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
       btn=(txt,fn)=>`<button ${near?'':'class=g disabled'} onclick="${fn}">${txt}${near?'':(d===null?' (warte auf GPS)':' (noch '+d+' m)')}</button>`,
       rw=bonOn(g)&&!k.sol?' Belohnung: Hunter-Radar.':'',H=x=>`<div class=tk><b>Dead Drop</b><br><small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;
     if(k.ex)h+=H(['Verfallen: Dein Partner wurde gefangen und es gibt keinen Ersatz. Du hast keine Aufgabe mehr.']);
-    else if(k.fin||k.pick)h+=H([mA&&k.dep?'Datenträger deponiert. Aufgabe erledigt.':mB&&k.pick?'Datenträger abgeholt. Aufgabe erledigt.':'Aufgabe erledigt.']);
+    else if(k.fin||k.pick||(mA&&k.dep))h+=H([mA&&k.dep?'Datenträger deponiert. Aufgabe erledigt.':mB&&k.pick?'Datenträger abgeholt. Aufgabe erledigt.':'Aufgabe erledigt.']);
     else if(k.sol===uid)h+=H(['Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort (ohne Belohnung).',btn('Bestätigen',`chk('${id}')`)]);
     else if(mA)h+=H(['Deponiere den Datenträger am markierten Ort.'+rw,btn('Deponieren',`chk('${id}')`)+` <button class="s g" onclick="rr('${id}')">Ort unpassend</button>`]);
     else if(!k.dep)h+=H(['Warte, bis dein Informant den Datenträger deponiert hat.']);
     else h+=H(['Der Datenträger liegt bereit. Hole ihn am markierten Ort ab.'+rw,btn('Abholen',`chk('${id}')`)])});
+  return h}
+const isSpec=m=>!!m&&m.role==='hider'&&(m.state==='caught'||m.state==='dq'||m.state==='safe');
+function specView(g,t){const T=g.tasks||{};let h='<small>Übersicht der Hider</small>';
+  Object.entries(P()).filter(([k,p])=>p.role==='hider').forEach(([u,p])=>{
+    const st=p.state==='alive'?'frei':p.state==='caught'?'gefangen':p.state==='safe'?'in Sicherheit':'disqualifiziert',tk=[];
+    Object.entries(T).forEach(([id,k])=>{
+      if(isDd(id)&&(k.a===u||k.b===u)){const A=k.a===u,done=k.fin||k.pick||(A&&k.dep);
+        tk.push('Dead Drop ('+(A?'deponieren':'abholen')+'): '+(k.ex?'verfallen':done?'erledigt ✓':t<k.t0?'noch nicht gestartet':'offen'))}
+      if(id==='sh'){const r=rankOf(k.in,u);tk.push('Safehouse: '+(r?'Platz '+r:t<k.t0?'noch nicht gestartet':Object.keys(k.in||{}).length>=2?'nicht erreicht':'offen'))}
+      if(id==='ev')tk.push('Evakuierung: '+(p.state==='safe'?'erreicht ✓':t<k.t0?'noch nicht gestartet':'offen'))});
+    const it=myItems(g,u).map(i=>(i.type==='radar'?'Hunter-Radar':'Immunität '+fmt(i.sec*1000))+(p.used&&p.used[i.id]?' (eingesetzt)':'')),
+      im=(p.immUntil||0)>t?' · Schutz '+fmt(p.immUntil-t):'';
+    h+=`<div class=tk><b>${esc(p.name)}</b> <small>${st}${im}</small><br><small>${tk.length?tk.join('<br>'):'Keine Aufgabe'}</small>${it.length?'<br><small>Boni: '+it.join(', ')+'</small>':''}</div>`});
   return h}
 function useRadar(id){const pts=Object.values(P()).filter(p=>p.role==='hunter'&&p.lat).map(p=>({lat:p.lat,lng:p.lng,name:p.name}));
   db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Hunter-Radar: '+pts.length+' Hunter geortet (60 s sichtbar)');draw();panel(1)})}
@@ -260,25 +274,32 @@ function hInv(g,me_,t){const it=myItems(g),act=(me_.immUntil||0)>t;let h='';
     if(i.type==='radar')h+=`<div class=tk><b>Hunter-Radar</b> `+(used?'<small>eingesetzt</small>':`<button class="s" onclick="useRadar('${i.id}')">Einsetzen</button>`)+`</div>`;
     else h+=`<div class=tk><b>Immunität</b> ${fmt(i.sec*1000)} `+(used?'<small>eingesetzt</small>':act?'<small>Schutz läuft noch</small>':`<button class="s" onclick="useImm('${i.id}',${i.sec})">Einsetzen</button>`)+`</div>`});
   return h?`<small>Inventar</small>`+h:''}
-// Team-Chat (Hunter und Hider haben je einen eigenen Kanal)
-let chRole=null,chRef=null,chOpen=false,chUnread=0,chSince=0;
+// Chat: aktive Spieler haben einen Teamkanal; Ausgeschiedene Hider lesen alles, schreiben nur in "out"
+let chSet='',chRefs={},chCur=null,chOpen=false,chUnread=0,chSince=0;
+const chName={hunter:'Hunter',hider:'Hider',out:'Ausgeschieden'};
+function chChans(){const m=P()[uid];if(!m||!m.role)return[];return isSpec(m)?['out','hider','hunter']:[m.role]}
+const chCanWrite=ch=>{const m=P()[uid]||{};return isSpec(m)?ch==='out':ch===m.role};
 function chBadge(){const b=$('cbn');b.textContent=chUnread;b.style.display=chUnread?'inline-block':'none'}
+function chShow(ch){chCur=ch;document.querySelectorAll('#chm .chc').forEach(e=>e.classList.toggle('on',e.dataset.ch===ch));
+  $('chr').style.display=chCanWrite(ch)?'flex':'none';chTabs();const b=$('chm');b.scrollTop=b.scrollHeight}
+function chTabs(){const cs=chChans();$('cht').innerHTML=cs.length>1?cs.map(c=>`<button class="s ${c===chCur?'':'g'}" onclick="chShow('${c}')">${chName[c]}${chCanWrite(c)?'':' 👁'}</button>`).join(' '):'Team-Chat: '+chName[cs[0]||'hider']}
 function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);
   if(chOpen){chUnread=0;chBadge();const b=$('chm');b.scrollTop=b.scrollHeight}}
-function chSend(){const i=$('chi'),x=i.value.trim().slice(0,200);if(!x||!code||!chRole)return;
-  const m=P()[uid]||{};db.ref(`chats/${code}/${chRole}`).push({u:uid,n:(m.name||'Agent').slice(0,16),t:now(),x});i.value=''}
-function chatSync(){const m=P()[uid],r=m&&m.role;$('cb').style.display=(code&&r)?'block':'none';
-  if(!code||!r||r===chRole)return;
-  if(chRef)chRef.off();
-  chRole=r;$('chm').innerHTML='';chUnread=0;chBadge();$('cht').textContent='Team-Chat: '+(r==='hunter'?'Hunter':'Hider');chSince=now()-1000;
-  chRef=db.ref(`chats/${code}/${r}`).limitToLast(50);
-  chRef.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;
-    const d=document.createElement('div');d.className='m'+(c.u===uid?' me':'');
-    const n=document.createElement('b');n.textContent=c.u===uid?'Du':String(c.n||'?');
-    const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
-    const box=$('chm'),low=box.scrollHeight-box.scrollTop-box.clientHeight<60;box.appendChild(d);
-    if(low||c.u===uid)box.scrollTop=box.scrollHeight;
-    if(!chOpen&&c.u!==uid&&c.t>chSince){chUnread++;chBadge()}},()=>{})}
+function chSend(){const i=$('chi'),x=i.value.trim().slice(0,200);if(!x||!code||!chCur||!chCanWrite(chCur))return;
+  const m=P()[uid]||{};db.ref(`chats/${code}/${chCur}`).push({u:uid,n:(m.name||'Agent').slice(0,16),t:now(),x});i.value=''}
+function chatSync(){const cs=chChans();$('cb').style.display=(code&&cs.length)?'block':'none';
+  const key=cs.join();if(!code||!cs.length||key===chSet)return;
+  Object.values(chRefs).forEach(r=>r.off());chRefs={};chSet=key;chUnread=0;chBadge();chSince=now()-1000;
+  $('chm').innerHTML=cs.map(c=>`<div class=chc data-ch="${c}"></div>`).join('');
+  cs.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(`chats/${code}/${ch}`).limitToLast(50);chRefs[ch]=ref;
+    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;
+      const d=document.createElement('div');d.className='m'+(c.u===uid?' me':'');
+      const n=document.createElement('b');n.textContent=c.u===uid?'Du':String(c.n||'?');
+      const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
+      const sc=$('chm'),low=sc.scrollHeight-sc.scrollTop-sc.clientHeight<60;box.appendChild(d);
+      if(low||c.u===uid)sc.scrollTop=sc.scrollHeight;
+      if((!chOpen||ch!==chCur)&&c.u!==uid&&c.t>chSince){chUnread++;chBadge()}},()=>{})});
+  chShow(cs.includes(chCur)?chCur:cs[0])}
 // Panel ziehen: folgt dem Finger, rastet beim Loslassen ein
 {const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0;
  const lim=()=>P_.offsetHeight-28;
@@ -297,7 +318,7 @@ function panel(force){const el=$('pb');
   <small id=gs>${pos?'GPS bereit ✓':'GPS wird beim Start angefragt'}</small>`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.values(g.tasks||{}).map(v=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null])]):'';
-  const sig=JSON.stringify([g.status,g.s,g.winner,g.host,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state]),g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand,tsk,me_.used,(me_.immUntil||0)>t]);
+  const sig=JSON.stringify([g.status,g.s,g.winner,g.host,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state]),g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand,tsk,me_.used,(me_.immUntil||0)>t,isSpec(me_)?Object.values(P()).map(p=>[p.used,(p.immUntil||0)>t]):0]);
   if(!force&&sig===lastSig)return;lastSig=sig;
   const pl=Object.entries(P());let h='';
   if(g.status==='lobby'){
@@ -316,9 +337,9 @@ function panel(force){const el=$('pb');
     h=`<h2>${g.winner==='hunter'?'Hunter gewinnen':'Hider gewinnen'}</h2>`+(host?`<button onclick="fin()">Daten löschen &amp; beenden</button>`:`<button class=g onclick="leave()">Verlassen</button>`);
   }else{
     const c=g.catches&&g.catches[uid];
-    if(me_.state==='caught')h=`<h2>Du wurdest gefangen 🎯</h2><small>Schau von außen zu.</small>`;
-    else if(me_.state==='dq')h=`<h2>Disqualifiziert (GPS-Signal verloren)</h2>`;
-    else if(me_.state==='safe')h=`<h2>Du bist in Sicherheit</h2><small>Du kannst nicht mehr gefangen werden.</small>`;
+    if(me_.state==='caught')h=`<h2>Du wurdest gefangen 🎯</h2><small>Du siehst alle live auf der Karte und kannst in allen Chats mitlesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</small>`+specView(g,t);
+    else if(me_.state==='dq')h=`<h2>Disqualifiziert (GPS-Signal verloren)</h2><small>Du siehst alle live auf der Karte und kannst in allen Chats mitlesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</small>`+specView(g,t);
+    else if(me_.state==='safe')h=`<h2>Du bist in Sicherheit</h2><small>Du kannst nicht mehr gefangen werden. Du siehst alle live auf der Karte und kannst in allen Chats mitlesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</small>`+specView(g,t);
     else if(me_.role==='hider'){h=`<h2>Du bist Hider</h2><small>${md(g)==='mission'?'Erreiche die Evakuierung, sobald sie erscheint, und lass dich nicht fangen.':'Bleib in der Zone und lass dich nicht fangen.'}</small>`;
       if(c&&c.status==='pending')h+=`<p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div>`;
       h+=hTasks(g,t)+hInv(g,me_,t)}
@@ -340,12 +361,15 @@ function draw(){lay.clearLayers();if(!G)return;const g=G,t=now(),r=Rad(g,t),m=P(
       cm.on('dragstart',()=>drag=1);cm.on('dragend',()=>{drag=0;const p=cm.getLatLng();db.ref(`games/${code}/c`).set({lat:p.lat,lng:p.lng})})}
     else if(!drag)cm.setLatLng(c0)}
   else{if(cm){map.removeLayer(cm);cm=null}if(g.status==='lobby')dot(c0,'#d62828','Zentrum',5)}
+  const spec=isSpec(m);
   Object.entries(P()).forEach(([k,p])=>{if(!p.lat)return;const ll=[p.lat,p.lng];
     if(k===uid)return;
+    if(spec){const ded=p.state!=='alive';dot(ll,p.role==='hunter'?'#e63946':ded?'#999':'#2a9d4a',esc(p.name)+(p.role==='hunter'?' (Hunter)':''),8,ded?.5:1);return}
     if(p.role===m.role&&p.state==='alive'){if(!(m.role==='hider'&&g.status==='running'))dot(ll,'#2a9d4a',esc(p.name))}
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))dot(ll,'#e11','⚠ '+esc(p.name),10)});
-  if(ping)Object.values(ping.pts).forEach(p=>dot([p.lat,p.lng],'#f77f00',m.role==='hunter'?esc(p.name)+' (Ping)':'Dein letzter Ping',m.role==='hunter'?9:14));
-  if(ping&&ping.grey)Object.values(ping.grey).forEach(p=>dot([p.lat,p.lng],'#888',esc(p.name)+' (nicht ortbar)',9,.55));
+  if(ping)Object.entries(ping.pts).forEach(([id,p])=>{if(P()[id]&&P()[id].state!=='alive')return;dot([p.lat,p.lng],'#f77f00',m.role==='hunter'?esc(p.name)+' (Ping)':'Dein letzter Ping',m.role==='hunter'?9:14)});
+  if(ping&&ping.grey)Object.entries(ping.grey).forEach(([id,p])=>{if(P()[id]&&P()[id].state!=='alive')return;dot([p.lat,p.lng],'#888',esc(p.name)+' (nicht ortbar)',9,.55)});
+  if(m.role==='hunter'||spec)Object.entries(g.catches||{}).forEach(([h,c])=>{const q=P()[h];if(c.status==='done'&&c.lat&&q&&q.state==='caught')dot([c.lat,c.lng],'#d6249f','✓ '+esc(q.name)+' gefangen',8)});
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')['sh','ev'].forEach(id=>{const k=g.tasks&&g.tasks[id];
     if(!k||t<k.t0||(id==='sh'&&(Object.keys(k.in||{}).length>=2||(k.in&&k.in[uid]))))return;
     L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7b2cbf',weight:2,fillColor:'#7b2cbf',fillOpacity:.15}).addTo(lay);
