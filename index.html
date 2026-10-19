@@ -33,6 +33,9 @@ button.g{background:none;color:var(--fg);border-color:#475262}button.s{min-heigh
 button.ghost{background:none;color:var(--mut);border:0;font-weight:500;min-height:40px;font-size:13px;white-space:nowrap;padding:8px 6px}
 button.dng{background:var(--danger);color:#fff}button:disabled{background:var(--panel2);color:var(--mut);border-color:var(--line);cursor:not-allowed;opacity:1}
 button .ic{width:18px;height:18px}
+#stb{isolation:isolate;position:relative;overflow:hidden}
+#stb.busy:disabled{background:linear-gradient(90deg,#fff var(--p,0%),var(--panel2) var(--p,0%));border-color:var(--line)}
+#stb.busy span{color:#fff;mix-blend-mode:difference}
 input{font:500 16px var(--f-b);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-height:44px;margin:3px 0}
 select{font:inherit;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-offset:2px}
@@ -227,10 +230,11 @@ function tilePts(c,R){try{const gm=vt&&vt.getMaplibreMap&&vt.getMaplibreMap();if
     walk(f.geometry.coordinates,/^(primary|secondary)/.test(k)?major:minor)});
   gm.querySourceFeatures(src,{sourceLayer:'park'}).forEach(f=>{if(f.geometry)walk(f.geometry.coordinates,minor)});
   return{minor:Object.values(minor),major:Object.values(major)}}catch(e){ovErr=String(e).slice(0,30);return null}}
-async function ovPost(q){for(const h of['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
-  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),14000);
-    const r=await fetch(h,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});
-    clearTimeout(tm);if(r.ok)return await r.json();ovErr='HTTP '+r.status}catch(e){ovErr=String(e&&e.name||e).slice(0,20)}}return null}
+async function ovPost(q){const hs=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter'],acs=[];
+  const run=h=>new Promise((res,rej)=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),10000);acs.push(ac);
+    fetch(h,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal})
+      .then(r=>{clearTimeout(tm);if(!r.ok){ovErr='HTTP '+r.status;throw 0}return r.json()}).then(res).catch(e=>{clearTimeout(tm);if(e)ovErr=String(e.name||e).slice(0,20);rej()})});
+  try{const r=await Promise.any(hs.map(run));acs.forEach(a=>{try{a.abort()}catch(e){}});return r}catch(e){return null}}
 async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${Math.round(R)},${c.lat},${c.lng})`;
   const j1=await ovPost(`[out:json][timeout:20];way${A}["highway"]["highway"!~"^(motorway|motorway_link|trunk|trunk_link|construction|proposed|raceway|bus_guideway|primary|primary_link|secondary|secondary_link)$"]["access"!~"^(private|no)$"];out geom 600;way${A}["leisure"~"^(park|playground|garden)$"];out center 100;`);
   let sel=pickSpaced(ovPts(j1,c,R),n,d);
@@ -341,17 +345,19 @@ function newRound(){const g=G;if(!g)return;const me_=P()[uid]||{};
   Object.entries(P()).forEach(([k,p])=>{u['players/'+k]=p.lf?null:(k===uid?{name:p.name,role:p.role,state:'alive',j:p.j||0}:{name:p.name,role:p.role,state:'alive',j:p.j||0,w:true})});
   const ho=P()[g.host];if(!ho||ho.lf){const c=Object.entries(P()).filter(([k,p])=>!p.lf).sort(byJ)[0];if(c)u.host=c[0]}
   db.ref('games/'+code).update(u).then(()=>db.ref('chats/'+code).remove()).catch(()=>{})}
+let stP=0,stTm=0;
+function stEnd(){clearInterval(stTm);stBusy=false}
 async function st(){if(stBusy)return;const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object.values(P()).filter(p=>!p.w);
   if(!v.some(p=>p.role==='hunter')||!v.some(p=>p.role==='hider'))return toast('Mindestens 1 Hunter und 1 Hider nötig');
   if(pend.length&&!confirm('Diese Spieler sind noch nicht in der Lobby und fliegen aus dem Spiel, wenn du jetzt startest:\n\n'+pend.map(x=>x[1].name).join(', ')+'\n\nTrotzdem starten?'))return;
-  stBusy=true;const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
+  stBusy=true;stP=3;clearInterval(stTm);stTm=setInterval(()=>{stP+=(92-stP)*.035;const x=$('stb');if(x)x.style.setProperty('--p',stP.toFixed(1)+'%')},100);const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
   const hs=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&!p.w).map(e=>e[0]);
   for(let i=hs.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[hs[i],hs[j]]=[hs[j],hs[i]]}
   const nd=Math.min(s.ddN||0,Math.floor(hs.length/2)),nm=Math.min(s.mtN||0,Math.floor((hs.length-2*nd)/2)),notes=[];
   if((s.ddN||0)>nd||(s.mtN||0)>nm)notes.push('Zu wenige Hider: nur '+nd+' Dead Drop(s) und '+nm+' Meeting(s)');
   else if(nd+nm>0&&2*(nd+nm)>=hs.length)notes.push('Hinweis: kein Reserve-Hider für Ersatz');
   const dd=Array.from({length:nd},(_,i)=>'d'+(i+1)),need=base.concat(dd);
-  if(b){b.disabled=true;b.textContent='Orte werden gesucht…'}
+  if(b){b.disabled=true;b.classList.add('busy');b.innerHTML='<span>Orte werden gesucht…</span>'}
   try{let r=null;if(need.length||nm)r=await mkPts(g.c,Math.max(40,taskRad(s)-15),4*need.length+nm);
     const startAt=now()+5000,R0=startAt+s.head*6e4,tasks={};
     need.forEach((id,i)=>{const a=r.pts.slice(i*4,i*4+4),d=isDd(id);
@@ -361,8 +367,8 @@ async function st(){if(stBusy)return;const pend=Object.entries(P()).filter(([k,p
     if(r&&r.fb)notes.unshift(r.net?'Kartendienst nicht erreichbar ('+(r.err||'?')+'): Zufallsorte':'Nur '+r.real+' von '+r.n+' Orten aus Kartendaten, Rest zufällig');
     if(notes.length)toast(notes.join(' · '));
     const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
-    await db.ref('games/'+code).update(u);stBusy=false}
-  catch(e){stBusy=false;if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.textContent='Spiel starten'}}}
+    await db.ref('games/'+code).update(u);stP=100;stEnd()}
+  catch(e){stEnd();if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.classList.remove('busy');b.textContent='Spiel starten'}}}
 // Fangen
 function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;
   cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
@@ -600,7 +606,7 @@ function lobbyUI(g,host,me_){
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
   }
-  const f=(host?`<button id=stb onclick="st()"${stBusy?' disabled':''}>${stBusy?'Orte werden gesucht…':'Spiel starten'}</button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
+  const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?'Orte werden gesucht…':'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
   return[b,f]}
 
