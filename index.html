@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Blown Cover">
 <link rel="icon" type="image/png" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Blown Cover</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://blown-cover-default-rtdb.europe-west1.firebasedatabase.app; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; connect-src 'self' https://blown-cover-default-rtdb.europe-west1.firebasedatabase.app wss://blown-cover-default-rtdb.europe-west1.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://tiles.openfreemap.org https://server.arcgisonline.com https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; worker-src blob:; child-src blob:; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://*.firebasedatabase.app; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://tiles.openfreemap.org https://server.arcgisonline.com https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; worker-src blob:; child-src blob:; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="vendor/fonts.css">
 <style>
@@ -307,8 +307,10 @@ async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.
     for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
     if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
   let c='';for(let k=0;k<8;k++){c=Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b&31]).join('');
-    try{if(!(await db.ref('games/'+c+'/status').get()).exists())break}catch(e){break}}
-  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:240,shOn:true,shT:20,evT:8,ddN:1,ddT:8,mtN:0,mtT:15,bon:true,hbOn:true,hbN:2,hbC:90,hbL:60,hbT:30,gw:20,gd:60,ot:5}});join(c)}
+    try{if(!(await Promise.race([db.ref('games/'+c+'/status').get(),new Promise((_,j)=>setTimeout(j,6000))])).exists())break}catch(e){break}}
+  const tmo=new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),12000));
+  try{await Promise.race([tmo,db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:240,shOn:true,shT:20,evT:8,ddN:1,ddT:8,mtN:0,mtT:15,bon:true,hbOn:true,hbN:2,hbC:90,hbL:60,hbT:30,gw:20,gd:60,ot:5}})]);const b=$('mkb');if(b)b.textContent='Neues Spiel erstellen'}catch(e){const b=$('mkb');if(b){b.textContent='Neues Spiel erstellen';b.disabled=false}return toast('Keine Verbindung zur Datenbank')}
+  join(c)}
 function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
 async function join(c){
   if(!/^[A-Z2-9]{4,6}$/.test(c))return toast('Code unbekannt');
