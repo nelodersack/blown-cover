@@ -120,7 +120,7 @@ const db=firebase.database();
 const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let lk={},lastTV='',radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
-let rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
+let stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn)connSince=Date.now()});
@@ -341,10 +341,10 @@ function newRound(){const g=G;if(!g)return;const me_=P()[uid]||{};
   Object.entries(P()).forEach(([k,p])=>{u['players/'+k]=p.lf?null:(k===uid?{name:p.name,role:p.role,state:'alive',j:p.j||0}:{name:p.name,role:p.role,state:'alive',j:p.j||0,w:true})});
   const ho=P()[g.host];if(!ho||ho.lf){const c=Object.entries(P()).filter(([k,p])=>!p.lf).sort(byJ)[0];if(c)u.host=c[0]}
   db.ref('games/'+code).update(u).then(()=>db.ref('chats/'+code).remove()).catch(()=>{})}
-async function st(){const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object.values(P()).filter(p=>!p.w);
+async function st(){if(stBusy)return;const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object.values(P()).filter(p=>!p.w);
   if(!v.some(p=>p.role==='hunter')||!v.some(p=>p.role==='hider'))return toast('Mindestens 1 Hunter und 1 Hider nötig');
   if(pend.length&&!confirm('Diese Spieler sind noch nicht in der Lobby und fliegen aus dem Spiel, wenn du jetzt startest:\n\n'+pend.map(x=>x[1].name).join(', ')+'\n\nTrotzdem starten?'))return;
-  const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
+  stBusy=true;const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
   const hs=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&!p.w).map(e=>e[0]);
   for(let i=hs.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[hs[i],hs[j]]=[hs[j],hs[i]]}
   const nd=Math.min(s.ddN||0,Math.floor(hs.length/2)),nm=Math.min(s.mtN||0,Math.floor((hs.length-2*nd)/2)),notes=[];
@@ -361,8 +361,8 @@ async function st(){const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object
     if(r&&r.fb)notes.unshift(r.net?'Kartendienst nicht erreichbar ('+(r.err||'?')+'): Zufallsorte':'Nur '+r.real+' von '+r.n+' Orten aus Kartendaten, Rest zufällig');
     if(notes.length)toast(notes.join(' · '));
     const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
-    await db.ref('games/'+code).update(u)}
-  catch(e){toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.textContent='Spiel starten'}}}
+    await db.ref('games/'+code).update(u);stBusy=false}
+  catch(e){stBusy=false;if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.textContent='Spiel starten'}}}
 // Fangen
 function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;
   cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
@@ -430,7 +430,17 @@ function chk(id){const k=G.tasks&&G.tasks[id],m=P()[uid]||{};if(!k||!pos||m.stat
   if(id==='sh'){if(Object.keys(k.in||{}).length>=2)return toast('Safehouse bereits vergeben');
     db.ref(`games/${code}/tasks/sh/in/${uid}`).set({t:now()}).then(()=>toast('Eingecheckt'))}
   else db.ref(`games/${code}/players/${uid}/state`).set('safe').then(()=>toast('Evakuiert: Du bist in Sicherheit'))}
-function rr(id){const k=G.tasks&&G.tasks[id];if(!k||isMt(id))return;
+const rvEl=()=>Object.entries(P()).filter(([u,p])=>p.role==='hider'&&p.state==='alive'&&!p.w).map(e=>e[0]);
+function rvApply(k){const n=(k.rr||0)+1,alt=Object.values(k.alt||{});
+  if(n>alt.length){toast('Keine weiteren Orte verfügbar');return db.ref(`games/${code}/tasks/sh/rv`).remove().catch(()=>{})}
+  db.ref(`games/${code}/tasks/sh`).update({rr:n,loc:alt[n-1],rv:null}).catch(()=>{})}
+function rvTog(){const k=G.tasks&&G.tasks.sh;if(!k||Object.keys(k.in||{}).length||(P()[uid]||{}).state!=='alive')return;
+  const ref=db.ref(`games/${code}/tasks/sh/rv/${uid}`);
+  if((k.rv||{})[uid])return ref.remove().catch(()=>{});
+  const rv=Object.assign({},k.rv||{},{[uid]:true});
+  if(rvEl().every(u=>rv[u]))return rvApply(k);
+  ref.set(true).catch(()=>{})}
+function rr(id){const k=G.tasks&&G.tasks[id];if(!k||isMt(id))return;if(id==='sh')return rvTog();
   if(isDd(id)){if(k.a!==uid||k.dep||k.sol||k.fin||k.ex)return}else if(Object.keys(k.in||{}).length)return;
   const n=(k.rr||0)+1,alt=Object.values(k.alt||{});if(n>alt.length)return toast('Keine weiteren Orte verfügbar');
   db.ref(`games/${code}/tasks/${id}`).update({rr:n,loc:alt[n-1]})}
@@ -443,7 +453,7 @@ function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
     if(id==='sh'){const r=rankOf(k.in,uid);
       if(r)h+=`<div class=tk>${TH('home','Safehouse')}<small>Eingecheckt, Platz ${r}${r>2?': leider ohne Belohnung':''}.</small></div>`;
       else if(ins.length>=2)h+=`<div class=tk>${TH('home','Safehouse')}<small>Beide Plätze sind vergeben.</small></div>`;
-      else h+=`<div class=tk>${TH('home','Safehouse')}<small>Erreiche den markierten Ort vor den anderen. Frei: ${2-ins.length} von 2. Platz 1: Immunität ${fmt(im*1000)}, Platz 2: ${fmt(im*500)}.</small><br>${btn('Einchecken',"chk('sh')")} <button class="s g" onclick="rr('sh')">Ort unpassend</button></div>`}
+      else h+=`<div class=tk>${TH('home','Safehouse')}<small>Erreiche den markierten Ort vor den anderen. Frei: ${2-ins.length} von 2. Platz 1: Immunität ${fmt(im*1000)}, Platz 2: ${fmt(im*500)}.</small><br>${btn('Einchecken',"chk('sh')")} <button class="s g" onclick="rr('sh')">${(k.rv||{})[uid]?'Stimme zurücknehmen':'Ort unpassend'} (${rvEl().filter(u=>(k.rv||{})[u]).length}/${rvEl().length})</button><small>Der Ort wechselt nur, wenn alle Hider „unpassend“ wählen.</small></div>`}
     else h+=`<div class=tk>${TH('exit','Evakuierung')}<small>Erreiche den markierten Ort und bestätige, dann bist du in Sicherheit.</small><br>${btn('Evakuierung bestätigen',"chk('ev')")} <button class="s g" onclick="rr('ev')">Ort unpassend</button></div>`});
   Object.keys(T).filter(isDd).sort().forEach(id=>{const k=T[id];if(t<k.t0)return;
     const mA=k.a===uid,mB=k.b===uid;if(!mA&&!mB)return;
@@ -590,7 +600,7 @@ function lobbyUI(g,host,me_){
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
   }
-  const f=(host?`<button id=stb onclick="st()">Spiel starten</button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
+  const f=(host?`<button id=stb onclick="st()"${stBusy?' disabled':''}>${stBusy?'Orte werden gesucht…':'Spiel starten'}</button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
   return[b,f]}
 
@@ -747,7 +757,8 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die Hunter orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
   if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t),ks=Object.keys(up);
     if(ks.length){ddLock=t+2500;ks.forEach(i=>db.ref(`games/${code}/tasks/${i}`).update(up[i]).catch(()=>{}))}}
-  if(m.role==='hider'&&m.state==='alive')mtTick(g);
+  if(m.role==='hider'&&m.state==='alive'){mtTick(g);const sk=g.tasks&&g.tasks.sh;
+    if(sk&&sk.rv&&!Object.keys(sk.in||{}).length&&t>=rvLock){const el=rvEl();if(el.length&&el.every(u=>sk.rv[u])){rvLock=t+4000;rvApply(sk)}}}
   // Hider: eigener letzter Ping
   if(m.role==='hider'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
     if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){const q=P()[uid];
