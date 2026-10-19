@@ -7,8 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Blown Cover">
 <link rel="icon" type="image/png" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Blown Cover</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://blown-cover-default-rtdb.europe-west1.firebasedatabase.app; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; connect-src 'self' https://blown-cover-default-rtdb.europe-west1.firebasedatabase.app wss://blown-cover-default-rtdb.europe-west1.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://tiles.openfreemap.org https://server.arcgisonline.com https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; worker-src blob:; child-src blob:; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="vendor/fonts.css">
 <style>
 :root{--bg:#0b0e12;--panel:#141a21;--panel2:#1b232c;--line:#2a343f;--fg:#e9eef3;--mut:#8d99a8;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--grey:#7a8696;
 --f-d:'Barlow Condensed','Arial Narrow',sans-serif;--f-b:'Barlow',system-ui,sans-serif;--f-m:'JetBrains Mono',ui-monospace,monospace;color-scheme:dark}
@@ -102,13 +103,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
 <div id=chro style="display:none;padding:10px 14px 14px;border-top:1px solid #333;color:#aaa;font-size:13px">Nur lesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</div>
 <div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()"><button onclick="chSend()">Senden</button></div></div>
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/maplibre-gl.js"></script>
+<script src="vendor/leaflet-maplibre-gl.js"></script>
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-database-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyD0T2moi4bFBaOpJyiRWRD7iBinnuyh9N0",
@@ -298,25 +299,30 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()},
     e=>toast('GPS: '+e.message),{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
 function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
-  db.ref(`games/${code}/players/${uid}`).update({lat:pos.lat,lng:pos.lng,ts:now()})}
+  db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).catch(()=>{})}
 
 // Start / Beitritt
 async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
   if(!pos){const b=$('mkb');b.textContent='GPS wird gesucht…';b.disabled=true;
     for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
     if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
-  const c=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
+  let c='';for(let k=0;k<8;k++){c=Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b&31]).join('');
+    try{if(!(await db.ref('games/'+c+'/status').get()).exists())break}catch(e){break}}
   await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:240,shOn:true,shT:20,evT:8,ddN:1,ddT:8,mtN:0,mtT:15,bon:true,hbOn:true,hbN:2,hbC:90,hbL:60,hbT:30,gw:20,gd:60,ot:5}});join(c)}
 function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
-async function join(c){const s=await db.ref('games/'+c).get();
-  if(!s.exists()){LS.removeItem('c');return toast('Code unbekannt')}
-  const g=s.val(),had=g.players&&g.players[uid];
-  if(g.status!=='lobby'&&!had)return toast('Spiel läuft bereits');
+async function join(c){
+  if(!/^[A-Z2-9]{4,6}$/.test(c))return toast('Code unbekannt');
+  let st,had;
+  try{const [a,b]=await Promise.all([db.ref('games/'+c+'/status').get(),db.ref(`games/${c}/players/${uid}`).get()]);st=a.val();had=b.val()}
+  catch(e){return toast('Beitritt nicht möglich')}
+  if(st==null){LS.removeItem('c');return toast('Code unbekannt')}
+  if(st!=='lobby'&&!had){LS.removeItem('c');return toast('Spiel läuft bereits')}
   if(had&&had.lf){LS.removeItem('c');return toast('Du hast dieses Spiel verlassen')}
   code=c;LS.c=c;
-  if(!had)await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'hider',state:'alive',j:now()});
-  evSince=now()-1000;db.ref(`games/${c}/ev`).limitToLast(20).on('child_added',sn=>{const e=sn.val();if(e&&e.t>=evSince&&e.u!==uid&&typeof e.x==='string')note(e.x)});
-  db.ref('games/'+c).on('value',s=>{if(!s.exists()){LS.removeItem('c');location.reload();return}G=s.val();onData()})}
+  if(!had)try{await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'hider',state:'alive',j:now()})}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}
+  const lost=()=>{if(leaving)return;LS.removeItem('c');toast('Du bist nicht mehr in diesem Spiel');setTimeout(()=>location.reload(),1200)};
+  evSince=now()-1000;db.ref(`games/${c}/ev`).limitToLast(20).on('child_added',sn=>{const e=sn.val();if(e&&e.t>=evSince&&e.u!==uid&&typeof e.x==='string')note(e.x)},()=>{});
+  db.ref('games/'+c).on('value',s=>{if(!s.exists()){LS.removeItem('c');location.reload();return}G=s.val();onData()},lost)}
 
 // Lobby-Aktionen
 const setRole=r=>db.ref(`games/${code}/players/${uid}/role`).set(r);
@@ -336,7 +342,7 @@ async function leaveGame(){const g=G,m=P()[uid]||{};
     if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
     if(g.host===uid)u.host=others[0][0];
     if(g.status==='lobby')u['players/'+uid]=null;
-    else{u['players/'+uid+'/lf']=true;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
+    else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
     await db.ref('games/'+code).update(u)}
   catch(e){leaving=false;toast('Verlassen nicht möglich: '+String(e.message||e).slice(0,50));return}
   leave()}
@@ -640,7 +646,7 @@ function panel(force){const el=$('pb');
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('pf').innerHTML='';
     el.innerHTML=`<div class=logo>Blown<br><span>Cover</span></div><p class="mut sm">Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.</p><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
   <button id=mkb onclick="mk()">Neues Spiel erstellen</button><div class="mut sm" style="text-align:center">oder beitreten</div>
-  <div class=row><input id=cd placeholder="Code" maxlength=4 aria-label="Code" style="text-transform:uppercase;text-align:center;letter-spacing:.3em"><button class=g onclick="jn()">Beitreten</button></div>
+  <div class=row><input id=cd placeholder="Code" maxlength=6 aria-label="Code" style="text-transform:uppercase;text-align:center;letter-spacing:.3em"><button class=g onclick="jn()">Beitreten</button></div>
   <small id=gs style="text-align:center">${pos?'GPS bereit ✓':'GPS wird beim Start angefragt'}</small>`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.entries(g.tasks||{}).map(([id,v])=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null,isMt(id)&&mtD(v)!==null?Math.round(mtD(v)/10):null])]):'';
@@ -718,7 +724,7 @@ function draw(){redrawing=true;reop=null;lay.clearLayers();
 
 function onData(){
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
-  if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1)}else if(G.status!=='over')onData.pc=0;
+  if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
   if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   panel();draw();chatSync()}
