@@ -747,16 +747,16 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   if(m.role==='hider'&&m.state==='alive')mtTick(g);
   // Hider: eigener letzter Ping
   if(m.role==='hider'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
-    if(k>=1&&k!==lastK){lastK=k;const q=P()[uid];
+    if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){const q=P()[uid];
       if(q&&(q.immUntil||0)>t)toast('Ping ausgesetzt: Du bist geschützt');
-      else if(q&&q.lat){ping={k,t:now(),pts:{[uid]:{lat:q.lat,lng:q.lng,name:q.name}}};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort');draw()}}}
+      else if(q&&q.lat){ping={k,t:now(),pts:{[uid]:{lat:q.lat,lng:q.lng,name:q.name}}};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort');draw()}}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
-    if(k>=1&&k!==lastK){lastK=k;ping={k,t:now(),pts:{},grey:{}};const nm=[];
+    if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};const nm=[];
       Object.entries(P()).forEach(([id,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
         if((p.immUntil||0)>t){nm.push(p.name);if(lk[id])ping.grey[id]=lk[id]}
         else if(p.lat){ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name};lk[id]=ping.pts[id]}});
-      navigator.vibrate&&navigator.vibrate(300);toast(nm.length?'📡 Ping! Nicht ortbar: '+nm.join(', '):'📡 Ping!');draw()}}
+      navigator.vibrate&&navigator.vibrate(300);toast(nm.length?'📡 Ping! Nicht ortbar: '+nm.join(', '):'📡 Ping!');draw()}}}
   // Fang-Anfragen
   {const c=(g.catches||{})[uid];if(c&&c.status==='pending'){const hq=P()[c.hunter];if(!hq||hq.state!=='alive')db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{})}}
   Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid||m.state!=='alive')return;
