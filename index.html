@@ -123,7 +123,7 @@ const db=firebase.database();
 const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let lk={},lastTV='',radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
-let stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
+let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn)connSince=Date.now()});
@@ -165,7 +165,8 @@ const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+St
 // <helpers>
 const RadS=(s,el)=>Math.max(s.rMin,s.r0-sstp(s)*Math.max(0,Math.floor(el/(s.shrink*6e4))));
 const lastR=s=>RadS(s,s.dur*6e4-1);
-const taskRad=s=>s.taskR>0?s.taskR:lastR(s);
+const zoneSeq=s=>{const a=[s.r0],st=Math.max(1,sstp(s));let r=s.r0;while(r>s.rMin&&a.length<500){r=Math.max(s.rMin,r-st);a.push(r)}return a};
+const taskRad=s=>s.taskR>0?s.taskR:zoneSeq(s)[Math.max(0,zoneSeq(s).length-3)];
 const md=g=>g.s.mode||'survive';
 const isDd=id=>/^d[1-9]$/.test(id),isMt=id=>/^m[1-9]$/.test(id);
 const bonOn=g=>md(g)==='survive'||g.s.bon!==false;
@@ -305,7 +306,7 @@ async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.
     for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
     if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
   const c=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
-  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:120,shOn:true,shT:10,evT:5,ddN:1,ddT:5,mtN:0,mtT:5,bon:true,hbOn:true,hbN:2,hbC:60,hbL:60,hbT:10,gw:20,gd:60}});join(c)}
+  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:240,shOn:true,shT:20,evT:8,ddN:1,ddT:8,mtN:0,mtT:15,bon:true,hbOn:true,hbN:2,hbC:90,hbL:60,hbT:30,gw:20,gd:60,ot:5}});join(c)}
 function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
 async function join(c){const s=await db.ref('games/'+c).get();
   if(!s.exists()){LS.removeItem('c');return toast('Code unbekannt')}
@@ -359,13 +360,14 @@ async function st(){if(stBusy)return;const pend=Object.entries(P()).filter(([k,p
   else if(nd+nm>0&&2*(nd+nm)>=hs.length)notes.push('Hinweis: kein Reserve-Hider für Ersatz');
   const dd=Array.from({length:nd},(_,i)=>'d'+(i+1)),need=base.concat(dd);
   if(b){b.disabled=true;b.classList.add('busy');b.innerHTML='<span>Orte werden gesucht…</span>'}
-  try{let r=null;if(need.length||nm)r=await mkPts(g.c,Math.max(40,taskRad(s)-15),4*need.length+nm);
+  try{const rest=need.filter(i=>i!=='ev'),hasEv=need.includes('ev'),nO=4*rest.length+nm;let r=null,re=null;
+    if(hasEv||nO)[re,r]=await Promise.all([hasEv?mkPts(g.c,Math.max(40,(s.taskR>0?s.taskR:s.rMin)-15),4):null,nO?mkPts(g.c,Math.max(40,taskRad(s)-15),nO):null]);
     const startAt=now()+5000,R0=startAt+s.head*6e4,tasks={};
-    need.forEach((id,i)=>{const a=r.pts.slice(i*4,i*4+4),d=isDd(id);
+    need.forEach(id=>{const i=rest.indexOf(id),a=id==='ev'?re.pts.slice(0,4):r.pts.slice(i*4,i*4+4),d=isDd(id);
       tasks[id]={t0:id==='ev'?R0+Math.max(0,s.dur-s.evT)*6e4:R0+Math.min(d?(s.ddT||0):s.shT,s.dur-1)*6e4,loc:a[0],alt:a.slice(1),rr:0};
       if(d){const n=+id.slice(1)-1;tasks[id].a=hs[2*n];tasks[id].b=hs[2*n+1]}});
-    for(let j=0;j<nm;j++)tasks['m'+(j+1)]={t0:R0+Math.min(s.mtT||0,s.dur-1)*6e4,loc:r.pts[4*need.length+j],rr:0,a:hs[2*nd+2*j],b:hs[2*nd+2*j+1]};
-    if(r&&r.fb)notes.unshift(r.net?'Kartendienst nicht erreichbar ('+(r.err||'?')+'): Zufallsorte':'Nur '+r.real+' von '+r.n+' Orten aus Kartendaten, Rest zufällig');
+    for(let j=0;j<nm;j++)tasks['m'+(j+1)]={t0:R0+Math.min(s.mtT||0,s.dur-1)*6e4,loc:r.pts[4*rest.length+j],rr:0,a:hs[2*nd+2*j],b:hs[2*nd+2*j+1]};
+    const fr=[r,re].find(x=>x&&x.fb);if(fr)notes.unshift(fr.net?'Kartendienst nicht erreichbar ('+(fr.err||'?')+'): Zufallsorte':'Nur '+fr.real+' von '+fr.n+' Orten aus Kartendaten, Rest zufällig');
     if(notes.length)toast(notes.join(' · '));
     const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
     await db.ref('games/'+code).update(u);stP=100;stEnd()}
@@ -565,9 +567,12 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
 // UI-Zustand
 const ui={lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
-const DEF={gw:20,gd:60,step:50};
-const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Zusatzwahl nach (0 = aus)',0,120,5,'Min']};
-const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120},60:{dur:60,r0:750,rMin:300,shrink:4,step:50,head:3,ping:180},90:{dur:90,r0:1000,rMin:400,shrink:5,step:50,head:4,ping:240},120:{dur:120,r0:1500,rMin:600,shrink:4,step:50,head:5,ping:300}};
+const DEF={gw:20,gd:60,step:50,ot:0};
+const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Zusatzwahl nach (0 = aus)',0,120,5,'Min']};
+const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120,pen:1,shT:10,ddT:4,mtT:8,evT:5,imm:120,hbC:60,hbL:40,hbT:15,ot:3},
+ 60:{dur:60,r0:750,rMin:300,shrink:4,step:50,head:3,ping:180,pen:2,shT:20,ddT:8,mtT:15,evT:8,imm:240,hbC:90,hbL:60,hbT:30,ot:5},
+ 90:{dur:90,r0:1000,rMin:400,shrink:5,step:50,head:4,ping:240,pen:3,shT:30,ddT:12,mtT:22,evT:10,imm:300,hbC:120,hbL:90,hbT:45,ot:7},
+ 120:{dur:120,r0:1500,rMin:600,shrink:6,step:75,head:5,ping:300,pen:3,shT:40,ddT:16,mtT:30,evT:12,imm:360,hbC:150,hbL:120,hbT:60,ot:10}};
 const PRN={30:'Kurz',60:'Standard',90:'Lang',120:'Extra-Lang'};
 const stp=(k,d)=>{const f=FD[k];setS(k,(G.s[k]??DEF[k])+d*f[3],f[1],f[2])};
 const setPre=d=>db.ref(`games/${code}/s`).update(PRE[d]);
@@ -602,7 +607,7 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen oder Karte tippen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     <div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'');
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'');
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
@@ -693,7 +698,7 @@ function draw(){redrawing=true;reop=null;lay.clearLayers();
       else if(q.state!=='caught')mkr('stale',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name+' ('+(STX[q.state]||'ausgeschieden')+')','letzter Ping '+ago(ping.t)])});
     if(ping.grey)Object.entries(ping.grey).forEach(([id,p])=>{const q=P()[id];if(!q||q.state!=='alive')return;mkr('stale',[p.lat,p.lng],'gr'+id,()=>['Hider '+p.name+' (nicht ortbar)','letzte bekannte Position'])})}
   if(m.role==='hunter'&&!spec){
-    if(xping&&t-xping.t<120000){Object.entries(xping.pts).forEach(([id,q])=>{if(P()[id]&&P()[id].state!=='alive')return;mkr('xping',[q.lat,q.lng],'xp'+id,()=>['Hider '+q.name,'Extra-Ping '+ago(xping.t)])});
+    if(xping){Object.entries(xping.pts).forEach(([id,q])=>{if(P()[id]&&P()[id].state!=='alive')return;mkr('xping',[q.lat,q.lng],'xp'+id,()=>['Hider '+q.name,'Extra-Ping '+ago(xping.t)])});
       Object.entries(xping.grey).forEach(([id,q])=>{if(P()[id]&&P()[id].state!=='alive')return;mkr('stale',[q.lat,q.lng],'xg'+id,()=>['Hider '+q.name+' (nicht ortbar)','letzte bekannte Position'])})}
     Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid],q=P()[hid];if(!(un>t)||!q||q.state!=='alive')return;
       if(locatable(q,t)){lk[hid]={lat:q.lat,lng:q.lng,name:q.name};mkr(q.out?'out':'live',[q.lat,q.lng],'lv'+hid,()=>['Hider '+q.name,q.out?'Live-Standort, außerhalb der Zone':'Live-Standort'])}
@@ -714,7 +719,7 @@ function draw(){redrawing=true;reop=null;lay.clearLayers();
 function onData(){
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1)}else if(G.status!=='over')onData.pc=0;
-  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
+  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   panel();draw();chatSync()}
 
@@ -746,7 +751,20 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
       if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`;
-      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für Hunter: ${fmt(m.revealUntil-t)}</span>`}}
+      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für Hunter: ${fmt(m.revealUntil-t)}</span>`;
+      const lim=(g.s.ot||0)*6e4;
+      if(lim>0){const nw=Date.now(),dt=oaT?Math.min(3000,nw-oaT):0;oaT=nw;if(oaL===null)oaL=m.oa||0;
+        if(out&&gap<=GW*1000)oaL+=dt;
+        if(oaL!==oaLast&&t>=oaW){oaW=t+5000;oaLast=oaL;db.ref(`games/${code}/players/${uid}`).update({oa:Math.round(oaL)}).catch(()=>{})}
+        const rem=lim-oaL;
+        if(out||oaL>0)h+=`<span class="${out?'w':''}">${ic('zone')}Außerhalb erlaubt: ${fmt(Math.max(0,rem))}</span>`;
+        if(rem<=60000&&rem>0&&!oaWarn){oaWarn=true;toast('Achtung: weniger als 1 Minute außerhalb der Zone übrig');navigator.vibrate&&navigator.vibrate([200,100,200])}
+        if(rem>60000)oaWarn=false;
+        if(rem<=0){db.ref(`games/${code}/players/${uid}`).update({oa:Math.round(oaL),state:'dq',sT:now()}).catch(()=>{});evW(uid+'_o',lbl(m)+' wurde disqualifiziert (zu lange außerhalb der Zone)')}}}}
+  // Zonenzeit: alle prüfen mit (falls der Hider selbst nicht mehr schreibt)
+  if(m.role&&t>=g.startAt&&(g.s.ot||0)>0&&t>=dqLock){const lm=g.s.ot*6e4+5000;
+    Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||(p.oa||0)<=lm)return;dqLock=t+4000;
+      db.ref(`games/${code}/players/${id}`).update({state:'dq',sT:now()}).catch(()=>{});evW(id+'_o',lbl(p)+' wurde disqualifiziert (zu lange außerhalb der Zone)',id)})}
   if(isSpec(m)&&(ping||radar||xping)){ping=radar=xping=null;draw()}
   if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Schutz ${fmt(m.immUntil-t)}</span>`;
   if(m.role==='hider'&&m.state==='alive'){const vis=myTk(g,t).join();
@@ -754,7 +772,6 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
       vis.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{toast(tkMsg(x));navigator.vibrate&&navigator.vibrate([200,100,200])});
       draw();panel(1)}}
   if(radar&&t-radar.t>=60000){radar=null;draw()}
-  if(xping&&t-xping.t>=120000){xping=null;draw()}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
     const lv=Math.max(0,...Object.values((g.live||{})[uid]||{}));
@@ -773,7 +790,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
       else if(q&&q.lat){ping={k,t:now(),pts:{[uid]:{lat:q.lat,lng:q.lng,name:q.name}}};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort');psave();draw()}}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
-    if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};const nm=[];
+    if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};xping=null;const nm=[];
       Object.entries(P()).forEach(([id,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
         if((p.immUntil||0)>t){nm.push(p.name);if(lk[id])ping.grey[id]=lk[id]}
         else if(p.lat){ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name};lk[id]=ping.pts[id]}});
