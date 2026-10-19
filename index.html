@@ -158,11 +158,12 @@ function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;
 function showPrev(){let r;try{r=JSON.parse(G.prev.j)}catch(e){return}resMode='prev';$('resb').innerHTML=resHTML(r,'prev');$('res').style.display='flex'}
 function closeRes(){resMode=null;$('res').style.display='none'}
 const rs=g=>g.startAt+g.s.head*6e4;
-const Rad=(g,t)=>!g.startAt?g.s.r0:Math.max(g.s.rMin,g.s.r0*Math.pow(.8,Math.max(0,Math.floor((t-rs(g))/(g.s.shrink*6e4)))));
+const sstp=s=>s.step||50;
+const Rad=(g,t)=>!g.startAt?g.s.r0:Math.max(g.s.rMin,g.s.r0-sstp(g.s)*Math.max(0,Math.floor((t-rs(g))/(g.s.shrink*6e4))));
 const AR='<svg width=24 height=14 viewBox="0 0 24 14" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><path d="M1 7h9M7 4l3 3-3 3M23 7h-9M17 4l-3 3 3 3"/></svg>';
 const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
 // <helpers>
-const RadS=(s,el)=>Math.max(s.rMin,s.r0*Math.pow(.8,Math.max(0,Math.floor(el/(s.shrink*6e4)))));
+const RadS=(s,el)=>Math.max(s.rMin,s.r0-sstp(s)*Math.max(0,Math.floor(el/(s.shrink*6e4))));
 const lastR=s=>RadS(s,s.dur*6e4-1);
 const taskRad=s=>s.taskR>0?s.taskR:lastR(s);
 const md=g=>g.s.mode||'survive';
@@ -304,7 +305,7 @@ async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.
     for(let i=0;i<100&&!pos;i++)await new Promise(r=>setTimeout(r,200));
     if(!pos){b.textContent='Neues Spiel erstellen';b.disabled=false;return toast('Kein GPS – bitte Standortfreigabe prüfen')}}
   const c=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
-  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:500,rMin:200,shrink:5,head:2,dur:60,ping:60,pen:2,mode:'survive',taskR:0,imm:120,shOn:true,shT:10,evT:5,ddN:1,ddT:5,mtN:0,mtT:5,bon:true,hbOn:true,hbN:2,hbC:60,hbL:60,hbT:10,gw:20,gd:60}});join(c)}
+  await db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:120,shOn:true,shT:10,evT:5,ddN:1,ddT:5,mtN:0,mtT:5,bon:true,hbOn:true,hbN:2,hbC:60,hbL:60,hbT:10,gw:20,gd:60}});join(c)}
 function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
 async function join(c){const s=await db.ref('games/'+c).get();
   if(!s.exists()){LS.removeItem('c');return toast('Code unbekannt')}
@@ -564,9 +565,9 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
 // UI-Zustand
 const ui={lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
-const DEF={gw:20,gd:60};
-const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,300,5,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Zusatzwahl nach (0 = aus)',0,120,5,'Min']};
-const PRE={30:{dur:30,r0:400,rMin:150,shrink:4,ping:45},60:{dur:60,r0:500,rMin:200,shrink:5,ping:60},90:{dur:90,r0:700,rMin:250,shrink:7,ping:75},120:{dur:120,r0:900,rMin:300,shrink:9,ping:90}};
+const DEF={gw:20,gd:60,step:50};
+const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Zusatzwahl nach (0 = aus)',0,120,5,'Min']};
+const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120},60:{dur:60,r0:750,rMin:300,shrink:4,step:50,head:3,ping:180},90:{dur:90,r0:1000,rMin:400,shrink:5,step:50,head:4,ping:240},120:{dur:120,r0:1500,rMin:600,shrink:4,step:50,head:5,ping:300}};
 const PRN={30:'Kurz',60:'Standard',90:'Lang',120:'Extra-Lang'};
 const stp=(k,d)=>{const f=FD[k];setS(k,(G.s[k]??DEF[k])+d*f[3],f[1],f[2])};
 const setPre=d=>db.ref(`games/${code}/s`).update(PRE[d]);
@@ -587,7 +588,7 @@ function lobbyUI(g,host,me_){
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0),
       immNeed=(sv&&s.shOn)||(bonOn(g)&&(s.mtN||0)>0);
-    const zoneS=`${s.r0} m → ${s.rMin} m · alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · GPS ${s.gw||20}/${s.gd||60} s`,
+    const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · GPS ${s.gw||20}/${s.gd||60} s`,
       tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`;
     let t='';
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT'):'');
@@ -601,7 +602,7 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen oder Karte tippen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     <div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('shrink')+nf('head'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'');
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'');
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
@@ -667,7 +668,7 @@ function draw(){redrawing=true;reop=null;lay.clearLayers();
   if(!G){redrawing=false;lgSync();return}
   const g=G,t=now(),r=Rad(g,t),m=P()[uid]||{},c0=[g.c.lat,g.c.lng];
   const z=L.circle(c0,{radius:r,color:'#e5484d',fillColor:'#e5484d',fillOpacity:.07,weight:2}).addTo(lay);
-  const nr=Math.max(g.s.rMin,r*.8);if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:'#7a8696',weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
+  const nr=Math.max(g.s.rMin,r-sstp(g.s));if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:'#7a8696',weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
   const key=r+(g.host===uid?'':c0.join());
   if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;map.fitBounds(z.getBounds())}
   if(g.status==='lobby'&&g.host===uid){
