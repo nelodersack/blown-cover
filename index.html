@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="de"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0e12">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Blown Cover">
+<link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Blown Cover</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
@@ -71,8 +76,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #lg{position:fixed;left:10px;top:98px;z-index:1200;display:none;width:min(260px,calc(100% - 20px));background:#0b0e12f2;border-radius:14px;padding:10px 12px;gap:7px;font-size:13px;max-height:36vh;overflow:auto}
 #lg.open{display:grid}#lg div{display:flex;gap:9px;align-items:center}#lg svg{width:26px;height:26px;flex:none}#lg small{display:block;font-size:12px}
 .mkw{display:grid;place-items:center}.mkw svg{width:36px;height:36px;display:block;filter:drop-shadow(0 1px 2px #0006)}
-.mkw.live::after,.mkw.out::after{content:"";position:absolute;left:1px;top:1px;width:34px;height:34px;border-radius:50%;border:3px solid var(--live);animation:pl 1.6s ease-out infinite;pointer-events:none}
-@keyframes pl{from{transform:scale(.5);opacity:1}to{transform:scale(1.9);opacity:0}}
+.mkw.live::after,.mkw.out::after{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;box-sizing:border-box;border-radius:50%;border:3px solid var(--live);animation:pl 1.6s ease-out infinite;pointer-events:none}
+@keyframes pl{from{transform:scale(.55);opacity:1}to{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.mkw.live::after,.mkw.out::after,.spin{animation:none}}
 .tsq{width:30px;height:30px;border-radius:8px;background:var(--task);color:#fff;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}.tsq .ic{width:17px;height:17px;color:#fff}
 #lg .tsq{width:24px;height:24px;border-width:2px;flex:none}#lg .tsq .ic{width:14px;height:14px}
@@ -256,6 +261,7 @@ function shape(k){const sv=b=>`<svg viewBox="0 0 36 36" aria-hidden="true">${b}<
     case'xping':return sv(`<circle cx="18" cy="18" r="14.5" fill="none" stroke="#ffb03b" stroke-width="2"/><circle cx="18" cy="18" r="11.5" fill="none" stroke="#ffb03b" stroke-width="2"/>`+circ('#ffb03b',7.5));
     case'live':return sv(circ('#ff5f1f'));
     case'stale':return sv(`<circle cx="18" cy="18" r="9" fill="#7a8696" fill-opacity=".65" stroke="#4f5967" stroke-width="2.5" stroke-dasharray="4 3"/>`);
+    case'next':return sv(`<circle cx="18" cy="18" r="12" fill="none" stroke="#7a8696" stroke-width="2.5" stroke-dasharray="4 4"/>`);
     case'catch':return sv(`<circle cx="18" cy="18" r="9" fill="#14181e" stroke="#fff" stroke-width="2.5"/><path d="M14.6 14.6l6.8 6.8M21.4 14.6l-6.8 6.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>`);
   }
   const T={'t-sh':'home','t-ev':'exit','t-dd':'box','t-mt':'meet'};
@@ -630,19 +636,20 @@ function mkr(kind,ll,key,tip){const m=L.marker(ll,{icon:L.divIcon({className:'mk
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
 map.on('popupclose',()=>{if(!redrawing)popKey=null});
 const STX={caught:'gefangen',dq:'Signal verloren',quit:'aufgegeben',safe:'in Sicherheit'};
-const LG={me:['Du',''],mate:['Dein Team','grünes Dreieck: Hunter'],hider:['Hider','grüner Kreis'],hunter:['Hunter','rotes Dreieck'],out:['Zonenausbrecher','pulsiert mit Warndreieck, Standort sichtbar'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','dunkles ✕'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting','']};
+const LG={me:['Du',''],mate:['Dein Team','grünes Dreieck: Hunter'],hider:['Hider','grüner Kreis'],hunter:['Hunter','rotes Dreieck'],out:['Zonenausbrecher','pulsiert mit Warndreieck, Standort sichtbar'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','dunkles ✕'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting','']};
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
   b.style.display='block';b.innerHTML=ic('info')+' Legende';b.setAttribute('aria-expanded',lgOpen);
   const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');
-  const ks=isSpec(m)?['hider','hunter','out','stale','catch']:m.role==='hunter'?['me','mate','ping','xping','live','out','stale','catch']:['me','pingme'].concat(tk,['hunter']);
+  const ks=isSpec(m)?['hider','hunter','out','next','stale','catch']:m.role==='hunter'?['me','mate','ping','xping','live','out','next','stale','catch']:['me','pingme'].concat(tk,['hunter','next']);
   l.innerHTML=ks.map(k=>`<div>${shape(k)}<span>${LG[k][0]}${LG[k][1]?`<small>${LG[k][1]}</small>`:''}</span></div>`).join('');
   l.className=lgOpen?'open':''}
 function draw(){redrawing=true;reop=null;lay.clearLayers();
   if(!G){redrawing=false;lgSync();return}
   const g=G,t=now(),r=Rad(g,t),m=P()[uid]||{},c0=[g.c.lat,g.c.lng];
   const z=L.circle(c0,{radius:r,color:'#e5484d',fillColor:'#e5484d',fillOpacity:.07,weight:2}).addTo(lay);
+  const nr=Math.max(g.s.rMin,r*.8);if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:'#7a8696',weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
   const key=r+(g.host===uid?'':c0.join());
   if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;map.fitBounds(z.getBounds())}
   if(g.status==='lobby'&&g.host===uid){
@@ -718,7 +725,8 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(m.role==='hider'&&pos){const out=D(pos,g.c)>Rad(g,t);
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
-      if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`}}
+      if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`;
+      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für Hunter: ${fmt(m.revealUntil-t)}</span>`}}
   if(isSpec(m)&&(ping||radar||xping)){ping=radar=xping=null;draw()}
   if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Schutz ${fmt(m.immUntil-t)}</span>`;
   if(m.role==='hider'&&m.state==='alive'){const vis=myTk(g,t).join();
