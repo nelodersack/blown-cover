@@ -280,7 +280,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.stat
 // Karte
 const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
 let vt=null;
-if(L.maplibreGL)(vt=L.maplibreGL({style:'https://tiles.openfreemap.org/styles/positron',attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'})).addTo(map);
+if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search))(vt=L.maplibreGL({style:'https://tiles.openfreemap.org/styles/positron',attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'})).addTo(map);
 else{const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
@@ -295,6 +295,7 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
   if(TEST){const put=(la,ln)=>{pos={lat:la,lng:ln};lastFix=Date.now();write(1)};
     navigator.geolocation.getCurrentPosition(q=>put(q.coords.latitude,q.coords.longitude),()=>{const c=map.getCenter();put(c.lat,c.lng)},{timeout:4000});
     setInterval(()=>{if(pos)lastFix=Date.now()},5000);return}
+  try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{r.onchange=()=>{if(r.state==='denied')gpsErr={code:1,message:'verweigert'}}})}catch(x){}
   gpsWid=navigator.geolocation.watchPosition(p=>{gpsErr=null;const pg=lastFix?Date.now()-lastFix:0;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
     if(G&&G.status==='running'&&pg>gwv(G)*1000){const mm=P()[uid];if(mm&&mm.state==='alive'&&now()>=G.startAt)evW(uid+'_r_'+Date.now(),lbl(mm)+' ist wieder verbunden')}
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()},
@@ -358,11 +359,24 @@ function newRound(){const g=G;if(!g)return;const me_=P()[uid]||{};
   const ho=P()[g.host];if(!ho||ho.lf){const c=Object.entries(P()).filter(([k,p])=>!p.lf).sort(byJ)[0];if(c)u.host=c[0]}
   db.ref('games/'+code).update(u).then(()=>db.ref('chats/'+code).remove()).catch(()=>{})}
 let stP=0,stTm=0;
-function stEnd(){clearInterval(stTm);stBusy=false}
-async function st(){if(stBusy)return;const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object.values(P()).filter(p=>!p.w);
-  if(!v.some(p=>p.role==='hunter')||!v.some(p=>p.role==='hider'))return toast('Mindestens 1 Hunter und 1 Hider nötig');
-  if(pend.length&&!confirm('Diese Spieler sind noch nicht in der Lobby und fliegen aus dem Spiel, wenn du jetzt startest:\n\n'+pend.map(x=>x[1].name).join(', ')+'\n\nTrotzdem starten?'))return;
-  stBusy=true;stP=3;clearInterval(stTm);stTm=setInterval(()=>{stP+=(92-stP)*.035;const x=$('stb');if(x)x.style.setProperty('--p',stP.toFixed(1)+'%')},100);const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
+let stChk=false,lastChk=0;
+function stEnd(){clearInterval(stTm);stBusy=false;stChk=false}
+function fixNow(){if(TEST){if(pos){lastFix=Date.now();write(1)}return}
+  navigator.geolocation.getCurrentPosition(p=>{gpsErr=null;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();write(1)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:6000})}
+async function chkGps(){
+  const t0=now();let live=true;
+  try{await db.ref(`games/${code}/chk`).set(t0)}catch(e){live=false}
+  lastChk=t0;fixNow();
+  const need=Object.entries(P()).filter(([k,p])=>!p.w&&!p.lf);
+  const bad=()=>need.filter(([k])=>{const q=P()[k]||{};return !(q.lat&&(live?q.ts>=t0-1500:now()-(q.ts||0)<45000))});
+  for(let i=0;i<28&&bad().length;i++)await new Promise(r=>setTimeout(r,250));
+  return bad().map(([k,p])=>p.name||'?')}
+async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const pend=Object.entries(P()).filter(([k,p])=>p.w),v=Object.values(P()).filter(p=>!p.w);
+  if(!v.some(p=>p.role==='hunter')||!v.some(p=>p.role==='hider')){stEnd();panel(1);return toast('Mindestens 1 Hunter und 1 Hider nötig')}
+  if(pend.length&&!confirm('Diese Spieler sind noch nicht in der Lobby und fliegen aus dem Spiel, wenn du jetzt startest:\n\n'+pend.map(x=>x[1].name).join(', ')+'\n\nTrotzdem starten?')){stEnd();panel(1);return}
+  let nog=[];try{nog=await chkGps()}catch(e){}
+  if(nog.length&&!confirm('Von diesen Spielern lässt sich der Standort nicht abrufen:\n\n'+nog.join(', ')+'\n\nOK = Trotzdem starten\nAbbrechen = Start abbrechen')){stEnd();panel(1);return}
+  stChk=false;stBusy=true;stP=3;clearInterval(stTm);stTm=setInterval(()=>{stP+=(92-stP)*.035;const x=$('stb');if(x)x.style.setProperty('--p',stP.toFixed(1)+'%')},100);const g=G,s=g.s,b=$('stb'),base=md(g)==='mission'?['ev']:(s.shOn?['sh']:[]);
   const hs=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive'&&!p.w).map(e=>e[0]);
   for(let i=hs.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[hs[i],hs[j]]=[hs[j],hs[i]]}
   const nd=Math.min(s.ddN||0,Math.floor(hs.length/2)),nm=Math.min(s.mtN||0,Math.floor((hs.length-2*nd)/2)),notes=[];
@@ -592,13 +606,14 @@ const acc=(id,icn,title,sum,body)=>`<div class=acc><button onclick="ui.open.${id
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
 const tabGo=(k,v)=>{ui[k]=v;$('pb').scrollTop=0;panel(1)};
 
-const noGps=(p,k)=>p.w?false:(k===uid?!pos:(!p.lat||now()-(p.ts||0)>45000));
+const gpsBad=()=>!pos||!!gpsErr||Date.now()-lastFix>30000;
+const noGps=(p,k)=>p.w?false:(k===uid?gpsBad():(!p.lat||now()-(p.ts||0)>45000));
 function lobbyUI(g,host,me_){
   const pl=Object.entries(P()),s=g.s,sv=md(g)==='survive';
   let b=`<div class=tabs2><button class="${ui.lt==='players'?'on':''}" onclick="tabGo('lt','players')">${ic('users')} Spieler (${pl.length})</button><button class="${ui.lt==='set'?'on':''}" onclick="tabGo('lt','set')">${ic('gear')} Einstellungen</button></div>`;
   if(ui.lt==='players'){
     b+=`<div class="row sp"><div><h3>Spiel-Code</h3><span class=code>${esc(code)}</span></div><button class="s g" onclick="cpCode()">Kopieren</button></div>`
-      +(pos?'':`<div class=tk style="border-color:var(--danger)"><b>Dein GPS fehlt</b><small style="display:block;margin-top:4px">Schalte den Standort ein und erlaube ihn für diese Seite. Er wird automatisch erkannt.</small></div>`)+pl.map(([k,p])=>`<div class=pl><span class=av>${esc(String(p.name||'?')[0].toUpperCase())}</span><span class=nm>${esc(p.name)}${k===g.host?ic('crown'):''}${p.w?'<span class=chip>sieht noch das Ergebnis</span>':''}${noGps(p,k)?'<span class=chip style="background:#e5484d33;color:#ff8a8d">Kein GPS</span>':''}</span>`
+      +(gpsBad()?`<div class=tk style="border-color:var(--danger)"><b>Dein GPS fehlt</b><small style="display:block;margin-top:4px">Schalte den Standort ein und erlaube ihn für diese Seite. Er wird automatisch erkannt.</small></div>`:'')+pl.map(([k,p])=>`<div class=pl><span class=av>${esc(String(p.name||'?')[0].toUpperCase())}</span><span class=nm>${esc(p.name)}${k===g.host?ic('crown'):''}${p.w?'<span class=chip>sieht noch das Ergebnis</span>':''}${noGps(p,k)?'<span class=chip style="background:#e5484d33;color:#ff8a8d">Kein GPS</span>':''}</span>`
         +(p.w?'<span class=spin role=img aria-label="lädt"></span>':(k===uid?`<div class=seg><button class="${p.role==='hunter'?'on':''}" onclick="setRole('hunter')">Hunter</button><button class="${p.role==='hider'?'on':''}" onclick="setRole('hider')">Hider</button></div>`:`<span class=chip>${p.role==='hunter'?'Hunter':'Hider'}</span>`))
         +(host&&k!==uid?`<button class="ghost s" onclick="toHost('${k}')" aria-label="Zum Host machen" title="Zum Host machen">${ic('crown')}</button>`:'')+`</div>`).join('');
   }else if(host){
@@ -623,7 +638,7 @@ function lobbyUI(g,host,me_){
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
   }
-  const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?'Orte werden gesucht…':'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
+  const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
   return[b,f]}
 
@@ -728,6 +743,7 @@ function draw(){redrawing=true;reop=null;lay.clearLayers();
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
 function onData(){
+  if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
   if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
@@ -822,4 +838,5 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
 panel();
+setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
