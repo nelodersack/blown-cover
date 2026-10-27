@@ -278,7 +278,7 @@ const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0'
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
 const colI=u=>{const p=P()[u];return p&&Number.isInteger(p.col)&&p.col>=0&&p.col<12?p.col:hsh(u)},colOf=u=>PAL[colI(u)],inkOf=u=>PALK[colI(u)],
   letOf=u=>esc(String((P()[u]||{}).name||'?').trim().charAt(0).toUpperCase()||'?');
-function shape(k,pid,hid){const sv=b=>`<svg viewBox="0 0 36 36" aria-hidden="true">${b}</svg>`,W='#fff',
+function shape(k,pid,hid){const sv=b=>`<svg style="overflow:visible" viewBox="0 0 36 36" aria-hidden="true">${b}</svg>`,W='#fff',
   C=pid?colOf(pid):null,tx=(l,c,y,fs)=>l?`<text x="18" y="${y}" text-anchor="middle" font-family="Barlow Condensed,Barlow,sans-serif" font-weight="700" font-size="${fs}" fill="${c}">${l}</text>`:'',
   L_=pid?letOf(pid):'',I_=pid?inkOf(pid):'#fff';
   if(pid){switch(k){
