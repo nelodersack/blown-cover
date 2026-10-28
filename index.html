@@ -142,12 +142,99 @@ firebase.initializeApp({
 });
 const db=firebase.database();
 const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
+// ===== Analyse-Modus (Host schaltet in der Lobby ein; Protokoll nur für den Host, erst nach Rundenende) =====
+let gAcc=null;
+const AL={on:0,key:'',ev:[],sm:[],prev:null,fx:0,up:0,upP:null,tries:0,dev:null,l1:Date.now(),sid:Math.random().toString(36).slice(2,8)};
+function lg(k,d){if(!AL.on)return;if(AL.ev.length<40000)AL.ev.push([Date.now()+off,k,d===undefined?null:d])}
+function lgSave(){if(!AL.on||!AL.key)return;try{LS.setItem(AL.key,JSON.stringify({ev:AL.ev,sm:AL.sm,dev:AL.dev}))}catch(e){}}
+function lgFlat(o,p,out,d){for(const k in o){if(k==='ts'||k==='prev')continue;const v=o[k];if(v&&typeof v==='object'&&d<5)lgFlat(v,p+k+'/',out,d+1);else out[p+k]=typeof v==='string'?v.slice(0,120):v}}
+function lgStart(){if(AL.on||!G||!code)return;AL.on=1;AL.key='bcl_'+code+'_'+(G.rn||0);AL.ev=[];AL.sm=[];AL.prev=null;AL.up=0;AL.tries=0;AL.dev=null;let rest=0;
+  try{const o=JSON.parse(LS.getItem(AL.key)||'null');if(o&&o.ev){AL.ev=o.ev;AL.sm=o.sm||[];AL.dev=o.dev||null;rest=1}}catch(e){}
+  let nav='';try{nav=performance.getEntriesByType('navigation')[0].type}catch(e){}
+  lg('boot',{sid:AL.sid,nav,restored:rest,vis:document.visibilityState,rn:G.rn||0});
+  if(!AL.dev){const c=navigator.connection||{};AL.dev={ua:navigator.userAgent,platform:navigator.platform||'',lang:navigator.language,tz:(Intl.DateTimeFormat().resolvedOptions()||{}).timeZone,scr:[screen.width,screen.height,window.devicePixelRatio||1],win:[innerWidth,innerHeight],mem:navigator.deviceMemory||null,cpu:navigator.hardwareConcurrency||null,standalone:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches),conn:{t:c.effectiveType||null,dl:c.downlink||null,rtt:c.rtt||null,sd:!!c.saveData},wakeLock:!!navigator.wakeLock,test:!!TEST}}
+  try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{lg('perm',r.state);r.addEventListener('change',()=>lg('perm',r.state))})}catch(e){}
+  try{navigator.getBattery&&navigator.getBattery().then(b=>{const f=()=>lg('bat',[Math.round(b.level*100),b.charging?1:0]);f();b.addEventListener('levelchange',f);b.addEventListener('chargingchange',f)})}catch(e){}}
+function lgOff(){try{LS.removeItem(AL.key)}catch(e){}AL.on=0;AL.key='';AL.ev=[];AL.sm=[];AL.prev=null;AL.up=0}
+function lgData(){try{if(!G||!code)return;const want=!!(G.s&&G.s.an);
+  if(AL.on&&(!want||AL.key!=='bcl_'+code+'_'+(G.rn||0)))lgOff();
+  if(!AL.on&&want)lgStart();if(!AL.on)return;
+  const f={};lgFlat(G,'',f,0);const pv=AL.prev;
+  if(pv){for(const k in f)if(pv[k]!==f[k])lg('g',[k,pv[k]===undefined?null:pv[k],f[k]]);for(const k in pv)if(!(k in f))lg('g',[k,pv[k],null])}
+  else for(const k in f)lg('g',[k,null,f[k]]);
+  AL.prev=f;
+  if(G.status==='over'&&!AL.up&&P()[uid]&&AL.tries<6)lgUp()}catch(e){}}
+function lgSample(){if(!AL.on||!G)return;let dc=null,r=null;try{if(pos&&G.c)dc=Math.round(D(pos,G.c));r=Math.round(Rad(G,now()))}catch(e){}
+  AL.sm.push([Date.now()+off,pos?+pos.lat.toFixed(6):null,pos?+pos.lng.toFixed(6):null,gAcc==null?null:Math.round(gAcc),lastFix?Math.round((Date.now()-lastFix)/1000):null,dc,r,document.hidden?1:0,AL.fx]);AL.fx=0;if(AL.sm.length>20000)AL.sm.shift()}
+function lgUp(){if(AL.up||!AL.on||!code)return AL.upP;AL.up=1;AL.tries++;lgSample();
+  const doc={v:1,uid,rn:G.rn||0,end:now(),dev:AL.dev,name:(P()[uid]||{}).name||'',ev:AL.ev,sm:AL.sm};let s=JSON.stringify(doc);
+  if(s.length>2800000){doc.ev=doc.ev.filter(e=>e[1]!=='g'||/\/(state|role|lat|lng|out)$/.test(e[2][0])).slice(-15000);s=JSON.stringify(doc)}
+  if(s.length>2800000){doc.sm=doc.sm.filter((e,i)=>i%2===0);s=JSON.stringify(doc)}
+  AL.upP=db.ref('analysis/'+code+'/'+uid).set(s).then(()=>{AL.upOk=1},e=>{AL.up=0;setTimeout(()=>{if(G)lgData()},4000)});return AL.upP}
+setInterval(lgSample,5000);setInterval(lgSave,20000);
+setInterval(()=>{const t=Date.now();if(AL.on&&t-AL.l1>3500)lg('lag',t-AL.l1);AL.l1=t},1000);
+document.addEventListener('visibilitychange',()=>{lg('vis',document.hidden?0:1);if(document.hidden)lgSave()});
+window.addEventListener('pagehide',()=>{lg('pagehide');lgSave()});
+window.addEventListener('pageshow',e=>lg('pageshow',e.persisted?1:0));
+document.addEventListener('freeze',()=>{lg('freeze');lgSave()});document.addEventListener('resume',()=>lg('resume'));
+window.addEventListener('online',()=>lg('net',1));window.addEventListener('offline',()=>lg('net',0));
+window.addEventListener('error',e=>lg('err',[String(e.message||'').slice(0,160),String(e.filename||'').split('/').pop(),e.lineno||0]));
+window.addEventListener('unhandledrejection',e=>lg('rej',String((e.reason&&(e.reason.message||e.reason))||'').slice(0,160)));
+try{const R_=firebase.database.Reference.prototype;['set','update','remove'].forEach(m=>{const o=R_[m];R_[m]=function(...a){const p=o.apply(this,a);try{p&&p.catch&&p.catch(e=>lg('wf',[m,String(this).replace(/^https?:\/\/[^/]+/,'').slice(0,90),String((e&&(e.code||e.message))||'').slice(0,60)]))}catch(x){}return p}})}catch(e){}
+// Host: Analysedaten zusammenbauen und herunterladen
+let anB=0;
+function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(pl[a].j||0)-(pl[b].j||0)),al={};
+  ids.forEach((k,i)=>al[k]='S'+(i+1));Object.keys(v).forEach(k=>{if(!al[k])al[k]='S?'+k.slice(0,4)});
+  const L={};Object.entries(v).forEach(([k,s])=>{try{L[k]=JSON.parse(s)}catch(e){}});
+  const R0=g.startAt?rs(g):null,rel=t=>R0==null?null:Math.round((t-R0)/100)/10,tl=[],seen={};
+  Object.entries(L).forEach(([k,d])=>(d.ev||[]).forEach(e=>{const t=e[0],kd=e[1],dt=e[2];
+    if(kd==='g'){const key=dt[0]+'|'+JSON.stringify(dt[2]),o=seen[key];if(o&&Math.abs(o.t-t)<6000){o.by.push(al[k]);return}const x={t,k:'g',d:dt,by:[al[k]]};seen[key]=x;tl.push(x);return}
+    tl.push({t,k:kd,d:dt,by:[al[k]]})}));
+  tl.sort((a,b)=>a.t-b.t);
+  const st={},an=[],cnt=(d,k,f)=>(d.ev||[]).filter(e=>e[1]===k&&(!f||f(e[2]))).length;
+  Object.entries(L).forEach(([k,d])=>{const sm=d.sm||[];let dist=0,out=0,mg=0,hid=0,jp=0,aS=0,aN=0,nf=0;
+    for(let i=0;i<sm.length;i++){const a=sm[i];if(a[3]!=null){aS+=a[3];aN++}if(a[4]!=null&&a[4]>10)nf++;
+      if(R0!=null&&a[0]>=R0&&a[5]!=null&&a[6]!=null&&a[5]>a[6])out++;if(a[7])hid++;
+      if(i){const p=sm[i-1];mg=Math.max(mg,a[0]-p[0]);if(a[1]!=null&&p[1]!=null){const m=D({lat:p[1],lng:p[2]},{lat:a[1],lng:a[2]});if(m>120)jp++;else dist+=m}}}
+    const x={samples:sm.length,distM:Math.round(dist),secOutsideZone:out*5,secPageHidden:hid*5,secNoFix10s:nf*5,maxSampleGapS:Math.round(mg/1000),gpsJumps120m:jp,avgAccM:aN?Math.round(aS/aN):null,
+      hiddenPeriods:cnt(d,'vis',z=>z===0),freezes:cnt(d,'freeze'),dbDisconnects:cnt(d,'db',z=>z===0),netOffline:cnt(d,'net',z=>z===0),gpsErrors:cnt(d,'gps',z=>Array.isArray(z)),writeFails:cnt(d,'wf'),jsErrors:cnt(d,'err')+cnt(d,'rej'),lagEvents:cnt(d,'lag'),boots:cnt(d,'boot')};
+    st[al[k]]=x;const n=al[k];
+    if(x.hiddenPeriods)an.push(n+': Seite '+x.hiddenPeriods+'× unsichtbar (zusammen ca. '+x.secPageHidden+' s, Display aus oder andere App)');
+    if(x.secNoFix10s)an.push(n+': ca. '+x.secNoFix10s+' s ohne frischen GPS-Fix (>10 s alt)');
+    if(x.gpsJumps120m)an.push(n+': '+x.gpsJumps120m+' GPS-Sprünge über 120 m zwischen zwei Messungen');
+    if(x.dbDisconnects)an.push(n+': '+x.dbDisconnects+' Datenbank-Verbindungsabbrüche');
+    if(x.netOffline)an.push(n+': '+x.netOffline+'× Gerät offline');
+    if(x.writeFails)an.push(n+': '+x.writeFails+' fehlgeschlagene Datenbank-Schreibzugriffe');
+    if(x.jsErrors)an.push(n+': '+x.jsErrors+' JavaScript-Fehler');
+    if(x.freezes)an.push(n+': '+x.freezes+'× Seite eingefroren');
+    if(x.boots>1)an.push(n+': Seite '+x.boots+'× neu geladen/gestartet');
+    if(x.lagEvents)an.push(n+': '+x.lagEvents+'× Timer-Verzögerung >3,5 s (Browser gedrosselt)')});
+  ids.filter(k=>!pl[k].lf||true).forEach(k=>{if(!L[k])an.push(al[k]+': kein Protokoll empfangen'+(pl[k].lf?' (hat das Spiel vorher verlassen)':''))});
+  const players=ids.map(k=>{const p=pl[k];return{id:al[k],name:p.name,role:p.role,state:p.state,color:Number.isInteger(p.col)?PALN[p.col]:null,joined:p.j||null,stateTime:p.sT||null,left:!!p.lf,hasLog:!!L[k],device:(L[k]||{}).dev||null,stats:st[al[k]]||null}});
+  const tracks={};Object.entries(L).forEach(([k,d])=>tracks[al[k]]=d.sm||[]);
+  const gg=JSON.parse(JSON.stringify(g));delete gg.prev;
+  const out={format:'blown-cover-analyse',v:1,generated:new Date().toISOString(),code,round:g.rn||0,
+    legend:{timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
+      tracks:'Pro Spieler: [t_ms, lat, lng, genauigkeit_m, alter_letzter_fix_s, abstand_zonenmitte_m, zonenradius_m, seite_unsichtbar(1/0), fixes_seit_letzter_messung]',
+      note:'Spieler-IDs sind anonymisiert (S1…, nach Beitrittsreihenfolge). Positionen sind echte GPS-Werte des jeweiligen Geräts.'},
+    game:{settings:g.s,center:g.c,startAt:g.startAt||null,headstartEnd:R0,winner:g.winner||null,status:g.status,host:al[g.host]||null,receivedLogs:Object.keys(L).length,expectedLogs:ids.filter(k=>!pl[k].lf).length},
+    anomalies:an,players,timeline:tl.map(x=>[x.t,rel(x.t),x.by.join(','),x.k,x.d]),tracks,finalState:gg};
+  let s=JSON.stringify(out);Object.entries(al).forEach(([k,a])=>{s=s.split(k).join(a)});return s}
+async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten werden gesammelt…');
+  try{const need=Object.entries(P()).filter(([k,p])=>!p.lf&&p.role).map(e=>e[0]);let v={};
+    for(let i=0;i<10;i++){const sn=await db.ref('analysis/'+code).once('value');v=sn.val()||{};if(need.every(k=>v[k]))break;await new Promise(r=>setTimeout(r,1000))}
+    if(!Object.keys(v).length){toast('Noch keine Protokolle empfangen – kurz warten und erneut tippen');return}
+    const txt=anBuild(v),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=`blowncover_analyse_${code}_r${G.rn||0}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
+    const miss=need.filter(k=>!v[k]).length;toast(miss?`Heruntergeladen (${miss} Protokoll${miss>1?'e':''} fehlt)`:'Analysedaten heruntergeladen')}
+  catch(e){toast('Analyse nicht möglich: '+String((e&&e.message)||e).slice(0,50))}finally{anB=0}}
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let lk={},lastTV='',radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
-db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn)connSince=Date.now()});
+db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn)connSince=Date.now();lg('db',conn?1:0)});
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos((a.lat+b.lat)*t/2);return 6371000*Math.hypot(x,y)};
@@ -169,7 +256,7 @@ function resHTML(r,mode){
   const txt=x=>x.s==='alive'?(x.r==='hider'?'überlebt, frei':'bis zum Ende dabei'):x.s==='caught'?'gefangen'+resTm(x)+(x.by?' von '+esc(x.by):''):x.s==='safe'?'in Sicherheit'+resTm(x):x.s==='quit'?'aufgegeben'+resTm(x):'disqualifiziert (Verbindung)'+resTm(x);
   const sec=(role,title)=>{const a=r.l.filter(x=>x.r===role);return a.length?`<small style="margin-top:8px">${title}</small>`+a.map(x=>`<div class=rl><b>${esc(x.n)}</b><small>${txt(x)}${x.lf?' · hat das Spiel verlassen':''}</small></div>`).join(''):''};
   return `<h2>${T}</h2>`+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')+sec('hider','Hider')+sec('hunter','Hunter')+
-    `<div class=row style="margin-top:12px">`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`}
+    `<div class=row style="margin-top:12px">`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row style="margin-top:6px"><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
 function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;
   if(g.status==='over'){r=buildRes(g)}
   else if(g.status==='lobby'&&me_.w&&g.prev){try{r=JSON.parse(g.prev.j)}catch(x){}}
@@ -270,7 +357,7 @@ async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${
 // </helpers>
 
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
-function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3500)}
+function toast(m){lg('toast',String(m).slice(0,120));const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3500)}
 
 const SV={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
@@ -313,7 +400,7 @@ function shape0(k){const sv=b=>`<svg viewBox="0 0 36 36" aria-hidden="true">${b}
   const T={'t-sh':'home','t-ev':'exit','t-dd':'box','t-mt':'meet'};
   return T[k]?`<span class="tsq">${ic(T[k])}</span>`:''}
 const TH=(i,t)=>`<div class=hd>${ic(i)}${t}</div>`;
-async function lock(){try{wl=await navigator.wakeLock.request('screen')}catch(e){}}
+async function lock(){try{wl=await navigator.wakeLock.request('screen');lg('wl','on');wl.addEventListener('release',()=>lg('wl','off'))}catch(e){lg('wl','fail:'+(e&&e.name||''))}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.status==='running')lock()});
 
 // Karte
@@ -335,10 +422,10 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
     navigator.geolocation.getCurrentPosition(q=>put(q.coords.latitude,q.coords.longitude),()=>{const c=map.getCenter();put(c.lat,c.lng)},{timeout:4000});
     setInterval(()=>{if(pos)lastFix=Date.now()},5000);return}
   try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{r.onchange=()=>{if(r.state==='denied')gpsErr={code:1,message:'verweigert'}}})}catch(x){}
-  gpsWid=navigator.geolocation.watchPosition(p=>{gpsErr=null;const pg=lastFix?Date.now()-lastFix:0;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
+  gpsWid=navigator.geolocation.watchPosition(p=>{if(gpsErr)lg('gps','ok');gpsErr=null;gAcc=p.coords.accuracy;AL.fx++;const pg=lastFix?Date.now()-lastFix:0;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
     if(G&&G.status==='running'&&pg>gwv(G)*1000){const mm=P()[uid];if(mm&&mm.state==='alive'&&now()>=G.startAt)evW(uid+'_r_'+Date.now(),lbl(mm)+' ist wieder verbunden')}
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()},
-    e=>{gpsErr=e;const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
+    e=>{gpsErr=e;lg('gps',[e.code,String(e.message||'').slice(0,60)]);const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
 function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).catch(()=>{})}
@@ -405,7 +492,7 @@ function hSave(){try{LS[hkey()]=JSON.stringify([...hidM])}catch(e){}}
 const lastPT=()=>{const g=G,k=Math.floor((now()-rs(g))/(g.s.ping*1000));return k>=1?rs(g)+k*g.s.ping*1000:0};
 function mkSync(){const g=G,m=(g&&P()[uid])||{},want=!!(g&&code&&g.status==='running'&&m.role==='hunter'),alive=want&&m.state==='alive';
   if(want&&!mkL){mkL=db.ref('marks/'+code);mkSeen=null;hLoad();
-    mkL.on('value',sn=>{const v=sn.val()||{};if(mkSeen)Object.entries(v).forEach(([id,x])=>{if(!mkSeen[id]&&x.u!==uid&&now()-x.t<15000&&MKT[x.k]){const q=P()[x.u];note((q?q.name:'Hunter')+' '+MKT[x.k])}});mkSeen=v;MK=v;draw();mkUI()},()=>{})}
+    mkL.on('value',sn=>{const v=sn.val()||{};if(AL.on){const pv=mkSeen||{};Object.keys(v).forEach(id=>{if(!pv[id])lg('mk+',[id,v[id].u,v[id].k,v[id].lat,v[id].lng,v[id].r||null,v[id].x||null])});Object.keys(pv).forEach(id=>{if(!v[id])lg('mk-',id)})}if(mkSeen)Object.entries(v).forEach(([id,x])=>{if(!mkSeen[id]&&x.u!==uid&&now()-x.t<15000&&MKT[x.k]){const q=P()[x.u];note((q?q.name:'Hunter')+' '+MKT[x.k])}});mkSeen=v;MK=v;draw();mkUI()},()=>{})}
   else if(!want&&mkL){mkL.off();mkL=null;MK={};mkSeen=null;if(mkMode)mkCancel()}
   if(alive&&Date.now()>mkBusy){const lp=lastPT();
     Object.entries(MK).forEach(([id,x])=>{if(x.u!==uid||Date.now()<mkBusy)return;
@@ -467,10 +554,10 @@ async function giveUp(){const m=P()[uid];if(!m||m.state!=='alive'||!(await dlg({
   db.ref(`games/${code}/players/${uid}`).update({state:'quit',sT:now()});evW(uid+'_q',lbl(m)+' hat aufgegeben')}
 async function leaveGame(){const g=G,m=P()[uid]||{};
   if(g.status==='running'&&m.state==='alive'&&!(await dlg({t:'Spiel verlassen?',x:'Das Spiel läuft noch.',ok:'Verlassen',no:'Bleiben',bad:1})))return;
-  leaving=true;
+  leaving=true;if(AL.upP)try{await Promise.race([AL.upP,new Promise(r=>setTimeout(r,4000))])}catch(e){}
   const others=Object.entries(P()).filter(([k,p])=>k!==uid&&!p.lf).sort(byJ),u={};
   try{
-    if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('marks/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
+    if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('marks/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
     if(g.host===uid)u.host=others[0][0];
     if(g.status==='lobby'){u['players/'+uid]=null;if(Number.isInteger(m.col))u['cols/'+m.col]=null}
     else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
@@ -519,7 +606,7 @@ async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const
     for(let j=0;j<nm;j++)tasks['m'+(j+1)]={t0:R0+Math.min(s.mtT||0,s.dur-1)*6e4,loc:r.pts[4*rest.length+j],rr:0,a:hs[2*nd+2*j],b:hs[2*nd+2*j+1]};
     const fr=[r,re].find(x=>x&&x.fb);if(fr)notes.unshift(fr.net?'Kartendienst nicht erreichbar ('+(fr.err||'?')+'): Zufallsorte':'Nur '+fr.real+' von '+fr.n+' Orten aus Kartendaten, Rest zufällig');
     if(notes.length)toast(notes.join(' · '));
-    const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
+    db.ref('analysis/'+code).remove().catch(()=>{});const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
     await db.ref('games/'+code).update(u);stP=100;stEnd()}
   catch(e){stEnd();if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.classList.remove('busy');b.textContent='Spiel starten'}}}
 // Fangen
@@ -534,7 +621,7 @@ function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')retu
   if(why){toast(CW[why]);return db.ref(`games/${code}/catches/${uid}`).update({status:'denied',why})}
   evSeen.add(uid+'_c');db.ref(`games/${code}`).update({[`players/${uid}/state`]:'caught',[`players/${uid}/sT`]:now(),[`catches/${uid}/status`]:'done',[`ev/${uid}_c`]:{t:now(),x:('Hider '+((P()[uid]||{}).name||'')+' wurde von '+(hq.name||'einem Hunter')+' gefangen').slice(0,100),u:uid}})}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
-async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
+async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function psave(){try{LS['bp_'+code+'_'+(G.rn||0)]=JSON.stringify({ping,xping,lk})}catch(e){}}
 function pclean(all){try{const cur='bp_'+code+'_'+((G&&G.rn)||0);Object.keys(LS).forEach(k=>{if(k.indexOf('bp_')===0&&(all||k!==cur))LS.removeItem(k)})}catch(e){}}
 function leave(){pclean(1);LS.removeItem('c');location.reload()}
@@ -697,7 +784,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
   const all=cs.concat(mt.map(u=>'dm:'+u));
   $('chm').innerHTML=all.map(c=>`<div class=chc data-ch="${c}"></div>`).join('');
   all.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(chPath(ch)).limitToLast(50);chRefs[ch]=ref;
-    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;
+    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
       const d=document.createElement('div'),rr_=ch==='out'&&(c.r==='hunter'||c.r==='hider')?c.r:'';d.className='m'+(c.u===uid?' me':'')+(rr_?' r-'+rr_:'');
       const n=document.createElement('b');n.textContent=(c.u===uid?'Du':String(c.n||'?'))+(rr_?(rr_==='hunter'?' · Hunter':' · Hider'):'');
       const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
@@ -759,7 +846,7 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen oder Karte tippen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     <div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'');
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
@@ -873,6 +960,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
 function onData(){
+  lgData();
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
