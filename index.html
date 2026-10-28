@@ -144,7 +144,7 @@ const db=firebase.database();
 const TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
 // ===== Analyse-Modus (Host schaltet in der Lobby ein; Protokoll nur für den Host, erst nach Rundenende) =====
 let gAcc=null;
-const AL={on:0,key:'',ev:[],sm:[],prev:null,fx:0,up:0,upP:null,tries:0,dev:null,l1:Date.now(),sid:Math.random().toString(36).slice(2,8)};
+const AL={pend:{},pto:0,on:0,key:'',ev:[],sm:[],prev:null,fx:0,up:0,upP:null,tries:0,dev:null,l1:Date.now(),sid:Math.random().toString(36).slice(2,8)};
 function lg(k,d){if(!AL.on)return;if(AL.ev.length<40000)AL.ev.push([Date.now()+off,k,d===undefined?null:d])}
 function lgSave(){if(!AL.on||!AL.key)return;try{LS.setItem(AL.key,JSON.stringify({ev:AL.ev,sm:AL.sm,dev:AL.dev}))}catch(e){}}
 function lgFlat(o,p,out,d){for(const k in o){if(k==='ts'||k==='prev')continue;const v=o[k];if(v&&typeof v==='object'&&d<5)lgFlat(v,p+k+'/',out,d+1);else out[p+k]=typeof v==='string'?v.slice(0,120):v}}
@@ -155,18 +155,19 @@ function lgStart(){if(AL.on||!G||!code)return;AL.on=1;AL.key='bcl_'+code+'_'+(G.
   if(!AL.dev){const c=navigator.connection||{};AL.dev={ua:navigator.userAgent,platform:navigator.platform||'',lang:navigator.language,tz:(Intl.DateTimeFormat().resolvedOptions()||{}).timeZone,scr:[screen.width,screen.height,window.devicePixelRatio||1],win:[innerWidth,innerHeight],mem:navigator.deviceMemory||null,cpu:navigator.hardwareConcurrency||null,standalone:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches),conn:{t:c.effectiveType||null,dl:c.downlink||null,rtt:c.rtt||null,sd:!!c.saveData},wakeLock:!!navigator.wakeLock,test:!!TEST}}
   try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{lg('perm',r.state);r.addEventListener('change',()=>lg('perm',r.state))})}catch(e){}
   try{navigator.getBattery&&navigator.getBattery().then(b=>{const f=()=>lg('bat',[Math.round(b.level*100),b.charging?1:0]);f();b.addEventListener('levelchange',f);b.addEventListener('chargingchange',f)})}catch(e){}}
+function lgFlush(){const p=AL.pend;AL.pend={};for(const k in p)if(p[k][0]!==p[k][1])lg('g',[k,p[k][0],p[k][1]])}
 function lgOff(){try{LS.removeItem(AL.key)}catch(e){}AL.on=0;AL.key='';AL.ev=[];AL.sm=[];AL.prev=null;AL.up=0}
 function lgData(){try{if(!G||!code)return;const want=!!(G.s&&G.s.an);
   if(AL.on&&(!want||AL.key!=='bcl_'+code+'_'+(G.rn||0)))lgOff();
   if(!AL.on&&want)lgStart();if(!AL.on)return;
   const f={};lgFlat(G,'',f,0);const pv=AL.prev;
-  if(pv){for(const k in f)if(pv[k]!==f[k])lg('g',[k,pv[k]===undefined?null:pv[k],f[k]]);for(const k in pv)if(!(k in f))lg('g',[k,pv[k],null])}
+  if(pv){for(const k in f)if(pv[k]!==f[k]){const o=pv[k]===undefined?null:pv[k];if(G.status==='lobby'&&k.indexOf('s/')===0&&pv[k]!==undefined){const q=AL.pend[k];AL.pend[k]=q?[q[0],f[k]]:[o,f[k]];clearTimeout(AL.pto);AL.pto=setTimeout(lgFlush,1500)}else lg('g',[k,o,f[k]])}for(const k in pv)if(!(k in f))lg('g',[k,pv[k],null])}
   else for(const k in f)lg('g',[k,null,f[k]]);
   AL.prev=f;
   if(G.status==='over'&&!AL.up&&P()[uid]&&AL.tries<6)lgUp()}catch(e){}}
 function lgSample(){if(!AL.on||!G)return;let dc=null,r=null;try{if(pos&&G.c)dc=Math.round(D(pos,G.c));r=Math.round(Rad(G,now()))}catch(e){}
   AL.sm.push([Date.now()+off,pos?+pos.lat.toFixed(6):null,pos?+pos.lng.toFixed(6):null,gAcc==null?null:Math.round(gAcc),lastFix?Math.round((Date.now()-lastFix)/1000):null,dc,r,document.hidden?1:0,AL.fx]);AL.fx=0;if(AL.sm.length>20000)AL.sm.shift()}
-function lgUp(){if(AL.up||!AL.on||!code)return AL.upP;AL.up=1;AL.tries++;lgSample();
+function lgUp(){if(AL.up||!AL.on||!code)return AL.upP;AL.up=1;AL.tries++;lgFlush();lgSample();
   const doc={v:1,uid,rn:G.rn||0,end:now(),dev:AL.dev,name:(P()[uid]||{}).name||'',ev:AL.ev,sm:AL.sm};let s=JSON.stringify(doc);
   if(s.length>2800000){doc.ev=doc.ev.filter(e=>e[1]!=='g'||/\/(state|role|lat|lng|out)$/.test(e[2][0])).slice(-15000);s=JSON.stringify(doc)}
   if(s.length>2800000){doc.sm=doc.sm.filter((e,i)=>i%2===0);s=JSON.stringify(doc)}
@@ -191,7 +192,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     if(kd==='g'){const key=dt[0]+'|'+JSON.stringify(dt[2]),o=seen[key];if(o&&Math.abs(o.t-t)<6000){o.by.push(al[k]);return}const x={t,k:'g',d:dt,by:[al[k]]};seen[key]=x;tl.push(x);return}
     tl.push({t,k:kd,d:dt,by:[al[k]]})}));
   tl.sort((a,b)=>a.t-b.t);
-  const st={},an=[],cnt=(d,k,f)=>(d.ev||[]).filter(e=>e[1]===k&&(!f||f(e[2]))).length;
+  const testMode=Object.values(L).some(d=>d.dev&&d.dev.test),st={},an=[],cnt=(d,k,f)=>(d.ev||[]).filter(e=>e[1]===k&&(!f||f(e[2]))).length;
   Object.entries(L).forEach(([k,d])=>{const sm=d.sm||[];let dist=0,out=0,mg=0,hid=0,jp=0,aS=0,aN=0,nf=0;
     for(let i=0;i<sm.length;i++){const a=sm[i];if(a[3]!=null){aS+=a[3];aN++}if(a[4]!=null&&a[4]>10)nf++;
       if(R0!=null&&a[0]>=R0&&a[5]!=null&&a[6]!=null&&a[5]>a[6])out++;if(a[7])hid++;
@@ -199,9 +200,9 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     const x={samples:sm.length,distM:Math.round(dist),secOutsideZone:out*5,secPageHidden:hid*5,secNoFix10s:nf*5,maxSampleGapS:Math.round(mg/1000),gpsJumps120m:jp,avgAccM:aN?Math.round(aS/aN):null,
       hiddenPeriods:cnt(d,'vis',z=>z===0),freezes:cnt(d,'freeze'),dbDisconnects:cnt(d,'db',z=>z===0),netOffline:cnt(d,'net',z=>z===0),gpsErrors:cnt(d,'gps',z=>Array.isArray(z)),writeFails:cnt(d,'wf'),jsErrors:cnt(d,'err')+cnt(d,'rej'),lagEvents:cnt(d,'lag'),boots:cnt(d,'boot')};
     st[al[k]]=x;const n=al[k];
-    if(x.hiddenPeriods)an.push(n+': Seite '+x.hiddenPeriods+'× unsichtbar (zusammen ca. '+x.secPageHidden+' s, Display aus oder andere App)');
-    if(x.secNoFix10s)an.push(n+': ca. '+x.secNoFix10s+' s ohne frischen GPS-Fix (>10 s alt)');
-    if(x.gpsJumps120m)an.push(n+': '+x.gpsJumps120m+' GPS-Sprünge über 120 m zwischen zwei Messungen');
+    if(x.hiddenPeriods)an.push(n+': Seite '+x.hiddenPeriods+'× unsichtbar (zusammen ca. '+x.secPageHidden+' s, '+(testMode?'Testmodus: vermutlich Tab-Wechsel':'Display aus oder andere App')+')');
+    if(x.secNoFix10s&&!testMode)an.push(n+': ca. '+x.secNoFix10s+' s ohne frischen GPS-Fix (>10 s alt)');
+    if(x.gpsJumps120m&&!testMode)an.push(n+': '+x.gpsJumps120m+' GPS-Sprünge über 120 m zwischen zwei Messungen');
     if(x.dbDisconnects)an.push(n+': '+x.dbDisconnects+' Datenbank-Verbindungsabbrüche');
     if(x.netOffline)an.push(n+': '+x.netOffline+'× Gerät offline');
     if(x.writeFails)an.push(n+': '+x.writeFails+' fehlgeschlagene Datenbank-Schreibzugriffe');
@@ -209,16 +210,44 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     if(x.freezes)an.push(n+': '+x.freezes+'× Seite eingefroren');
     if(x.boots>1)an.push(n+': Seite '+x.boots+'× neu geladen/gestartet');
     if(x.lagEvents)an.push(n+': '+x.lagEvents+'× Timer-Verzögerung >3,5 s (Browser gedrosselt)')});
+  if(testMode)an.unshift('Hinweis: Testmodus (#test) – Positionen werden per Kartenklick gesetzt, GPS-Genauigkeit/-Sprünge sind nicht aussagekräftig; „Seite unsichtbar“ entsteht meist durch Tab-Wechsel.');
   ids.filter(k=>!pl[k].lf||true).forEach(k=>{if(!L[k])an.push(al[k]+': kein Protokoll empfangen'+(pl[k].lf?' (hat das Spiel vorher verlassen)':''))});
+  const hl=[],H=(t,x)=>hl.push([t,rel(t),x]),nm=u=>al[u]||u;let tEnd=tl.length?tl[tl.length-1].t:0;
+  tl.forEach(x=>{if(x.k==='g'){const [pa,o,n]=x.d,q=pa.split('/');
+      if(pa==='status')H(x.t,'Status: '+(o||'–')+' → '+n);
+      else if(pa==='startAt'&&n)H(x.t,'Spielstart (startAt gesetzt)');
+      else if(pa==='winner'&&n)H(x.t,'Spielende, Gewinner: '+n);
+      else if(q[0]==='players'&&q[2]==='role'&&o)H(x.t,q[1]+': Rolle '+o+' → '+n);
+      else if(q[0]==='players'&&q[2]==='state'&&o)H(x.t,q[1]+': Status '+o+' → '+n);
+      else if(q[0]==='players'&&q[2]==='lf'&&n)H(x.t,q[1]+' hat das Spiel verlassen');
+      else if(q[0]==='players'&&q[2]==='out')H(x.t,q[1]+(n?' außerhalb der Zone':' wieder in der Zone'));
+      else if(q[0]==='players'&&q[2]==='used')H(x.t,q[1]+': Bonus genutzt ('+q[3]+')');
+      else if(q[0]==='tasks'&&q[2]==='t0'&&n)H(n,'Aufgabe '+q[1]+' startet (geplant)');
+      else if(q[0]==='tasks'&&(q[2]==='dep'||q[2]==='pick')&&q[3]==='u')H(x.t,'Aufgabe '+q[1]+': '+(q[2]==='dep'?'deponiert':'abgeholt')+' von '+nm(n));
+      else if(q[0]==='tasks'&&q[2]==='in'&&q[4]==='t')H(x.t,'Safehouse: '+q[3]+' eingecheckt');
+      else if(q[0]==='tasks'&&(q[2]==='fin'||q[2]==='ex')&&n)H(x.t,'Aufgabe '+q[1]+(q[2]==='fin'?' erledigt':' verfallen'));
+      else if(q[0]==='tasks'&&q[2]==='rr')H(x.t,'Aufgabe '+q[1]+': neuer Ort (Nr. '+n+')');
+      else if(q[0]==='ev'&&q[2]==='x'&&n)H(x.t,'Meldung: '+n);
+      else if(q[0]==='catches'&&n!==null)H(x.t,'Fang: '+pa+' = '+JSON.stringify(n));
+      else if(q[0]==='hb'||q[0]==='live'||q[0]==='xp')H(x.t,'Bonus '+q[0]+': '+pa+' = '+JSON.stringify(n))}
+    else if(x.k==='toast'&&x.d!=='Code kopiert')H(x.t,'Anzeige bei '+x.by.join(',')+': '+x.d);
+    else if(x.k==='chat')H(x.t,'Chat ['+x.d[0]+'] '+x.d[1]+': '+x.d[3]);
+    else if(x.k==='mk+')H(x.t,'Marker gesetzt: '+x.d[2]+' von '+x.d[1]);
+    else if(x.k==='mk-')H(x.t,'Marker entfernt');
+    else if(x.k==='err'||x.k==='rej'||x.k==='wf')H(x.t,'FEHLER bei '+x.by.join(',')+': '+JSON.stringify(x.d))});
+  if(R0!=null&&g.s){const sh=(g.s.shrink||1)*6e4,pg=(g.s.ping||1)*1000;let r=g.s.r0;
+    for(let k=1;R0+k*sh<=tEnd&&k<200;k++){const r2=Rad(g,R0+k*sh);if(r2!==r){H(R0+k*sh,'Zone schrumpft auf '+r2+' m (planmäßig)');r=r2}}
+    for(let k=1;R0+k*pg<=tEnd&&k<400;k++)H(R0+k*pg,'Ping #'+k+' fällig (planmäßig)')}
+  hl.sort((a,b)=>a[0]-b[0]);
   const players=ids.map(k=>{const p=pl[k];return{id:al[k],name:p.name,role:p.role,state:p.state,color:Number.isInteger(p.col)?PALN[p.col]:null,joined:p.j||null,stateTime:p.sT||null,left:!!p.lf,hasLog:!!L[k],device:(L[k]||{}).dev||null,stats:st[al[k]]||null}});
   const tracks={};Object.entries(L).forEach(([k,d])=>tracks[al[k]]=d.sm||[]);
   const gg=JSON.parse(JSON.stringify(g));delete gg.prev;
   const out={format:'blown-cover-analyse',v:1,generated:new Date().toISOString(),code,round:g.rn||0,
-    legend:{timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
+    legend:{highlights:'Lesbare Zusammenfassung [sek_seit_Spielstart, Text] – Spielereignisse, Aufgaben, Meldungen, Chat, Marker, Fehler; Zone/Ping nur planmäßig berechnet.',timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
       tracks:'Pro Spieler: [t_ms, lat, lng, genauigkeit_m, alter_letzter_fix_s, abstand_zonenmitte_m, zonenradius_m, seite_unsichtbar(1/0), fixes_seit_letzter_messung]',
       note:'Spieler-IDs sind anonymisiert (S1…, nach Beitrittsreihenfolge). Positionen sind echte GPS-Werte des jeweiligen Geräts.'},
     game:{settings:g.s,center:g.c,startAt:g.startAt||null,headstartEnd:R0,winner:g.winner||null,status:g.status,host:al[g.host]||null,receivedLogs:Object.keys(L).length,expectedLogs:ids.filter(k=>!pl[k].lf).length},
-    anomalies:an,players,timeline:tl.map(x=>[x.t,rel(x.t),x.by.join(','),x.k,x.d]),tracks,finalState:gg};
+    anomalies:an,highlights:hl.map(x=>[x[1],x[2]]),players,timeline:tl.map(x=>[x.t,rel(x.t),x.by.join(','),x.k,x.d]),tracks,finalState:gg};
   let s=JSON.stringify(out);Object.entries(al).forEach(([k,a])=>{s=s.split(k).join(a)});return s}
 async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten werden gesammelt…');
   try{const need=Object.entries(P()).filter(([k,p])=>!p.lf&&p.role).map(e=>e[0]);let v={};
@@ -230,7 +259,7 @@ async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten 
     const miss=need.filter(k=>!v[k]).length;toast(miss?`Heruntergeladen (${miss} Protokoll${miss>1?'e':''} fehlt)`:'Analysedaten heruntergeladen')}
   catch(e){toast('Analyse nicht möglich: '+String((e&&e.message)||e).slice(0,50))}finally{anB=0}}
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
-let lk={},lastTV='',radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
+let lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
@@ -964,7 +993,7 @@ function onData(){
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
-  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
+  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';lastHT=null;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
   panel();draw();chatSync();mkSync()}
@@ -1017,6 +1046,10 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(vis!==lastTV){const was=lastTV.split(',');lastTV=vis;
       vis.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{toast(tkMsg(x));navigator.vibrate&&navigator.vibrate([200,100,200])});
       draw();panel(1)}}
+  if(m.role==='hunter'&&m.state==='alive'){const T=g.tasks||{},ids=Object.keys(T).filter(i=>(i==='sh'||i==='ev'||isDd(i)||isMt(i))&&T[i]&&t>=T[i].t0).sort().join();
+    if(ids!==lastHT){const was=lastHT===null?[]:lastHT.split(','),ms=new Set();lastHT=ids;
+      ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
+      ms.forEach(n=>note(n+' gestartet'))}}
   if(radar&&t-radar.t>=60000){radar=null;draw()}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
