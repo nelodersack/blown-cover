@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -128,6 +129,29 @@ public class GameActivity extends Activity {
         WebView.setWebContentsDebuggingEnabled(true);
 
         web.addJavascriptInterface(new Bridge(), "BlownNative");
+
+        // Downloads (z. B. „Analysedaten herunterladen“): WebView speichert blob:-Links nicht selbst.
+        // Inhalt per JS aus der Seite holen und über BlownNative.saveFile() in „Downloads“ ablegen.
+        web.setDownloadListener(new android.webkit.DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String ua, String disp, String mime, long len) {
+                Diag.log(GameActivity.this, "Download angefordert: " + (url.length() > 60 ? url.substring(0, 60) + "…" : url));
+                if (url.startsWith("blob:") || url.startsWith("data:")) {
+                    web.evaluateJavascript("(function(u){try{var a=document.querySelector('a[href=\"'+u+'\"]');"
+                            + "var n=(a&&a.download)||'blowncover_download';"
+                            + "fetch(u).then(function(r){return r.blob()}).then(function(b){return b.text().then(function(t){"
+                            + "BlownNative.saveFile(n,b.type||'application/octet-stream',t)})})"
+                            + ".catch(function(e){BlownNative.log('Download fehlgeschlagen: '+e)})}catch(e){BlownNative.log('Download fehlgeschlagen: '+e)}})("
+                            + JSONObject.quote(url) + ")", null);
+                } else {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    } catch (Exception e) {
+                        Diag.log(GameActivity.this, "Download nicht möglich: " + e);
+                    }
+                }
+            }
+        });
 
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -527,6 +551,60 @@ public class GameActivity extends Activity {
                     else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
             });
+        }
+
+        /** Speichert eine Datei der Seite (Text) in „Downloads“ (ab Android 10), sonst Teilen-Menü. */
+        @JavascriptInterface
+        public void saveFile(final String name, final String mime, final String content) {
+            final String n = (name == null || name.trim().isEmpty()) ? "blowncover_download" : name.replaceAll("[\\\\/:*?\"<>|]", "_");
+            final String m = (mime == null || mime.isEmpty()) ? "application/octet-stream" : mime;
+            try {
+                if (Build.VERSION.SDK_INT >= 29) {
+                    android.content.ContentResolver cr = getContentResolver();
+                    android.content.ContentValues v = new android.content.ContentValues();
+                    v.put(android.provider.MediaStore.Downloads.DISPLAY_NAME, n);
+                    v.put(android.provider.MediaStore.Downloads.MIME_TYPE, m);
+                    v.put(android.provider.MediaStore.Downloads.IS_PENDING, 1);
+                    Uri u = cr.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                    if (u == null) throw new Exception("kein Speicherplatz in Downloads");
+                    java.io.OutputStream o = cr.openOutputStream(u);
+                    if (o == null) throw new Exception("Datei nicht beschreibbar");
+                    o.write(content.getBytes("UTF-8"));
+                    o.close();
+                    v.clear();
+                    v.put(android.provider.MediaStore.Downloads.IS_PENDING, 0);
+                    cr.update(u, v, null, null);
+                    Diag.log(GameActivity.this, "Download gespeichert: Downloads/" + n + " (" + content.length() / 1024 + " KB)");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            android.widget.Toast.makeText(GameActivity.this, "Gespeichert in „Downloads“:\n" + n, android.widget.Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    final Uri u = LogProvider.put(GameActivity.this, n, content);
+                    Diag.log(GameActivity.this, "Download zum Teilen bereit: " + n);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Intent i = new Intent(Intent.ACTION_SEND).setType(m).putExtra(Intent.EXTRA_STREAM, u)
+                                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            i.setClipData(android.content.ClipData.newRawUri(n, u));
+                            Intent ch = Intent.createChooser(i, "Datei speichern oder teilen");
+                            ch.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            startActivity(ch);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                Diag.log(GameActivity.this, "Download speichern FEHLER: " + e);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        android.widget.Toast.makeText(GameActivity.this, "Datei konnte nicht gespeichert werden", android.widget.Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
         }
 
         @JavascriptInterface

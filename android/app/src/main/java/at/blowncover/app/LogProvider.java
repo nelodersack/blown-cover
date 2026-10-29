@@ -38,6 +38,16 @@ public class LogProvider extends ContentProvider {
         return Uri.parse("content://" + AUTH + "/" + Uri.encode(name));
     }
 
+    /** Legt eine beliebige Textdatei zum Teilen ab (Fallback für Downloads unter Android 9 und älter). */
+    static Uri put(Context c, String name, String content) throws Exception {
+        File dir = new File(c.getCacheDir(), "logs");
+        if (!dir.exists() && !dir.mkdirs()) throw new Exception("Ordner nicht anlegbar");
+        FileOutputStream o = new FileOutputStream(new File(dir, name));
+        o.write(content.getBytes("UTF-8"));
+        o.close();
+        return Uri.parse("content://" + AUTH + "/" + Uri.encode(name));
+    }
+
     private File file(Uri u) throws FileNotFoundException {
         String n = u.getLastPathSegment();
         if (n == null || n.contains("/") || n.contains("..")) throw new FileNotFoundException();
@@ -53,7 +63,8 @@ public class LogProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return "text/plain";
+        String n = uri.getLastPathSegment();
+        return n != null && n.endsWith(".json") ? "application/json" : "text/plain";
     }
 
     @Override
