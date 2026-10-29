@@ -1,0 +1,229 @@
+package at.blowncover.app;
+
+import android.app.Notification;
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.BatteryManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.PowerManager;
+import android.os.SystemClock;
+
+import java.util.Locale;
+
+/**
+ * Vordergrunddienst: liest das GPS weiter, auch bei ausgeschaltetem Display,
+ * und hält die CPU wach. Die Fixes gehen über {@link #sink} in die Website.
+ */
+public class LocationService extends Service implements LocationListener {
+    static final String ACT_STOP = "at.blowncover.app.STOP";
+
+    interface Sink {
+        void onLoc(Location l);
+
+        void onState(int code, String msg);
+    }
+
+    static volatile Sink sink;
+    static volatile Location last;
+    static volatile long lastAt;
+    static volatile boolean running;
+    static volatile int fixes;
+
+    private LocationManager lm;
+    private PowerManager.WakeLock wl;
+    private BroadcastReceiver rcv;
+    private final Handler h = new Handler(Looper.getMainLooper());
+    private long lastLog;
+
+    private final Runnable beat = new Runnable() {
+        @Override
+        public void run() {
+            heartbeat();
+            h.postDelayed(this, 30000);
+        }
+    };
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Notif.channels(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent in, int flags, int startId) {
+        if (in != null && ACT_STOP.equals(in.getAction())) {
+            Diag.log(this, "Dienst: beendet (Knopf)");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        if (!running) begin();
+        return START_STICKY;
+    }
+
+    private void begin() {
+        running = true;
+        fixes = 0;
+        try {
+            Notification n = Notif.service(this, "Standort wird übermittelt");
+            if (Build.VERSION.SDK_INT >= 29) {
+                startForeground(Notif.ID_SVC, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+            } else {
+                startForeground(Notif.ID_SVC, n);
+            }
+        } catch (Exception e) {
+            Diag.log(this, "startForeground FEHLER: " + e);
+            running = false;
+            stopSelf();
+            return;
+        }
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        try {
+            wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BlownCover:loc");
+            wl.acquire(6L * 60 * 60 * 1000);
+        } catch (Exception e) {
+            Diag.log(this, "WakeLock FEHLER: " + e);
+        }
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000L, 0f, this, Looper.getMainLooper());
+        } catch (SecurityException e) {
+            Diag.log(this, "GPS: keine Berechtigung");
+            Sink s = sink;
+            if (s != null) s.onState(1, "Standort nicht erlaubt");
+        } catch (Exception e) {
+            Diag.log(this, "GPS FEHLER: " + e);
+        }
+        rcv = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent i) {
+                String a = i.getAction();
+                if (a == null) return;
+                if (Intent.ACTION_SCREEN_OFF.equals(a)) Diag.log(c, "Display AUS");
+                else if (Intent.ACTION_SCREEN_ON.equals(a)) Diag.log(c, "Display AN");
+                else if (PowerManager.ACTION_POWER_SAVE_MODE_CHANGED.equals(a)) {
+                    PowerManager p = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+                    Diag.log(c, "Energiesparmodus: " + (p.isPowerSaveMode() ? "AN" : "aus"));
+                } else if (PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED.equals(a)) {
+                    PowerManager p = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+                    Diag.log(c, "Doze: " + (p.isDeviceIdleMode() ? "AN" : "aus"));
+                }
+            }
+        };
+        IntentFilter f = new IntentFilter();
+        f.addAction(Intent.ACTION_SCREEN_ON);
+        f.addAction(Intent.ACTION_SCREEN_OFF);
+        f.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+        f.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+        try {
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(rcv, f, Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(rcv, f);
+        } catch (Exception e) {
+            Diag.log(this, "Receiver FEHLER: " + e);
+        }
+        h.postDelayed(beat, 30000);
+        Diag.log(this, "Dienst: gestartet (Android " + Build.VERSION.SDK_INT + ", " + Build.MANUFACTURER + " " + Build.MODEL + ")");
+    }
+
+    private void heartbeat() {
+        try {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            Intent b = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            int pct = -1;
+            if (b != null) {
+                int lv = b.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                int sc = b.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
+                if (lv >= 0 && sc > 0) pct = lv * 100 / sc;
+            }
+            long age = lastAt == 0 ? -1 : (SystemClock.elapsedRealtime() - lastAt) / 1000;
+            Diag.log(this, String.format(Locale.GERMANY,
+                    "♥ Fixes=%d letzter Fix vor %s s · Display %s · Akku %d%% · Doze %s · Sparmodus %s · Akku-Ausnahme %s",
+                    fixes, age < 0 ? "–" : String.valueOf(age),
+                    pm.isInteractive() ? "an" : "AUS", pct,
+                    pm.isDeviceIdleMode() ? "JA" : "nein",
+                    pm.isPowerSaveMode() ? "JA" : "nein",
+                    pm.isIgnoringBatteryOptimizations(getPackageName()) ? "ja" : "NEIN"));
+            if (age >= 20) Notif.updateService(this, "Warte auf GPS (letzter Fix vor " + age + " s)");
+            else if (age >= 0) Notif.updateService(this, "Standort wird übermittelt");
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location l) {
+        last = l;
+        lastAt = SystemClock.elapsedRealtime();
+        fixes++;
+        long now = System.currentTimeMillis();
+        if (now - lastLog >= 10000) {
+            lastLog = now;
+            Diag.log(this, String.format(Locale.US, "Fix #%d %.5f, %.5f (±%.0f m)", fixes, l.getLatitude(), l.getLongitude(), l.getAccuracy()));
+        }
+        Sink s = sink;
+        if (s != null) {
+            try {
+                s.onLoc(l);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        Diag.log(this, "GPS an");
+        Sink s = sink;
+        if (s != null) s.onState(0, "GPS an");
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        Diag.log(this, "GPS AUS");
+        Sink s = sink;
+        if (s != null) s.onState(2, "GPS aus");
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Diag.log(this, "App aus der Liste gewischt (Dienst läuft weiter)");
+        super.onTaskRemoved(rootIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        h.removeCallbacks(beat);
+        try {
+            if (lm != null) lm.removeUpdates(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            if (rcv != null) unregisterReceiver(rcv);
+        } catch (Exception ignored) {
+        }
+        try {
+            if (wl != null && wl.isHeld()) wl.release();
+        } catch (Exception ignored) {
+        }
+        running = false;
+        Diag.log(this, "Dienst: gestoppt");
+        super.onDestroy();
+    }
+}

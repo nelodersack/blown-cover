@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'at.blowncover.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'at.blowncover.app'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    // Feste Signatur, damit sich spätere APKs über die installierte App drüberinstallieren lassen.
+    // Der Schlüssel liegt NICHT im Repo: Der Workflow schreibt ihn aus dem GitHub-Secret
+    // BC_KEYSTORE_B64 nach BC_KEYSTORE_FILE, das Passwort kommt aus BC_KEYSTORE_PASSWORD.
+    // Lokal: sideload.jks in app/ legen (per .gitignore ausgeschlossen) und Passwort als Umgebungsvariable setzen.
+    def ksFile = System.getenv('BC_KEYSTORE_FILE') ?: 'sideload.jks'
+    def ksPass = System.getenv('BC_KEYSTORE_PASSWORD')
+    signingConfigs {
+        sideload {
+            storeFile file(ksFile)
+            storePassword ksPass
+            keyAlias 'blowncover'
+            keyPassword ksPass
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.sideload
+        }
+        debug {
+            signingConfig signingConfigs.sideload
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

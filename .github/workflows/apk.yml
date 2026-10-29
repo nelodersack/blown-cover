@@ -1,0 +1,55 @@
+name: APK bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [android-app]
+    paths:
+      - 'android/**'
+      - '.github/workflows/apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Signaturschlüssel aus Secret holen
+        env:
+          KS_B64: ${{ secrets.BC_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.BC_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ]; then
+            echo "::error::Secrets BC_KEYSTORE_B64 und/oder BC_KEYSTORE_PASSWORD fehlen (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/sideload.jks"
+          echo "BC_KEYSTORE_FILE=$RUNNER_TEMP/sideload.jks" >> "$GITHUB_ENV"
+
+      - name: APK bauen
+        env:
+          BC_KEYSTORE_PASSWORD: ${{ secrets.BC_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+
+      - name: Schlüssel entfernen
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sideload.jks"
+
+      - name: APK hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlownCover-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
