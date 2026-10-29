@@ -137,11 +137,16 @@ public class GameActivity extends Activity {
             public void onDownloadStart(String url, String ua, String disp, String mime, long len) {
                 Diag.log(GameActivity.this, "Download angefordert: " + (url.length() > 60 ? url.substring(0, 60) + "…" : url));
                 if (url.startsWith("blob:") || url.startsWith("data:")) {
+                    // Die CSP der Seite verbietet fetch(blob:) – daher die beim Erzeugen gemerkte Datei
+                    // direkt im Speicher per FileReader lesen (kein Netzzugriff, keine CSP-Prüfung).
                     web.evaluateJavascript("(function(u){try{var a=document.querySelector('a[href=\"'+u+'\"]');"
                             + "var n=(a&&a.download)||'blowncover_download';"
-                            + "fetch(u).then(function(r){return r.blob()}).then(function(b){return b.text().then(function(t){"
-                            + "BlownNative.saveFile(n,b.type||'application/octet-stream',t)})})"
-                            + ".catch(function(e){BlownNative.log('Download fehlgeschlagen: '+e)})}catch(e){BlownNative.log('Download fehlgeschlagen: '+e)}})("
+                            + "var b=window.__bcBlobs&&window.__bcBlobs[u];"
+                            + "if(!b){BlownNative.log('Download fehlgeschlagen: Datei nicht gefunden');return}"
+                            + "delete window.__bcBlobs[u];"
+                            + "var r=new FileReader();r.onload=function(){BlownNative.saveFile(n,b.type||'application/octet-stream',String(r.result))};"
+                            + "r.onerror=function(){BlownNative.log('Download fehlgeschlagen: '+r.error)};r.readAsText(b)"
+                            + "}catch(e){BlownNative.log('Download fehlgeschlagen: '+e)}})("
                             + JSONObject.quote(url) + ")", null);
                 } else {
                     try {
@@ -162,6 +167,7 @@ public class GameActivity extends Activity {
 
             @Override
             public void onPageFinished(WebView v, String url) {
+                v.evaluateJavascript(BLOB_HOOK, null);
                 // Ohne vorheriges „Seite lädt“ meldet WebView beim Neuladen noch die alte Seite: dann nichts messen.
                 if (loadStart == 0) return;
                 long ms = SystemClock.elapsedRealtime() - loadStart;
@@ -301,6 +307,10 @@ public class GameActivity extends Activity {
         ready.refresh();
         if (Checks.all(this)) startPlaying();
     }
+
+    /** Merkt sich alle per URL.createObjectURL erzeugten Dateien, damit Downloads ohne fetch(blob:) gelesen werden können. */
+    private static final String BLOB_HOOK = "(function(){if(window.__bcBlobs)return;window.__bcBlobs={};var o=URL.createObjectURL;"
+            + "URL.createObjectURL=function(b){var u=o.apply(URL,arguments);try{if(b instanceof Blob)window.__bcBlobs[u]=b}catch(e){}return u}})()";
 
     /** Nach dem Laden: Ladezeiten der Seite (Netz, Aufbau) ins Protokoll. */
     private void checkPage() {
