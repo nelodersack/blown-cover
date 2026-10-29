@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Blown-Cover-Logo, generiert aus icon-512.png -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
+        android:pathData="M1.623,12.000a10.377,10.377 0 1,1 20.755,0a10.377,10.377 0 1,1 -20.755,0"
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="2"
-        android:pathData="M12,12m-8,0a8,8 0 1,1 16,0a8,8 0 1,1 -16,0" />
+        android:strokeWidth="2.000"
+        android:strokeLineCap="butt" />
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M12,8L16,15L8,15Z" />
+        android:pathData="M8.709,12.000a3.291,3.291 0 1,1 6.582,0a3.291,3.291 0 1,1 -6.582,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.600"
+        android:strokeLineCap="butt" />
+    <path
+        android:pathData="M10.547,12.000a1.453,1.453 0 1,1 2.906,0a1.453,1.453 0 1,1 -2.906,0"
+        android:fillColor="#FFFFFF" />
 </vector>
