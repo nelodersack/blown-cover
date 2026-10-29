@@ -61,6 +61,16 @@ public class GameActivity extends Activity {
     /** Hat der Spieler in dieser Sitzung schon auf „Spielen“ getippt (bzw. war alles bereit)? */
     private boolean playing;
     static final String EXTRA_READY = "showReady";
+
+    /** Solange „Bereit machen“ offen ist: jede Sekunde prüfen (z. B. GPS über die Schnelleinstellungen eingeschaltet). */
+    private final Runnable readyTick = new Runnable() {
+        @Override
+        public void run() {
+            if (ready == null || !ready.showing()) return;
+            afterChecksChanged();
+            if (ready.showing()) h.postDelayed(this, 1000);
+        }
+    };
     private final Handler h = new Handler(Looper.getMainLooper());
     private long probeSent, probeGot;
 
@@ -214,9 +224,19 @@ public class GameActivity extends Activity {
             String m = Checks.missing(this);
             Diag.log(this, "Bereit machen: fehlt " + (m.isEmpty() ? "nichts" : m));
         }
+        h.removeCallbacks(readyTick);
+        h.postDelayed(readyTick, 1000);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        // Schnelleinstellungen oder Berechtigungsdialog geschlossen: sofort neu prüfen.
+        if (hasFocus) afterChecksChanged();
     }
 
     private void hideReady() {
+        h.removeCallbacks(readyTick);
         if (ready != null && ready.root.getParent() != null) frame.removeView(ready.root);
     }
 
