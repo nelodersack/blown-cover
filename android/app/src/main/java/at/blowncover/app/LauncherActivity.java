@@ -105,7 +105,7 @@ public class LauncherActivity extends Activity {
         setContentView(sv);
 
         root.addView(tv("Blown Cover", 30, FG, true));
-        root.addView(tv("App v" + Prefs.VER + " · Hülle für die Website", 13, MUT, false), lp(2));
+        root.addView(tv("App v" + Prefs.ver(this) + " · Hülle für die Website", 13, MUT, false), lp(2));
 
         root.addView(tv("BEREITSCHAFT", 12, MUT, true), lp(24));
         stLoc = tv("", 15, FG, true);
@@ -199,7 +199,7 @@ public class LauncherActivity extends Activity {
                 Intent i = new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
                 i.putExtra(Intent.EXTRA_SUBJECT, "Blown Cover Diagnose");
-                i.putExtra(Intent.EXTRA_TEXT, "Blown Cover App v" + Prefs.VER + " · " + Build.MANUFACTURER + " " + Build.MODEL
+                i.putExtra(Intent.EXTRA_TEXT, "Blown Cover App v" + Prefs.ver(LauncherActivity.this) + " · " + Build.MANUFACTURER + " " + Build.MODEL
                         + " · Android " + Build.VERSION.SDK_INT + "\n\n" + Diag.tail(LauncherActivity.this, 300));
                 startActivity(Intent.createChooser(i, "Log teilen"));
             }

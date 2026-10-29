@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.os.Process;
 import android.os.SystemClock;
 
 import java.util.Locale;
@@ -26,7 +27,12 @@ import java.util.Locale;
  * und hält die CPU wach. Die Fixes gehen über {@link #sink} in die Website.
  */
 public class LocationService extends Service implements LocationListener {
+    /** Nur den Dienst beenden (Startbildschirm, Website). */
     static final String ACT_STOP = "at.blowncover.app.STOP";
+    /** Alles beenden: Spielansicht schließen, Dienst stoppen, App-Prozess beenden (Benachrichtigung). */
+    static final String ACT_QUIT = "at.blowncover.app.QUIT";
+    /** Wie lange der Dienst nach dem Wegwischen während eines laufenden Spiels auf die Rückkehr wartet. */
+    private static final long ORPHAN_MS = 5L * 60 * 1000;
 
     interface Sink {
         void onLoc(Location l);
@@ -39,12 +45,26 @@ public class LocationService extends Service implements LocationListener {
     static volatile long lastAt;
     static volatile boolean running;
     static volatile int fixes;
+    /** Spielstatus laut Website (G.status), von der Spielansicht regelmäßig abgefragt. */
+    static volatile String game;
 
     private LocationManager lm;
     private PowerManager.WakeLock wl;
     private BroadcastReceiver rcv;
     private final Handler h = new Handler(Looper.getMainLooper());
     private long lastLog;
+    private boolean killOnDestroy;
+    private boolean orphaned;
+
+    /** Nach dem Wegwischen im laufenden Spiel: Ist die Spielansicht nicht zurück, alles beenden. */
+    private final Runnable orphanEnd = new Runnable() {
+        @Override
+        public void run() {
+            if (GameActivity.alive) return;
+            Diag.log(LocationService.this, "Nicht ins Spiel zurückgekehrt – App beendet");
+            quit();
+        }
+    };
 
     private final Runnable beat = new Runnable() {
         @Override
@@ -67,13 +87,37 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public int onStartCommand(Intent in, int flags, int startId) {
+        if (in != null && ACT_QUIT.equals(in.getAction())) {
+            Diag.log(this, "Beenden (Benachrichtigung)");
+            GameActivity.closeAll();
+            quit();
+            return START_NOT_STICKY;
+        }
         if (in != null && ACT_STOP.equals(in.getAction())) {
             Diag.log(this, "Dienst: beendet (Knopf)");
             stopSelf();
             return START_NOT_STICKY;
         }
         if (!running) begin();
-        return START_STICKY;
+        if (orphaned) {
+            orphaned = false;
+            h.removeCallbacks(orphanEnd);
+            Diag.log(this, "Zurück im Spiel");
+            Notif.updateService(this, "Standort wird übermittelt");
+        }
+        // Kein automatischer Neustart durch Android: Ohne Spielansicht hätte der Dienst keinen Zweck.
+        return START_NOT_STICKY;
+    }
+
+    /** Alles beenden: Standort, Wake Lock, Benachrichtigungen und den App-Prozess. */
+    private void quit() {
+        killOnDestroy = true;
+        try {
+            Notif.clearAll(this);
+        } catch (Exception ignored) {
+        }
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        stopSelf();
     }
 
     private void begin() {
@@ -158,6 +202,7 @@ public class LocationService extends Service implements LocationListener {
                     pm.isDeviceIdleMode() ? "JA" : "nein",
                     pm.isPowerSaveMode() ? "JA" : "nein",
                     pm.isIgnoringBatteryOptimizations(getPackageName()) ? "ja" : "NEIN"));
+            if (orphan()) return;
             if (age >= 20) Notif.updateService(this, "Warte auf GPS (letzter Fix vor " + age + " s)");
             else if (age >= 0) Notif.updateService(this, "Standort wird übermittelt");
         } catch (Exception ignored) {
@@ -201,15 +246,33 @@ public class LocationService extends Service implements LocationListener {
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
+    /** true, solange die App weggewischt ist, aber ein Spiel läuft (Dienst wartet auf Rückkehr). */
+    private boolean orphan() {
+        return orphaned && !GameActivity.alive;
+    }
+
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        Diag.log(this, "App aus der Liste gewischt (Dienst läuft weiter)");
+        if ("running".equals(game)) {
+            Diag.log(this, "App weggewischt – Spiel läuft, Dienst wartet bis zu 5 min auf Rückkehr");
+            Notif.updateService(this, "Spiel läuft noch – tippe hier, um zurückzukehren");
+            Notif.event(this, "Du bist noch im Spiel",
+                    "Die App wurde geschlossen, dein Standort geht gerade nicht ans Spiel. Tippe hier, um zurückzukehren. "
+                            + "Ohne Rückkehr beendet sich die App in 5 Minuten.");
+            orphaned = true;
+            h.removeCallbacks(orphanEnd);
+            h.postDelayed(orphanEnd, ORPHAN_MS);
+        } else {
+            Diag.log(this, "App weggewischt – kein laufendes Spiel (" + game + "), alles beendet");
+            quit();
+        }
         super.onTaskRemoved(rootIntent);
     }
 
     @Override
     public void onDestroy() {
         h.removeCallbacks(beat);
+        h.removeCallbacks(orphanEnd);
         try {
             if (lm != null) lm.removeUpdates(this);
         } catch (Exception ignored) {
@@ -223,7 +286,10 @@ public class LocationService extends Service implements LocationListener {
         } catch (Exception ignored) {
         }
         running = false;
-        Diag.log(this, "Dienst: gestoppt");
+        last = null;
+        Diag.log(this, "Dienst: gestoppt" + (killOnDestroy ? ", App beendet" : ""));
         super.onDestroy();
+        // Beim Beenden auch den Prozess schließen: kein eingebetteter Browser, kein Standortzugriff bleibt übrig.
+        if (killOnDestroy) Process.killProcess(Process.myPid());
     }
 }

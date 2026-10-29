@@ -8,7 +8,14 @@ final class Prefs {
     static final String LIVE = "https://nelodersack.github.io/blown-cover/";
     static final String TEST = "https://nelodersack.github.io/blown-cover/index_app.html";
 
-    static final String VER = "0.1.0";
+    /** Versionsname aus dem installierten Paket (build.gradle: versionName). */
+    static String ver(Context c) {
+        try {
+            return c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "?";
+        }
+    }
 
     private Prefs() {}
 

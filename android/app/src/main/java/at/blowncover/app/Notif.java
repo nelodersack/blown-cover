@@ -35,7 +35,7 @@ final class Notif {
     }
 
     static Notification service(Context c, String text) {
-        Intent stop = new Intent(c, LocationService.class).setAction(LocationService.ACT_STOP);
+        Intent stop = new Intent(c, LocationService.class).setAction(LocationService.ACT_QUIT);
         PendingIntent ps = PendingIntent.getService(c, 1, stop, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification.Action stopAct = new Notification.Action.Builder(
                 Icon.createWithResource(c, R.drawable.ic_stat), "Beenden", ps).build();
@@ -55,6 +55,11 @@ final class Notif {
             c.getSystemService(NotificationManager.class).notify(ID_SVC, service(c, text));
         } catch (Exception ignored) {
         }
+    }
+
+    /** Entfernt alle Benachrichtigungen der App. */
+    static void clearAll(Context c) {
+        c.getSystemService(NotificationManager.class).cancelAll();
     }
 
     /** Spielmeldung (Ping, Fang, Aufgabe ...). Es bleiben höchstens 8 gleichzeitig sichtbar. */

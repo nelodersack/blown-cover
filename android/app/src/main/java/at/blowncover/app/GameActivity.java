@@ -1,7 +1,10 @@
 package at.blowncover.app;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
@@ -9,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.Display;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
@@ -22,16 +26,37 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 /** Zeigt die Website in einem eingebetteten Browser und reicht Standort und Meldungen durch. */
 public class GameActivity extends Activity {
+    /** true, solange eine Spielansicht existiert (für den Dienst). */
+    static volatile boolean alive;
+    private static WeakReference<GameActivity> current = new WeakReference<>(null);
+
+    /** Schließt die Spielansicht samt Aufgabe (für „Beenden“ in der Benachrichtigung). */
+    static void closeAll() {
+        final GameActivity a = current.get();
+        if (a == null) return;
+        a.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                a.finishAndRemoveTask();
+            }
+        });
+    }
+
     private WebView web;
+    /** Hat die geladene Seite die App-Anbindung (window.bcNativePos)? Sonst keine Standorte hineinreichen. */
+    private volatile boolean bridge;
+    private long loadStart;
     private final Handler h = new Handler(Looper.getMainLooper());
     private long probeSent, probeGot;
 
-    private final Runnable alive = new Runnable() {
+    private final Runnable probeLoop = new Runnable() {
         @Override
         public void run() {
             probe();
@@ -42,7 +67,7 @@ public class GameActivity extends Activity {
     private final LocationService.Sink mySink = new LocationService.Sink() {
         @Override
         public void onLoc(Location l) {
-            if (web == null) return;
+            if (web == null || !bridge) return;
             String js = String.format(Locale.US,
                     "window.bcNativePos&&window.bcNativePos(%.7f,%.7f,%.1f,%d)",
                     l.getLatitude(), l.getLongitude(), l.getAccuracy(), l.getTime());
@@ -59,8 +84,13 @@ public class GameActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        alive = true;
+        current = new WeakReference<>(this);
+        maxRefreshRate();
         web = new WebView(this);
         setContentView(web);
+        logWebViewVersion();
+        ensureService();
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -69,6 +99,10 @@ public class GameActivity extends Activity {
         s.setGeolocationEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setUserAgentString(s.getUserAgentString() + " BlownCoverApp/1");
+        // Flüssigere Darstellung: Inhalt auch außerhalb des sichtbaren Bereichs vorzeichnen.
+        s.setOffscreenPreRaster(true);
+        // Darstellungsprozess der Seite auch im Hintergrund als wichtig markieren (wird seltener beendet).
+        web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
         WebView.setWebContentsDebuggingEnabled(true);
 
         web.addJavascriptInterface(new Bridge(), "BlownNative");
@@ -76,12 +110,17 @@ public class GameActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView v, String url, Bitmap icon) {
+                bridge = false;
+                loadStart = SystemClock.elapsedRealtime();
                 Diag.log(GameActivity.this, "Seite lädt: " + url);
             }
 
             @Override
             public void onPageFinished(WebView v, String url) {
-                Diag.log(GameActivity.this, "Seite fertig");
+                long ms = loadStart == 0 ? -1 : SystemClock.elapsedRealtime() - loadStart;
+                loadStart = 0;
+                Diag.log(GameActivity.this, "Seite fertig" + (ms >= 0 ? String.format(Locale.GERMANY, " nach %.1f s", ms / 1000.0) : ""));
+                checkPage();
             }
 
             @Override
@@ -140,11 +179,78 @@ public class GameActivity extends Activity {
         String url = Prefs.url(this);
         Diag.log(this, "Spiel öffnen: " + url);
         web.loadUrl(url);
-        h.postDelayed(alive, 30000);
+        h.postDelayed(probeLoop, 30000);
+    }
+
+    /** Nach dem Laden: Ladezeiten der Seite (Netz, Aufbau) ins Protokoll und prüfen, ob sie die App-Anbindung hat. */
+    private void checkPage() {
+        if (web == null) return;
+        String js = "(function(){try{var n=performance.getEntriesByType('navigation')[0]||{};var r=performance.getEntriesByType('resource');"
+                + "var c=0;for(var i=0;i<r.length;i++){if(r[i].transferSize===0&&r[i].decodedBodySize>0)c++}"
+                + "return JSON.stringify({bridge:typeof window.bcNativePos==='function',antwort:Math.round(n.responseStart||0),"
+                + "aufgebaut:Math.round(n.domContentLoadedEventEnd||0),geladen:Math.round(n.loadEventEnd||0),dateien:r.length,ausCache:c})}"
+                + "catch(e){return 'err '+e}})()";
+        web.evaluateJavascript(js, new android.webkit.ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String v) {
+                try {
+                    Object o = new JSONTokener(v).nextValue();
+                    JSONObject j = new JSONObject(String.valueOf(o));
+                    bridge = j.optBoolean("bridge");
+                    j.remove("bridge");
+                    Diag.log(GameActivity.this, "Seitenzeiten (ms): " + j + " · App-Anbindung " + (bridge ? "ja" : "nein"));
+                } catch (Exception e) {
+                    Diag.log(GameActivity.this, "Seitenzeiten: " + v);
+                }
+            }
+        });
+    }
+
+    /** Höchste Bildwiederholrate bei gleicher Auflösung anfordern (z. B. 120 Hz statt 60 Hz bei Samsung). */
+    private void maxRefreshRate() {
+        try {
+            Display d = getWindowManager().getDefaultDisplay();
+            Display.Mode cur = d.getMode(), best = cur;
+            for (Display.Mode m : d.getSupportedModes()) {
+                if (m.getPhysicalWidth() == cur.getPhysicalWidth() && m.getPhysicalHeight() == cur.getPhysicalHeight()
+                        && m.getRefreshRate() > best.getRefreshRate()) best = m;
+            }
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.preferredDisplayModeId = best.getModeId();
+            getWindow().setAttributes(lp);
+            Diag.log(this, String.format(Locale.GERMANY, "Bildrate: angefordert %.0f Hz (vorher %.0f Hz, %dx%d)",
+                    best.getRefreshRate(), cur.getRefreshRate(), cur.getPhysicalWidth(), cur.getPhysicalHeight()));
+        } catch (Exception e) {
+            Diag.log(this, "Bildrate FEHLER: " + e);
+        }
+    }
+
+    private void logWebViewVersion() {
+        try {
+            PackageInfo p = WebView.getCurrentWebViewPackage();
+            if (p != null) Diag.log(this, "WebView: " + p.packageName + " " + p.versionName);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Dienst sicherstellen (z. B. bei Rückkehr über die Benachrichtigung). */
+    private void ensureService() {
+        boolean loc = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        if (!loc) return;
+        try {
+            startForegroundService(new Intent(this, LocationService.class));
+        } catch (Exception e) {
+            Diag.log(this, "Dienststart FEHLER: " + e);
+        }
     }
 
     /** Fragt die Seite alle 30 s, ob sie noch lebt – so sieht man, ob sie bei Display-aus weiterläuft. */
     private void probe() {
+        probe(false);
+    }
+
+    private void probe(final boolean quiet) {
         if (web == null) return;
         if (probeSent > probeGot) Diag.log(this, "Seite antwortet NICHT (letzte Abfrage unbeantwortet)");
         probeSent = SystemClock.elapsedRealtime();
@@ -156,7 +262,13 @@ public class GameActivity extends Activity {
             @Override
             public void onReceiveValue(String v) {
                 probeGot = mine;
-                Diag.log(GameActivity.this, "Seite: " + v);
+                if (!quiet) Diag.log(GameActivity.this, "Seite: " + v);
+                try {
+                    Object o = new JSONTokener(v).nextValue();
+                    JSONObject j = new JSONObject(String.valueOf(o));
+                    LocationService.game = j.isNull("status") ? null : j.optString("status");
+                } catch (Exception ignored) {
+                }
             }
         });
     }
@@ -179,6 +291,8 @@ public class GameActivity extends Activity {
         // Bewusst KEIN web.onPause()/pauseTimers(): die Seite soll im Hintergrund weiterlaufen.
         Diag.log(this, "Spielansicht nicht mehr sichtbar (Display aus oder andere App)");
         web.resumeTimers();
+        // Spielstatus sofort auffrischen: entscheidet, was beim Wegwischen passiert.
+        probe(true);
         super.onStop();
     }
 
@@ -189,7 +303,9 @@ public class GameActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        h.removeCallbacks(alive);
+        alive = false;
+        if (current.get() == this) current = new WeakReference<>(null);
+        h.removeCallbacks(probeLoop);
         if (LocationService.sink == mySink) LocationService.sink = null;
         if (web != null) {
             web.destroy();
@@ -203,7 +319,7 @@ public class GameActivity extends Activity {
     private class Bridge {
         @JavascriptInterface
         public String info() {
-            return "{\"app\":1,\"ver\":\"" + Prefs.VER + "\"}";
+            return "{\"app\":1,\"ver\":\"" + Prefs.ver(GameActivity.this) + "\"}";
         }
 
         @JavascriptInterface
