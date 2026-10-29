@@ -62,23 +62,45 @@ final class Notif {
         c.getSystemService(NotificationManager.class).cancelAll();
     }
 
-    /** Spielmeldung (Ping, Fang, Aufgabe ...). Es bleiben höchstens 8 gleichzeitig sichtbar. */
-    static void event(Context c, String title, String text) {
+    /** Verlauf der letzten Spielmeldungen (neueste zuerst), angezeigt in einer einzigen Benachrichtigung. */
+    private static final java.util.LinkedList<String> history = new java.util.LinkedList<>();
+    private static final int ID_EV = 100;
+    private static final int KEEP = 5;
+
+    /**
+     * Spielmeldung (Ping, Fang, Aufgabe ...). Es gibt immer nur EINE Meldungs-Benachrichtigung:
+     * Jede neue ersetzt die alte (mit Ton/Vibration) und zeigt die letzten 5 Meldungen als Verlauf.
+     */
+    static synchronized void event(Context c, String title, String text) {
         try {
             channels(c);
-            Notification n = new Notification.Builder(c, CH_EV)
+            String time = new java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.GERMANY).format(new java.util.Date());
+            history.addFirst(time + "  " + text);
+            while (history.size() > KEEP) history.removeLast();
+            Notification.Builder b = new Notification.Builder(c, CH_EV)
                     .setSmallIcon(R.drawable.ic_stat)
                     .setContentTitle(title)
                     .setContentText(text)
-                    .setStyle(new Notification.BigTextStyle().bigText(text))
                     .setAutoCancel(true)
+                    .setOnlyAlertOnce(false)
+                    .setShowWhen(true)
                     .setCategory(Notification.CATEGORY_EVENT)
-                    .setTimeoutAfter(180000)
-                    .setContentIntent(openGame(c))
-                    .build();
-            c.getSystemService(NotificationManager.class).notify(100 + (evCount++ % 8), n);
+                    .setContentIntent(openGame(c));
+            if (history.size() > 1) {
+                Notification.InboxStyle st = new Notification.InboxStyle().setBigContentTitle(title);
+                for (String h : history) st.addLine(h);
+                b.setStyle(st);
+            } else {
+                b.setStyle(new Notification.BigTextStyle().bigText(text));
+            }
+            c.getSystemService(NotificationManager.class).notify(ID_EV, b.build());
         } catch (Exception e) {
             Diag.log(c, "Meldung fehlgeschlagen: " + e);
         }
+    }
+
+    /** Spielansicht geöffnet: Die Meldungen sind gesehen, der Verlauf beginnt von vorn. */
+    static synchronized void clearHistory() {
+        history.clear();
     }
 }

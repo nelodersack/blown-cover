@@ -2,6 +2,7 @@ package at.blowncover.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
@@ -87,7 +89,7 @@ public class GameActivity extends Activity {
         alive = true;
         current = new WeakReference<>(this);
         maxRefreshRate();
-        web = new WebView(this);
+        web = new AwakeWebView(this);
         setContentView(web);
         logWebViewVersion();
         ensureService();
@@ -276,6 +278,29 @@ public class GameActivity extends Activity {
     protected void onStart() {
         super.onStart();
         Diag.log(this, "Spielansicht sichtbar");
+        setPageHidden(false);
+        Notif.clearHistory();
+    }
+
+    /** Teilt der Seite mit, ob die Spielansicht verdeckt ist (die WebView selbst bleibt für den Browser „sichtbar“). */
+    private void setPageHidden(boolean hidden) {
+        if (web == null) return;
+        web.evaluateJavascript("window.bcSetHidden?window.bcSetHidden(" + hidden + "):(window.bcHidden=" + hidden + ")", null);
+    }
+
+    /**
+     * WebView, die dem Browser immer „Fenster sichtbar“ meldet. Sonst friert Chromium die Seite ein,
+     * sobald Display aus / App im Hintergrund ist (Zeitgeber, Spielschleife und Meldungen stehen dann still).
+     */
+    static class AwakeWebView extends WebView {
+        AwakeWebView(Context c) {
+            super(c);
+        }
+
+        @Override
+        protected void onWindowVisibilityChanged(int visibility) {
+            super.onWindowVisibilityChanged(View.VISIBLE);
+        }
     }
 
     @Override
@@ -290,6 +315,7 @@ public class GameActivity extends Activity {
         // Bewusst KEIN web.onPause()/pauseTimers(): die Seite soll im Hintergrund weiterlaufen.
         Diag.log(this, "Spielansicht nicht mehr sichtbar (Display aus oder andere App)");
         web.resumeTimers();
+        setPageHidden(true);
         // Spielstatus sofort auffrischen: entscheidet, was beim Wegwischen passiert.
         probe(true);
         super.onStop();

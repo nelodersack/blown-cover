@@ -1,4 +1,4 @@
-# Blown Cover – Android-App (Version 0.1.3)
+# Blown Cover – Android-App (Version 0.1.4)
 
 Die App ist eine Hülle um die Website. Sie lädt die Seite in einem eingebetteten Browser und kann zusätzlich:
 - den Standort im Hintergrund weiterlesen (Vordergrunddienst mit Benachrichtigung „Blown Cover läuft“), auch bei ausgeschaltetem Display,
