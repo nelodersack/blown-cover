@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_diag"
+        android:shortcutId="diag"
+        android:shortcutLongLabel="@string/sc_diag_long"
+        android:shortcutShortLabel="@string/sc_diag">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="at.blowncover.app.DiagActivity"
+            android:targetPackage="at.blowncover.app" />
+    </shortcut>
+</shortcuts>

@@ -15,7 +15,9 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
@@ -53,6 +55,12 @@ public class GameActivity extends Activity {
 
     private WebView web;
     private long loadStart;
+    private String loadedUrl;
+    private FrameLayout frame;
+    private ReadyDialog ready;
+    /** Hat der Spieler in dieser Sitzung schon auf „Spielen“ getippt (bzw. war alles bereit)? */
+    private boolean playing;
+    static final String EXTRA_READY = "showReady";
     private final Handler h = new Handler(Looper.getMainLooper());
     private long probeSent, probeGot;
 
@@ -90,9 +98,11 @@ public class GameActivity extends Activity {
         current = new WeakReference<>(this);
         maxRefreshRate();
         web = new AwakeWebView(this);
-        setContentView(web);
+        frame = new FrameLayout(this);
+        frame.setBackgroundColor(Ui.BG);
+        frame.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(frame);
         logWebViewVersion();
-        ensureService();
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -179,10 +189,73 @@ public class GameActivity extends Activity {
         });
 
         LocationService.sink = mySink;
-        String url = Prefs.url(this);
-        Diag.log(this, "Spiel öffnen: " + url);
-        web.loadUrl(url);
+        loadedUrl = Prefs.url(this);
+        Diag.log(this, "App v" + Prefs.ver(this) + " · Spiel öffnen: " + loadedUrl);
+        web.loadUrl(loadedUrl);
         h.postDelayed(probeLoop, 30000);
+
+        // Start direkt ins Spiel; nur wenn etwas fehlt, vorher „Bereit machen“.
+        if (Checks.all(this) && !getIntent().getBooleanExtra(EXTRA_READY, false)) startPlaying();
+        else showReady();
+    }
+
+    private void showReady() {
+        if (ready == null) {
+            ready = new ReadyDialog(this, new ReadyDialog.Listener() {
+                @Override
+                public void onPlay() {
+                    startPlaying();
+                }
+            });
+        }
+        ready.refresh();
+        if (ready.root.getParent() == null) {
+            frame.addView(ready.root, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            String m = Checks.missing(this);
+            Diag.log(this, "Bereit machen: fehlt " + (m.isEmpty() ? "nichts" : m));
+        }
+    }
+
+    private void hideReady() {
+        if (ready != null && ready.root.getParent() != null) frame.removeView(ready.root);
+    }
+
+    /** Pflichtpunkte erfüllt: Dialog schließen, Hintergrunddienst starten. */
+    private void startPlaying() {
+        hideReady();
+        if (!playing) {
+            String m = Checks.missing(this);
+            Diag.log(this, "Spielen" + (m.isEmpty() ? " (alles bereit)" : " (fehlt noch: " + m + ")"));
+        }
+        playing = true;
+        ensureService();
+    }
+
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+        if (i.getBooleanExtra(EXTRA_READY, false)) showReady();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+        super.onRequestPermissionsResult(code, perms, res);
+        afterChecksChanged();
+    }
+
+    /** Nach Rückkehr aus Einstellungen/Berechtigungsdialog: Dialog auffrischen, bei „alles grün“ direkt los. */
+    private void afterChecksChanged() {
+        if (ready == null || !ready.showing()) {
+            // Pflicht verloren (z. B. GPS ausgeschaltet)? Dann Dialog wieder zeigen.
+            if (!Checks.required(this)) {
+                playing = false;
+                showReady();
+            }
+            return;
+        }
+        ready.refresh();
+        if (Checks.all(this)) startPlaying();
     }
 
     /** Nach dem Laden: Ladezeiten der Seite (Netz, Aufbau) ins Protokoll. */
@@ -308,6 +381,14 @@ public class GameActivity extends Activity {
         super.onResume();
         web.onResume();
         web.resumeTimers();
+        afterChecksChanged();
+        // Seitenwahl im Diagnose-Bildschirm geändert? Dann die neue Seite laden.
+        String u = Prefs.url(this);
+        if (loadedUrl != null && !u.equals(loadedUrl)) {
+            loadedUrl = u;
+            Diag.log(this, "Seite gewechselt: " + u);
+            web.loadUrl(u);
+        }
     }
 
     @Override

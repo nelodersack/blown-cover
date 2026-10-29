@@ -1,4 +1,4 @@
-# Blown Cover – Android-App (Version 0.1.4)
+# Blown Cover – Android-App (Version 0.2.0)
 
 Die App ist eine Hülle um die Website. Sie lädt die Seite in einem eingebetteten Browser und kann zusätzlich:
 - den Standort im Hintergrund weiterlesen (Vordergrunddienst mit Benachrichtigung „Blown Cover läuft“), auch bei ausgeschaltetem Display,
@@ -31,22 +31,21 @@ Eine Kopie von `sideload.jks` privat aufbewahren (z. B. Drive). Geht der Schlüs
 3. Spätere Versionen lassen sich einfach drüberinstallieren (gleiche Signatur).
 
 ## 4. Erster Start
-Der Startbildschirm zeigt die Bereitschaft:
-- **Standort**: erlauben („Bei Nutzung der App“ genügt).
-- **GPS**: muss an sein.
-- **Benachrichtigungen**: erlauben (sonst sieht man die Dienst-Anzeige und Meldungen nicht).
-- **Akku-Ausnahme**: „Akku-Optimierung ausschalten“ bestätigen. Das ist der wichtigste Punkt, damit Hersteller (Samsung, Xiaomi …) den Dienst nicht beenden.
-- Dann **Spiel öffnen**. Die Website erscheint; mit der Zurück-Taste geht die App in den Hintergrund (sie beendet sich nicht). Beenden: Benachrichtigung → „Beenden“ oder Startbildschirm → „Dienst beenden“.
+Die App öffnet direkt das Spiel. Fehlt noch etwas, erscheint vorher der Dialog **„Bereit machen“**:
+- **Standort** (Pflicht): erlauben, und zwar den *genauen* Standort („Bei Nutzung der App“ genügt).
+- **GPS** (Pflicht): muss an sein.
+- **Benachrichtigungen** (empfohlen): für Pings und Meldungen bei ausgeschaltetem Display.
+- **Akku-Optimierung** (empfohlen, aber wichtig): „Ausnehmen“ bestätigen, damit Hersteller (Samsung, Xiaomi …) die App nicht beenden.
+Solange ein Pflichtpunkt fehlt, ist „Spielen“ gesperrt. Ist alles grün, startet die App künftig ohne diesen Dialog.
 
-## 5. Zwei Teststufen
-**Stufe 1 – Live-Seite in der App** (Adresse: „Live-Seite“)
-Die App lädt die normale Website. Die Website weiß noch nichts von der App und nutzt weiter den Browser-Standort. Getestet wird, ob der Dienst bei ausgeschaltetem Display weiterläuft (Diagnose unten am Startbildschirm: „Fixes“ steigen weiter, `♥`-Zeilen alle 30 s, „Seite: …“ zeigt, ob die Website noch antwortet).
+Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beenden: Benachrichtigung „Blown Cover läuft“ → „Beenden“, oder die App aus der Übersicht wischen (außerhalb eines laufenden Spiels beendet das alles; im laufenden Spiel wartet die App 5 Minuten auf die Rückkehr).
 
-**Stufe 2 – Testseite mit App-Anbindung** (Adresse: „Testseite“)
-Dafür die Datei `index_app.html` ins Repo der Website `blown-cover` hochladen (neben `index.html`, nichts überschreiben). Die normale Seite bleibt dadurch unverändert. Die Testseite nimmt den Standort vom Hintergrunddienst und zeigt Meldungen als Android-Benachrichtigung, wenn der Bildschirm aus ist. Spielt dort in einer eigenen Lobby.
+## 5. Diagnose und Log
+**Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
+Ganz unten „Für Tests“: Wahl zwischen **App-Test-Seite** (Standard, `index_app.html` mit App-Anbindung) und **Live-Seite**.
 
-## 6. Diagnose weitergeben
-Startbildschirm → ganz unten **Log teilen** → an Claude schicken (z. B. per Mail/Messenger). Das Protokoll enthält Zeiten, Fixes, Display an/aus, Akkustand, Doze- und Sparmodus-Zustand und Fehler.
+## 6. Mischen mit Browser-Spielern
+App und Browser nutzen dieselbe Datenbank: App-Spieler (Testseite) und Browser-Spieler (Live-Seite, auch iPhone) können in derselben Lobby spielen. Klappt die App bei jemandem nicht, einfach im Browser mit demselben Code beitreten.
 
 ## Was zu beachten ist
 - Chrome-Fernzugriff zur Fehlersuche: In der App ist das WebView-Debugging an (`chrome://inspect` am PC, Handy per USB).

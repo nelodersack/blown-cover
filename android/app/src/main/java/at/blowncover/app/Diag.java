@@ -60,6 +60,11 @@ final class Diag {
         }
     }
 
+    /** Das gesamte Protokoll (für „Log teilen“ als Datei). */
+    static synchronized String all(Context c) {
+        return tail(c, Integer.MAX_VALUE);
+    }
+
     static synchronized void clear(Context c) {
         try {
             new File(c.getFilesDir(), FILE).delete();

@@ -24,7 +24,7 @@ final class Prefs {
     }
 
     static String mode(Context c) {
-        return p(c).getString("mode", "live");
+        return p(c).getString("mode", "test"); // Standard: App-Test-Seite (mit App-Anbindung)
     }
 
     static void setMode(Context c, String m) {
