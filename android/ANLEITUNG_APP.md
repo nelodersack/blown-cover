@@ -20,7 +20,7 @@ Settings → Secrets and variables → Actions → „New repository secret“ m
 Eine Kopie von `sideload.jks` privat aufbewahren (z. B. Drive). Geht der Schlüssel verloren, lassen sich keine Updates mehr drüberinstallieren.
 
 ## 2. APK bauen lassen
-1. Jeder Push auf den Zweig `android-app`, der etwas unter `android/` ändert, startet den Bau automatisch.
+1. Jeder Push auf den Zweig `android-app` startet den Bau automatisch (zum reinen Neustart genügt ein leerer Commit).
    (Der Knopf „Run workflow“ erscheint erst, wenn `apk.yml` auch auf `main` liegt.)
 2. Nach 3 bis 6 Minuten ist der Lauf unter **Actions** grün. Den Lauf öffnen → unten unter **Artifacts** `BlownCover-APK` herunterladen (ZIP) → entpacken → `app-release.apk`.
 3. Schlägt der Bau fehl (roter Haken): den Lauf öffnen, den roten Schritt aufklappen und Claude den Text (oder einen Screenshot) schicken.
