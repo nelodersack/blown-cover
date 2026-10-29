@@ -45,6 +45,8 @@ public class LocationService extends Service implements LocationListener {
     static volatile long lastAt;
     static volatile boolean running;
     static volatile int fixes;
+    /** Die Spielansicht meldet gerade die Lobby ab (App wartet damit mit dem Beenden, höchstens 9 s). */
+    static volatile boolean leavingLobby;
     /** Spielstatus laut Website (G.status), von der Spielansicht regelmäßig abgefragt. */
     static volatile String game;
 
@@ -55,6 +57,27 @@ public class LocationService extends Service implements LocationListener {
     private long lastLog;
     private boolean killOnDestroy;
     private boolean orphaned;
+    private long quitDeadline;
+
+    /** Beenden, sobald das Verlassen der Lobby durch ist (oder spätestens nach 9 s). */
+    private final Runnable doQuit = new Runnable() {
+        @Override
+        public void run() {
+            if (leavingLobby && SystemClock.elapsedRealtime() < quitDeadline) {
+                h.postDelayed(this, 250);
+                return;
+            }
+            quit();
+        }
+    };
+
+    private void quitSoon() {
+        quitDeadline = SystemClock.elapsedRealtime() + 9000;
+        h.removeCallbacks(doQuit);
+        // Kurz warten, damit die Spielansicht ihr onDestroy (Lobby verlassen) noch ausführen kann.
+        h.postDelayed(doQuit, 300);
+        Notif.updateService(this, "Wird beendet …");
+    }
 
     /** Nach dem Wegwischen im laufenden Spiel: Ist die Spielansicht nicht zurück, alles beenden. */
     private final Runnable orphanEnd = new Runnable() {
@@ -90,7 +113,7 @@ public class LocationService extends Service implements LocationListener {
         if (in != null && ACT_QUIT.equals(in.getAction())) {
             Diag.log(this, "Beenden (Benachrichtigung)");
             GameActivity.closeAll();
-            quit();
+            quitSoon();
             return START_NOT_STICKY;
         }
         if (in != null && ACT_STOP.equals(in.getAction())) {
@@ -264,7 +287,7 @@ public class LocationService extends Service implements LocationListener {
             h.postDelayed(orphanEnd, ORPHAN_MS);
         } else {
             Diag.log(this, "App weggewischt – kein laufendes Spiel (" + game + "), alles beendet");
-            quit();
+            quitSoon();
         }
         super.onTaskRemoved(rootIntent);
     }
@@ -273,6 +296,7 @@ public class LocationService extends Service implements LocationListener {
     public void onDestroy() {
         h.removeCallbacks(beat);
         h.removeCallbacks(orphanEnd);
+        h.removeCallbacks(doQuit);
         try {
             if (lm != null) lm.removeUpdates(this);
         } catch (Exception ignored) {

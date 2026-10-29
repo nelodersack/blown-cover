@@ -1,4 +1,4 @@
-# Blown Cover – Android-App (Version 0.2.1)
+# Blown Cover – Android-App (Version 0.2.2)
 
 Die App ist eine Hülle um die Website. Sie lädt die Seite in einem eingebetteten Browser und kann zusätzlich:
 - den Standort im Hintergrund weiterlesen (Vordergrunddienst mit Benachrichtigung „Blown Cover läuft“), auch bei ausgeschaltetem Display,
@@ -38,7 +38,7 @@ Die App öffnet direkt das Spiel. Fehlt noch etwas, erscheint vorher der Dialog 
 - **Akku-Optimierung** (empfohlen, aber wichtig): „Ausnehmen“ bestätigen, damit Hersteller (Samsung, Xiaomi …) die App nicht beenden.
 Solange ein Pflichtpunkt fehlt, ist „Spielen“ gesperrt. Ist alles grün, startet die App künftig ohne diesen Dialog.
 
-Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beenden: Benachrichtigung „Blown Cover läuft“ → „Beenden“, oder die App aus der Übersicht wischen (außerhalb eines laufenden Spiels beendet das alles; im laufenden Spiel wartet die App 5 Minuten auf die Rückkehr).
+Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beenden: Benachrichtigung „Blown Cover läuft“ → „Beenden“, oder die App aus der Übersicht wischen (in der Lobby tritt man dabei automatisch aus der Lobby aus; außerhalb eines laufenden Spiels beendet das alles; im laufenden Spiel wartet die App 5 Minuten auf die Rückkehr).
 
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.

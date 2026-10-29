@@ -434,11 +434,68 @@ public class GameActivity extends Activity {
         h.removeCallbacks(probeLoop);
         if (LocationService.sink == mySink) LocationService.sink = null;
         if (web != null) {
-            web.destroy();
+            // App in der Lobby geschlossen (Wegwischen oder „Beenden“): vorher sauber aus der Lobby austreten.
+            if (isFinishing() && "lobby".equals(LocationService.game)) leaveLobbyThenDestroy(web);
+            else web.destroy();
             web = null;
         }
         Diag.log(this, "Spielansicht beendet");
         super.onDestroy();
+    }
+
+    /** Ruft in der Seite die Website-eigene Funktion leaveGame() auf (in der Lobby ohne Rückfrage). */
+    private static final String LEAVE_JS = "(function(){try{if(typeof G!=='undefined'&&G&&G.status==='lobby'&&typeof leaveGame==='function'){leaveGame();return 'ok'}return 'skip'}"
+            + "catch(e){return 'err '+e}})()";
+
+    /**
+     * Meldet den Spieler über die Seite aus der Lobby ab und zerstört die WebView erst danach.
+     * leaveGame() lädt am Ende die Seite neu – das ist das Signal „fertig“. Spätestens nach 8 s wird abgebrochen.
+     */
+    private void leaveLobbyThenDestroy(final WebView w) {
+        LocationService.leavingLobby = true;
+        final Context app = getApplicationContext();
+        final Handler hh = new Handler(Looper.getMainLooper());
+        final boolean[] done = {false};
+        final Runnable fin = new Runnable() {
+            @Override
+            public void run() {
+                if (done[0]) return;
+                done[0] = true;
+                try {
+                    w.destroy();
+                } catch (Exception ignored) {
+                }
+                LocationService.leavingLobby = false;
+            }
+        };
+        Diag.log(this, "Lobby wird verlassen …");
+        try {
+            if (w.getParent() instanceof ViewGroup) ((ViewGroup) w.getParent()).removeView(w);
+        } catch (Exception ignored) {
+        }
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView v, String url, Bitmap icon) {
+                Diag.log(app, "Lobby verlassen");
+                hh.post(fin);
+            }
+        });
+        w.evaluateJavascript(LEAVE_JS, new android.webkit.ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String v) {
+                if (!"\"ok\"".equals(v)) {
+                    Diag.log(app, "Lobby verlassen nicht möglich: " + v);
+                    hh.post(fin);
+                }
+            }
+        });
+        hh.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!done[0]) Diag.log(app, "Lobby verlassen: keine Bestätigung (Zeitlimit)");
+                fin.run();
+            }
+        }, 8000);
     }
 
     /** Schnittstelle für die Website: window.BlownNative */
