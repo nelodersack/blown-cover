@@ -50,8 +50,6 @@ public class GameActivity extends Activity {
     }
 
     private WebView web;
-    /** Hat die geladene Seite die App-Anbindung (window.bcNativePos)? Sonst keine Standorte hineinreichen. */
-    private volatile boolean bridge;
     private long loadStart;
     private final Handler h = new Handler(Looper.getMainLooper());
     private long probeSent, probeGot;
@@ -67,7 +65,9 @@ public class GameActivity extends Activity {
     private final LocationService.Sink mySink = new LocationService.Sink() {
         @Override
         public void onLoc(Location l) {
-            if (web == null || !bridge) return;
+            // Immer durchreichen: Die Seite schaltet ihre Anbindung erst später ein (beim Betreten der Lobby),
+            // der Ausdruck prüft selbst, ob window.bcNativePos schon existiert.
+            if (web == null) return;
             String js = String.format(Locale.US,
                     "window.bcNativePos&&window.bcNativePos(%.7f,%.7f,%.1f,%d)",
                     l.getLatitude(), l.getLongitude(), l.getAccuracy(), l.getTime());
@@ -110,16 +110,17 @@ public class GameActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView v, String url, Bitmap icon) {
-                bridge = false;
                 loadStart = SystemClock.elapsedRealtime();
                 Diag.log(GameActivity.this, "Seite lädt: " + url);
             }
 
             @Override
             public void onPageFinished(WebView v, String url) {
-                long ms = loadStart == 0 ? -1 : SystemClock.elapsedRealtime() - loadStart;
+                // Ohne vorheriges „Seite lädt“ meldet WebView beim Neuladen noch die alte Seite: dann nichts messen.
+                if (loadStart == 0) return;
+                long ms = SystemClock.elapsedRealtime() - loadStart;
                 loadStart = 0;
-                Diag.log(GameActivity.this, "Seite fertig" + (ms >= 0 ? String.format(Locale.GERMANY, " nach %.1f s", ms / 1000.0) : ""));
+                Diag.log(GameActivity.this, String.format(Locale.GERMANY, "Seite fertig nach %.1f s", ms / 1000.0));
                 checkPage();
             }
 
@@ -182,12 +183,12 @@ public class GameActivity extends Activity {
         h.postDelayed(probeLoop, 30000);
     }
 
-    /** Nach dem Laden: Ladezeiten der Seite (Netz, Aufbau) ins Protokoll und prüfen, ob sie die App-Anbindung hat. */
+    /** Nach dem Laden: Ladezeiten der Seite (Netz, Aufbau) ins Protokoll. */
     private void checkPage() {
         if (web == null) return;
         String js = "(function(){try{var n=performance.getEntriesByType('navigation')[0]||{};var r=performance.getEntriesByType('resource');"
                 + "var c=0;for(var i=0;i<r.length;i++){if(r[i].transferSize===0&&r[i].decodedBodySize>0)c++}"
-                + "return JSON.stringify({bridge:typeof window.bcNativePos==='function',antwort:Math.round(n.responseStart||0),"
+                + "return JSON.stringify({antwort:Math.round(n.responseStart||0),"
                 + "aufgebaut:Math.round(n.domContentLoadedEventEnd||0),geladen:Math.round(n.loadEventEnd||0),dateien:r.length,ausCache:c})}"
                 + "catch(e){return 'err '+e}})()";
         web.evaluateJavascript(js, new android.webkit.ValueCallback<String>() {
@@ -196,9 +197,7 @@ public class GameActivity extends Activity {
                 try {
                     Object o = new JSONTokener(v).nextValue();
                     JSONObject j = new JSONObject(String.valueOf(o));
-                    bridge = j.optBoolean("bridge");
-                    j.remove("bridge");
-                    Diag.log(GameActivity.this, "Seitenzeiten (ms): " + j + " · App-Anbindung " + (bridge ? "ja" : "nein"));
+                    Diag.log(GameActivity.this, "Seitenzeiten (ms): " + j);
                 } catch (Exception e) {
                     Diag.log(GameActivity.this, "Seitenzeiten: " + v);
                 }
