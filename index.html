@@ -477,7 +477,7 @@ function toCP(cx,cy){const sz=map.getSize(),v=rp(cx-innerWidth/2,cy-innerHeight/
 function rotSize(on){if(rotSq===on&&!on)return;rotSq=on;const s=mapEl.style;
   if(on){const D=Math.ceil(Math.hypot(innerWidth,innerHeight))+2;Object.assign(s,{inset:'auto',width:D+'px',height:D+'px',left:(innerWidth-D)/2+'px',top:(innerHeight-D)/2+'px'})}
   else{s.inset=s.width=s.height=s.left=s.top=''}
-  map.invalidateSize({pan:false})}
+  map.invalidateSize({pan:true,animate:false})}
 function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!rotSq)rotSize(true);
   mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
   const n=$('nb');n.style.display=a?'grid':'none';n.firstChild.style.transform=`rotate(${a}deg)`;hdPaint()}
