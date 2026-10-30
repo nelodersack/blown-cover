@@ -119,7 +119,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #map{touch-action:none}
 #cb,#mmbtn,#lgb{width:40px!important;height:40px;min-height:0!important;padding:0!important;border-radius:50%!important;place-items:center}#cb .ic,#mmbtn .ic,#lgb .ic{width:22px;height:22px}#cb{position:fixed}#cbn{position:absolute;top:-3px;right:-3px;margin:0!important;min-width:18px;line-height:18px;text-align:center;padding:0 5px!important}
 
-.meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible}
+.meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible;filter:none}
 .leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
 #nb{position:fixed;left:10px;top:152px;z-index:1200;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}
 </style></head><body>
@@ -515,7 +515,7 @@ function hdSet(h,src,raw){if(!isFinite(h))return;h=(h%360+360)%360;if(HD==null||
   hdT=Date.now();hdSrc=src;if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
 function hdOk(){return HD!=null&&Date.now()-hdT<(hdSrc==='gps'?30000:4000)}
 function hdPaint(){const e=document.getElementById('meh');if(!e)return;const ok=hdOk();e.style.display=ok?'':'none';if(ok)e.style.transform=`rotate(${HD+ROT}deg)`}
-const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M18 -9L25 6H11Z" fill="#1e7cf0" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`;
+const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M25.94 6.23L18 -4L10.06 6.23A14.2 14.2 0 0 1 25.94 6.23Z" fill="#1e7cf0"/></svg></div>`;
 addEventListener('deviceorientationabsolute',e=>{if(e.alpha==null)return;hdAbs=1;hdSet(360-e.alpha+scrA(),'kompass')},true);
 addEventListener('deviceorientation',e=>{if(e.webkitCompassHeading!=null&&e.webkitCompassHeading>=0)hdSet(e.webkitCompassHeading+scrA(),'kompass');else if(e.absolute&&e.alpha!=null&&!hdAbs)hdSet(360-e.alpha+scrA(),'kompass')},true);
 // iPhone: Zugriff auf den Kompass muss nach einem Tippen erfragt werden
@@ -1116,7 +1116,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<60000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Radar '+ago(radar.t)]));
-  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:meH()+shape('me',uid),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
+  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:shape('me',uid)+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
   drawMarks(m,t);
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
