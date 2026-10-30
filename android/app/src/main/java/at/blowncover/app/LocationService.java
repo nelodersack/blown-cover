@@ -55,6 +55,10 @@ public class LocationService extends Service implements LocationListener {
     private BroadcastReceiver rcv;
     private final Handler h = new Handler(Looper.getMainLooper());
     private long lastLog;
+    /** Letzter echter GPS-Fix (elapsedRealtime) – Netzwerk-Fixes zählen nur, wenn das GPS so lange schweigt. */
+    private long lastGpsAt;
+    private static final long NET_AFTER_MS = 5000;
+    private boolean usingNet;
     private boolean killOnDestroy;
     private boolean orphaned;
     private long quitDeadline;
@@ -169,6 +173,15 @@ public class LocationService extends Service implements LocationListener {
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000L, 0f, this, Looper.getMainLooper());
+            // Ersatz: Ortung über WLAN/Mobilfunk (ungenauer, reißt aber in Durchgängen/Gebäuden nicht ab).
+            try {
+                if (lm.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
+                    lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000L, 0f, this, Looper.getMainLooper());
+                    Diag.log(this, "Netzwerk-Ortung als Ersatz bereit");
+                }
+            } catch (Exception e) {
+                Diag.log(this, "Netzwerk-Ortung nicht verfügbar: " + e.getMessage());
+            }
         } catch (SecurityException e) {
             Diag.log(this, "GPS: keine Berechtigung");
             Sink s = sink;
@@ -234,13 +247,32 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location l) {
+        long el = SystemClock.elapsedRealtime();
+        boolean gps = LocationManager.GPS_PROVIDER.equals(l.getProvider());
+        if (gps) {
+            lastGpsAt = el;
+            if (usingNet) {
+                usingNet = false;
+                Diag.log(this, "GPS wieder da – Netzwerk-Ortung pausiert");
+            }
+        } else {
+            // Netzwerk-Fix nur, wenn das GPS gerade schweigt, und nur frische Werte (keine zwischengespeicherten).
+            if (el - lastGpsAt < NET_AFTER_MS) return;
+            long ageMs = (SystemClock.elapsedRealtimeNanos() - l.getElapsedRealtimeNanos()) / 1000000L;
+            if (ageMs > 15000) return;
+            if (!usingNet) {
+                usingNet = true;
+                Diag.log(this, String.format(Locale.US, "Kein GPS seit %d s – Netzwerk-Ortung springt ein (±%.0f m)",
+                        lastGpsAt == 0 ? -1 : (el - lastGpsAt) / 1000, l.getAccuracy()));
+            }
+        }
         last = l;
-        lastAt = SystemClock.elapsedRealtime();
+        lastAt = el;
         fixes++;
         long now = System.currentTimeMillis();
         if (now - lastLog >= 10000) {
             lastLog = now;
-            Diag.log(this, String.format(Locale.US, "Fix #%d %.5f, %.5f (±%.0f m)", fixes, l.getLatitude(), l.getLongitude(), l.getAccuracy()));
+            Diag.log(this, String.format(Locale.US, "Fix #%d %.5f, %.5f (±%.0f m)%s", fixes, l.getLatitude(), l.getLongitude(), l.getAccuracy(), gps ? "" : " Netz"));
         }
         Sink s = sink;
         if (s != null) {
@@ -253,6 +285,7 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onProviderEnabled(String provider) {
+        if (!LocationManager.GPS_PROVIDER.equals(provider)) return;
         Diag.log(this, "GPS an");
         Sink s = sink;
         if (s != null) s.onState(0, "GPS an");
@@ -260,6 +293,7 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onProviderDisabled(String provider) {
+        if (!LocationManager.GPS_PROVIDER.equals(provider)) return;
         Diag.log(this, "GPS AUS");
         Sink s = sink;
         if (s != null) s.onState(2, "GPS aus");
