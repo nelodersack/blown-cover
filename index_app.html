@@ -116,8 +116,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #res{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:#000b;padding:16px}
 #resb{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:16px;display:grid;gap:8px}
 #resb h2{text-align:center}#resb .rl small{display:block}
+#map{touch-action:none}
+.meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible}
+.leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
+#nb{position:fixed;left:10px;top:140px;z-index:1200;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}
 </style></head><body>
-<div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
+<div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="rotReset()" aria-label="Karte nach Norden ausrichten"><svg viewBox="0 0 26 26"><path d="M13 2L17.5 13H8.5Z" fill="#e5484d"/><path d="M13 24L8.5 13H17.5Z" fill="#e9eef3"/></svg></button><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
 <button id=cb onclick="chToggle()">Chat<span id=cbn></span></button>
 <button id=mmbtn onclick="mmTog()" aria-expanded="false">Marker ▾</button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
@@ -453,9 +457,68 @@ else{const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
 const lay=L.layerGroup().addTo(map);
-map.on('click',e=>{if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;if(G&&G.status==='lobby'&&G.host===uid)return db.ref(`games/${code}/c`).set({lat:e.latlng.lat,lng:e.latlng.lng});
+map.on('click',e=>{if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;{const P_=$('panel');if(!P_.classList.contains('c')){P_.classList.add('c');return}}
   if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
 if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
+
+// Karte drehen (nur im Spiel): Zwei-Finger-Geste wie bei Google Maps. Die ganze Karte wird per CSS gedreht und dafür auf die Bildschirmdiagonale vergrößert;
+// Marker, Popups und Beschriftungen bleiben aufrecht. Eingaben werden in ungedrehte Kartenkoordinaten zurückgerechnet.
+let ROT=0,rotOn=false,rotSq=false;
+const mapEl=$('map'),rp=(x,y,a)=>{const r=a*Math.PI/180,c=Math.cos(r),s=Math.sin(r);return L.point(x*c-y*s,x*s+y*c)};
+function toCP(cx,cy){const sz=map.getSize(),v=rp(cx-innerWidth/2,cy-innerHeight/2,-ROT);return L.point(v.x+sz.x/2,v.y+sz.y/2)}
+{const m2c=map.mouseEventToContainerPoint.bind(map);map.mouseEventToContainerPoint=e=>rotSq?toCP(e.clientX,e.clientY):m2c(e);
+ const up=L.Draggable.prototype._updatePosition;L.Draggable.prototype._updatePosition=function(){if(rotSq&&this._newPos&&this._startPos){const d=this._newPos.subtract(this._startPos),k=this._parentScale||{x:1,y:1};this._newPos=this._startPos.add(rp(d.x*k.x,d.y*k.y,-ROT))}up.call(this)};
+ const cr=el=>{if(el)el.style.transform+=' rotate(var(--cr,0deg))'};
+ const sp=L.Marker.prototype._setPos;L.Marker.prototype._setPos=function(p){sp.call(this,p);cr(this._icon)};
+ const pu=L.Popup.prototype._updatePosition;L.Popup.prototype._updatePosition=function(){pu.call(this);const c=this._container;if(!c)return;const o=L.point(this.options.offset);c.style.transformOrigin=`calc(50% - ${o.x}px) calc(100% + ${20-o.y}px)`;cr(c)};
+ const pa=L.Popup.prototype._animateZoom;L.Popup.prototype._animateZoom=function(e){pa.call(this,e);cr(this._container)};
+ const ts=L.Tooltip.prototype._setPosition;L.Tooltip.prototype._setPosition=function(p){ts.call(this,p);cr(this._container)};
+ const is=L.Icon.prototype._setIconStyles;L.Icon.prototype._setIconStyles=function(img,name){is.call(this,img,name);if(name!=='icon')return;const o=this.options,s=o.iconSize&&L.point(o.iconSize),a=o.iconAnchor?L.point(o.iconAnchor):s&&s.divideBy(2);if(a)img.style.transformOrigin=`${a.x}px ${a.y}px`}}
+// Steuerelemente (Quellenangabe) bleiben am Bildschirmrand, auch wenn die Karte gedreht ist
+{const u=document.createElement('div');u.className='leaflet-container leaflet-touch';u.style.cssText='position:fixed;inset:0;background:none;pointer-events:none;z-index:400';u.appendChild(map._controlContainer);document.body.appendChild(u)}
+function rotSize(on){if(rotSq===on&&!on)return;rotSq=on;const s=mapEl.style;
+  if(on){const D=Math.ceil(Math.hypot(innerWidth,innerHeight))+2;Object.assign(s,{inset:'auto',width:D+'px',height:D+'px',left:(innerWidth-D)/2+'px',top:(innerHeight-D)/2+'px'})}
+  else{s.inset=s.width=s.height=s.left=s.top=''}
+  map.invalidateSize({pan:false})}
+function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!rotSq)rotSize(true);
+  mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
+  const n=$('nb');n.style.display=a?'grid':'none';n.firstChild.style.transform=`rotate(${a}deg)`;hdPaint()}
+function rotReset(){const a0=ROT,t0=performance.now();if(!a0)return;
+  const st=t=>{const k=Math.min(1,(t-t0)/250);rotSet(a0*(1-k*(2-k)));if(k<1)requestAnimationFrame(st);else rotSize(false)};requestAnimationFrame(st)}
+function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable()}else{gz=null;tps.clear();rotSet(0);rotSize(false);map.touchZoom.enable()}}
+addEventListener('resize',()=>{if(rotSq){rotSq=false;rotSize(true)}});
+// Zwei-Finger-Geste: zoomen, verschieben und (ab 15° Drehung) drehen
+const tps=new Map();let gz=null,gRaf=0;
+const gPts=()=>{const v=[...tps.values()];return{a:Math.atan2(v[1][1]-v[0][1],v[1][0]-v[0][0])*180/Math.PI,d:Math.hypot(v[1][0]-v[0][0],v[1][1]-v[0][1])||1,c:[(v[0][0]+v[1][0])/2,(v[0][1]+v[1][1])/2]}};
+function gStart(){const p=gPts();map._stop();if(map.dragging._draggable&&map.dragging._draggable._moving)map.dragging._draggable.finishDrag();
+  gz={a0:p.a,d0:p.d,r0:ROT,z0:map.getZoom(),ll:map.containerPointToLatLng(toCP(p.c[0],p.c[1])),rot:false};map._moveStart(true,false)}
+function gMove(){gRaf=0;if(!gz||tps.size<2)return;const p=gPts();let da=((p.a-gz.a0)%360+540)%360-180;
+  if(!gz.rot&&Math.abs(da)>15){gz.rot=true;gz.a0=p.a;gz.r0=ROT;da=0}
+  if(gz.rot)rotSet(gz.r0+da);
+  const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom(),gz.z0+Math.log2(p.d/gz.d0))),sz=map.getSize(),pc=toCP(p.c[0],p.c[1]);
+  const c=map.unproject(map.project(gz.ll,z).subtract(pc.subtract(sz.divideBy(2))),z);map._move(c,z,{pinch:true,round:false})}
+function gEnd(){if(!gz)return;gz=null;map._moveEnd(true)}
+mapEl.addEventListener('pointerdown',e=>{if(!rotOn||e.pointerType!=='touch')return;tps.set(e.pointerId,[e.clientX,e.clientY]);if(tps.size===2)gStart()},true);
+mapEl.addEventListener('pointermove',e=>{if(!tps.has(e.pointerId))return;tps.set(e.pointerId,[e.clientX,e.clientY]);if(gz&&!gRaf)gRaf=requestAnimationFrame(gMove)},true);
+const gUp=e=>{if(!tps.delete(e.pointerId))return;if(tps.size<2)gEnd()};
+addEventListener('pointerup',gUp,true);addEventListener('pointercancel',gUp,true);
+
+// Blickrichtung: Kompass des Handys, sonst Bewegungsrichtung aus GPS
+let HD=null,hdT=0,hdSrc='',hdAbs=0,hdAsk=0,hdRaf=0,crP=null;
+const scrA=()=>(screen.orientation&&screen.orientation.angle)||+window.orientation||0;
+function hdSet(h,src,raw){if(!isFinite(h))return;h=(h%360+360)%360;if(HD==null||raw)HD=h;else{const d=((h-HD)%360+540)%360-180;HD=(HD+d*0.3+360)%360}
+  hdT=Date.now();hdSrc=src;if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
+function hdOk(){return HD!=null&&Date.now()-hdT<(hdSrc==='gps'?30000:4000)}
+function hdPaint(){const e=document.getElementById('meh');if(!e)return;const ok=hdOk();e.style.display=ok?'':'none';if(ok)e.style.transform=`rotate(${HD+ROT}deg)`}
+const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M18 -9L25 6H11Z" fill="#1e7cf0" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`;
+addEventListener('deviceorientationabsolute',e=>{if(e.alpha==null)return;hdAbs=1;hdSet(360-e.alpha+scrA(),'kompass')},true);
+addEventListener('deviceorientation',e=>{if(e.webkitCompassHeading!=null&&e.webkitCompassHeading>=0)hdSet(e.webkitCompassHeading+scrA(),'kompass');else if(e.absolute&&e.alpha!=null&&!hdAbs)hdSet(360-e.alpha+scrA(),'kompass')},true);
+// iPhone: Zugriff auf den Kompass muss nach einem Tippen erfragt werden
+document.addEventListener('click',()=>{if(hdAsk||!G||G.status!=='running')return;hdAsk=1;
+  try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission)DeviceOrientationEvent.requestPermission().then(r=>lg('kompass',r)).catch(e=>lg('kompass','fehler'))}catch(e){}},true);
+function crs(){if(!pos)return;if(!crP){crP=pos;return}const d=map.distance([crP.lat,crP.lng],[pos.lat,pos.lng]);if(d<8)return;
+  if(Date.now()-hdT>3000||hdSrc==='gps'){const y=Math.sin((pos.lng-crP.lng)*Math.PI/180)*Math.cos(pos.lat*Math.PI/180),x=Math.cos(crP.lat*Math.PI/180)*Math.sin(pos.lat*Math.PI/180)-Math.sin(crP.lat*Math.PI/180)*Math.cos(pos.lat*Math.PI/180)*Math.cos((pos.lng-crP.lng)*Math.PI/180);
+    hdSet(Math.atan2(y,x)*180/Math.PI,'gps',1)}crP=pos}
 
 // GPS
 let gpsErr=null,gpsWid=null,gpsTt=0;
@@ -476,7 +539,7 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
   gpsWid=navigator.geolocation.watchPosition(onFix,
     e=>{gpsErr=e;lg('gps',[e.code,String(e.message||'').slice(0,60)]);const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
-function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
+function write(f){crs();if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
   if(!wrOld)wrOld=Date.now();
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
@@ -675,7 +738,7 @@ function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
 async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function psave(){try{LS['bp_'+code+'_'+(G.rn||0)]=JSON.stringify({ping,xping,lk})}catch(e){}}
 function pclean(all){try{const cur='bp_'+code+'_'+((G&&G.rn)||0);Object.keys(LS).forEach(k=>{if(k.indexOf('bp_')===0&&(all||k!==cur))LS.removeItem(k)})}catch(e){}}
-function leave(){pclean(1);LS.removeItem('c');location.reload()}
+function leave(){rotMode(false);pclean(1);LS.removeItem('c');location.reload()}
 const endNow=async()=>{if(await dlg({t:'Spiel beenden?',x:'Die Runde endet für alle sofort.',ok:'Beenden',no:'Weiterspielen',bad:1}))db.ref('games/'+code).update({status:'over',winner:'host'})};
 
 // Aufgaben
@@ -894,7 +957,7 @@ function lobbyUI(g,host,me_){
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
     const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping und Live-Standort nach einem Fang')+(hbOn(g)?nf('hbN')+nf('hbC')+nf('hbL')+nf('hbT'):'');
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
-    <p class="sm mut">Zone: roten Punkt auf der Karte ziehen oder Karte tippen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
+    <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     <div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
     +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler')+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd'):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
@@ -1013,12 +1076,12 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<60000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Radar '+ago(radar.t)]));
-  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:shape('me',uid),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
+  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:meH()+shape('me',uid),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
   drawMarks(m,t);
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
 function onData(){
-  lgData();
+  lgData();rotMode(!!(G&&G.status==='running'));
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
