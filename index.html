@@ -486,8 +486,9 @@ function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!r
   mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
   const n=$('nb');n.style.display=a?'grid':'none';n.firstChild.style.transform=`rotate(${a}deg)`;hdPaint()}
 function rotReset(){const a0=ROT,t0=performance.now();if(!a0)return;
-  const st=t=>{const k=Math.min(1,(t-t0)/250);rotSet(a0*(1-k*(2-k)));if(k<1)requestAnimationFrame(st);else rotSize(false)};requestAnimationFrame(st)}
-function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable()}else{gz=null;tps.clear();rotSet(0);rotSize(false);map.touchZoom.enable()}}
+  const st=t=>{const k=Math.min(1,(t-t0)/250);rotSet(a0*(1-k*(2-k)));if(k<1)requestAnimationFrame(st)};requestAnimationFrame(st)}
+// In einer Runde bleibt die Karte dauerhaft im großen Quadrat: so muss beim Drehen/Norden nie neu gezeichnet werden (kein Flackern)
+function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable();if(vt)vt.options.padding=.05;rotSize(true)}else{gz=null;tps.clear();rotSet(0);if(vt)vt.options.padding=.1;rotSize(false);map.touchZoom.enable()}}
 addEventListener('resize',()=>{if(rotSq){rotSq=false;rotSize(true)}});
 // Zwei-Finger-Geste: zoomen, verschieben und (ab 15° Drehung) drehen
 const tps=new Map();let gz=null,gRaf=0;
