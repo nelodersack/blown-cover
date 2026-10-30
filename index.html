@@ -461,7 +461,7 @@ map.on('click',e=>{if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode
   if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
 if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
 
-// Karte drehen (nur im Spiel): Zwei-Finger-Geste wie bei Google Maps. Die ganze Karte wird per CSS gedreht und dafür auf die Bildschirmdiagonale vergrößert;
+// Karte drehen (Lobby und Spiel): Zwei-Finger-Geste wie bei Google Maps. Die ganze Karte wird per CSS gedreht und dafür auf die Bildschirmdiagonale vergrößert;
 // Marker, Popups und Beschriftungen bleiben aufrecht. Eingaben werden in ungedrehte Kartenkoordinaten zurückgerechnet.
 let ROT=0,rotOn=false,rotSq=false;
 const mapEl=$('map'),rp=(x,y,a)=>{const r=a*Math.PI/180,c=Math.cos(r),s=Math.sin(r);return L.point(x*c-y*s,x*s+y*c)};
@@ -480,6 +480,8 @@ function rotSize(on){if(rotSq===on&&!on)return;rotSq=on;const s=mapEl.style;
   if(on){const D=Math.ceil(Math.hypot(innerWidth,innerHeight))+2;Object.assign(s,{inset:'auto',width:D+'px',height:D+'px',left:(innerWidth-D)/2+'px',top:(innerHeight-D)/2+'px'})}
   else{s.inset=s.width=s.height=s.left=s.top=''}
   map.invalidateSize({pan:true,animate:false})}
+// Zone einpassen: bei gedrehter Karte nur in den sichtbaren Bildschirmausschnitt (nicht in das größere Quadrat)
+function fitZ(b){if(!rotSq)return map.fitBounds(b);const p=Math.max(0,(map.getSize().x-Math.min(innerWidth,innerHeight))/2);map.fitBounds(b,{padding:[p,p]})}
 function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!rotSq)rotSize(true);
   mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
   const n=$('nb');n.style.display=a?'grid':'none';n.firstChild.style.transform=`rotate(${a}deg)`;hdPaint()}
@@ -1031,7 +1033,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   const z=L.circle(c0,{radius:r,color:'#e5484d',fillColor:'#e5484d',fillOpacity:.07,weight:2}).addTo(lay);
   const nr=Math.max(g.s.rMin,r-sstp(g.s));if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:'#7a8696',weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
   const key=r+(g.host===uid?'':c0.join());
-  if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;map.fitBounds(z.getBounds())}
+  if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;fitZ(z.getBounds())}
   if(g.status==='lobby'&&g.host===uid){
     if(!cm){cm=L.marker(c0,{draggable:true,icon:L.divIcon({className:'',html:'<div class=cm>✥</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
       cm.on('dragstart',()=>drag=1);cm.on('dragend',()=>{drag=0;const p=cm.getLatLng();db.ref(`games/${code}/c`).set({lat:p.lat,lng:p.lng})})}
@@ -1081,7 +1083,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
 function onData(){
-  lgData();rotMode(!!(G&&G.status==='running'));
+  lgData();rotMode(!!G);
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
