@@ -280,6 +280,7 @@ const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos
 const P=()=>(G&&G.players)||{};
 const lbl=p=>(p.role==='hunter'?'Hunter ':'Hider ')+p.name;
 const gwv=g=>g.s.gw||20,gdv=g=>Math.max(g.s.gd||60,gwv(g)+5);
+const dqOn=g=>!!(g.s&&g.s.dq===true),hpOn=g=>!(g.s&&g.s.hp===false); // Signal-DQ: Standard aus · Hider-Pings der anderen: Standard an
 function evW(key,x,u){if(!code||evSeen.has(key))return;evSeen.add(key);db.ref(`games/${code}/ev/${key}`).set({t:now(),x,u:u||uid}).catch(()=>{})}
 function note(m){nq.push(m);if(!nB)nxt()}
 function nxt(){if(!nq.length){nB=0;return}nB=1;toast(nq.shift());navigator.vibrate&&navigator.vibrate(120);setTimeout(nxt,2600)}
@@ -872,7 +873,7 @@ function lobbyUI(g,host,me_){
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0),
       immNeed=(sv&&s.shOn)||(bonOn(g)&&(s.mtN||0)>0);
-    const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · GPS ${s.gw||20}/${s.gd||60} s`,
+    const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),
       tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`;
     let t='';
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT'):'');
@@ -886,10 +887,10 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen oder Karte tippen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     <div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+nf('gw')+nf('gd'))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler')+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd'):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
-    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus');
+    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus');
   }
   const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
@@ -945,7 +946,7 @@ function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
   b.style.display='block';b.innerHTML=ic('info')+' Legende';b.setAttribute('aria-expanded',lgOpen);
   const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');
-  const ks=isSpec(m)?['hider','hunter','out','next','stale','catch']:m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(tk,['hunter','next']);
+  const ks=isSpec(m)?['hider','hunter','out','next','stale','catch'].concat(tk):m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(hpOn(G)?['ping']:[],tk,['hunter','next']);
   l.innerHTML=ks.map(k=>`<div>${shape(k,uid)}<span>${LG[k][0]}${LG[k][1]?`<small>${LG[k][1]}</small>`:''}</span></div>`).join('');
   l.className=lgOpen?'open':''}
 let mvg=false,pendD=false,mvT=0;
@@ -964,18 +965,23 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
     else if(!drag)cm.setLatLng(c0)}
   else{if(cm){map.removeLayer(cm);cm=null}if(g.status==='lobby')dot(c0,'#e5484d','Zentrum',5)}
   const spec=isSpec(m),ago=ts=>'vor '+fmt(now()-ts);
+  // Zuschauer: was gerade für diesen Spieler gilt (Immunität, Live-Ortung, Aufgabe)
+  const specInfo=(g,k,p)=>{const tt=now(),a=[];if(p.role==='hider'){if((p.immUntil||0)>tt)a.push('immun noch '+fmt(p.immUntil-tt));
+      if(Object.values((g.live||{})[k]||{}).some(u=>u>tt))a.push('wird live geortet');
+      Object.entries(g.tasks||{}).forEach(([id,q])=>{if((isDd(id)||isMt(id))&&!q.fin&&!q.ex&&!q.pick&&tt>=q.t0&&(q.a===k||q.b===k||q.sol===k))a.push(isDd(id)?'Dead Drop':'Meeting')})}
+    return a.length?a.join(' · '):'aktiv'};
   Object.entries(P()).forEach(([k,p])=>{if(!p.lat||k===uid)return;const ll=[p.lat,p.lng];
     if(spec){
       if(p.state==='alive'){
         if(p.role==='hider'&&p.out)mkr('out',ll,'p'+k,()=>['Hider '+p.name+' (außerhalb der Zone)','Standort sichtbar']);
-        else mkr(p.role==='hunter'?'hunter':'hider',ll,'p'+k,()=>[lbl(p),'aktiv'],k)}
+        else mkr(p.role==='hunter'?'hunter':'hider',ll,'p'+k,()=>[lbl(p),specInfo(g,k,p)],k)}
       else if(p.state!=='caught'||!(g.catches&&g.catches[k]&&g.catches[k].lat))mkr('stale',ll,'p'+k,()=>[lbl(p)+' ('+(STX[p.state]||'ausgeschieden')+')','letzte bekannte Position'],k);
       return}
     if(p.role===m.role&&p.state==='alive'){if(!(m.role==='hider'&&g.status==='running'))mkr(m.role==='hunter'?'mate':'hider',ll,'p'+k,()=>[lbl(p),'dein Team'],k)}
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))mkr('out',ll,'p'+k,()=>['Hider '+p.name,p.out?'außerhalb der Zone, Standort sichtbar':'Strafzeit, Standort sichtbar'])});
   if(ping){const own=m.role==='hider';
     Object.entries(ping.pts).forEach(([id,p])=>{const q=P()[id];if(!q)return;
-      if(own){if(q.state==='alive')mkr('pingme',[p.lat,p.lng],'pg'+id,()=>['Dein letzter Ping',ago(ping.t)],id);return}
+      if(own){if(q.state==='alive'){if(id===uid)mkr('pingme',[p.lat,p.lng],'pg'+id,()=>['Dein letzter Ping',ago(ping.t)],id);else mkr('ping',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name,'Ping '+ago(ping.t)],id)}return}
       if(q.state==='alive')mkr('ping',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name,'Ping '+ago(ping.t)],id);
       else if(q.state!=='caught')mkr('stale',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name+' ('+(STX[q.state]||'ausgeschieden')+')','letzter Ping '+ago(ping.t)],id)});
     if(ping.grey)Object.entries(ping.grey).forEach(([id,p])=>{const q=P()[id];if(!q||q.state!=='alive')return;mkr('stale',[p.lat,p.lng],'gr'+id,()=>p.old?['Hider '+p.name+' (nicht aktuell)','letzter Standort '+ago(p.ts||ping.t)]:['Hider '+p.name+' (nicht ortbar)','letzte bekannte Position'],id)})}
@@ -994,6 +1000,8 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')Object.entries(g.tasks||{}).filter(([id])=>isDd(id)||isMt(id)).forEach(([id,k])=>{
     if(t<k.t0||k.fin||k.pick||k.ex)return;
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
+  if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
+    if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<60000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Radar '+ago(radar.t)]));
   if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:shape('me',uid),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
   drawMarks(m,t);
@@ -1025,7 +1033,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   if(!TEST&&m.role&&conn&&selfOk&&nw>connSince+8000&&nw>skipUntil&&t>=g.startAt+15000){
     Object.entries(P()).forEach(([k,p])=>{if(k===uid||p.state!=='alive'||!p.ts)return;const age=t-p.ts;
       if(age>gwv(g)*1000)evW(k+'_w_'+p.ts,lbl(p)+' hat das Signal verloren',k);
-      if(age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',lbl(p)+' wurde disqualifiziert (Signal verloren)',k)}})}
+      if(dqOn(g)&&age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',lbl(p)+' wurde disqualifiziert (Signal verloren)',k)}})}
   if(t<g.startAt)h=`<span>Start in ${fmt(g.startAt-t)}</span>`;
   else if(t<R0)h=m.role==='hunter'?`<span>Hunter starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
   else{const el=t-R0,nextS=g.s.shrink*6e4-el%(g.s.shrink*6e4),nextP=g.s.ping*1000-el%(g.s.ping*1000);
@@ -1033,11 +1041,11 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   // GPS-Verlust (alle Rollen) & Zone (Hider)
   if(m.role&&m.state==='alive'&&t>=g.startAt){
     const gap=Date.now()-Math.max(lastFix,BOOT),GW=gwv(g),GD=gdv(g); // ab Seitenstart zählen: Neuladen ≠ „seit Ewigkeit kein GPS“
-    if(gap>GW*1000)h+=`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,GD-Math.floor(gap/1000))} s</span>`;
+    if(gap>GW*1000)h+=dqOn(g)?`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,GD-Math.floor(gap/1000))} s</span>`:`<span class=w>GPS-Signal weg!</span>`;
     const ng=netGap();
-    if(ng>GW*1000){h+=`<span class=w>Keine Internetverbindung! DQ in ${Math.max(0,GD-Math.floor(ng/1000))} s</span>`;if(!netW){netW=1;lg('netwarn',1);toast('Keine Internetverbindung');navigator.vibrate&&navigator.vibrate([200,100,200])}}
+    if(ng>GW*1000){h+=dqOn(g)?`<span class=w>Keine Internetverbindung! DQ in ${Math.max(0,GD-Math.floor(ng/1000))} s</span>`:`<span class=w>Keine Internetverbindung!</span>`;if(!netW){netW=1;lg('netwarn',1);toast('Keine Internetverbindung');navigator.vibrate&&navigator.vibrate([200,100,200])}}
     else if(netW&&ng<5000){netW=0;lg('netwarn',0);toast('Internetverbindung wieder da');rcn()}
-    if(gap>GD*1000){db.ref(`games/${code}/players/${uid}`).update({state:'dq',sT:now()});evW(uid+'_d',lbl(m)+' wurde disqualifiziert (Signal verloren)')}
+    if(dqOn(g)&&gap>GD*1000){db.ref(`games/${code}/players/${uid}`).update({state:'dq',sT:now()});evW(uid+'_d',lbl(m)+' wurde disqualifiziert (Signal verloren)')}
     if(m.role==='hider'&&pos){const out=D(pos,g.c)>Rad(g,t);
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
@@ -1081,8 +1089,12 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   // Hider: eigener letzter Ping
   if(m.role==='hider'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
     if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){const q=P()[uid];
+      const pts={};
       if(q&&(q.immUntil||0)>t)toast('Ping ausgesetzt: Du bist geschützt');
-      else if(q&&q.lat){ping={k,t:now(),pts:{[uid]:{lat:q.lat,lng:q.lng,name:q.name}}};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort');psave();draw()}}}}
+      else if(q&&q.lat){pts[uid]={lat:q.lat,lng:q.lng,name:q.name};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort')}
+      // Mitspieler genau so, wie die Hunter sie beim Ping sehen (ohne Geschützte und nicht aktuelle)
+      if(hpOn(g))Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||!p.lat||(p.immUntil||0)>t||(!TEST&&t-(p.ts||0)>30000))return;pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
+      if(Object.keys(pts).length){ping={k,t:now(),pts};psave();draw()}}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
     if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};xping=null;const nm=[],old=[],offl=!TEST&&netGap()>gwv(g)*1000;
