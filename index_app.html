@@ -267,6 +267,7 @@ let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,r
 let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){connSince=Date.now();connLost=0}else if(!connLost)connLost=Date.now();lg('db',conn?1:0)});
+let lastAck=0,netOkSince=0; // Eigene Verbindung nachweislich ok? (Schutz gegen Fehl-Disqualifikationen aus dem Funkloch)
 const netGap=()=>{const n=Date.now();return Math.max(connLost?n-connLost:0,wrOld?n-wrOld:0)};
 function rcn(){const mm=P()[uid],n=Date.now();if(!mm||mm.state!=='alive'||!G||G.status!=='running'||now()<G.startAt||n-lastRcn<8000)return;lastRcn=n;evW(uid+'_r_'+n,lbl(mm)+' ist wieder verbunden')}
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
@@ -470,7 +471,7 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
 function write(f){if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
   if(!wrOld)wrOld=Date.now();
-  db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0},()=>{wrOld=0})}
+  db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
 // Start / Beitritt
 async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
@@ -1023,7 +1024,9 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   if(g.status==='lobby'){$('hud').innerHTML='';return}
   if(g.status==='over'){$('hud').innerHTML='<span>Spiel vorbei</span>';panel();return}
   const R0=rs(g);
-  if(!TEST&&m.role&&conn&&nw>connSince+8000&&nw>skipUntil&&t>=g.startAt+15000){
+  {const ng0=netGap();if(ng0>=5000)netOkSince=0;else if(!netOkSince)netOkSince=nw}
+  const selfOk=netOkSince&&nw-netOkSince>15000&&lastAck&&nw-lastAck<15000;
+  if(!TEST&&m.role&&conn&&selfOk&&nw>connSince+8000&&nw>skipUntil&&t>=g.startAt+15000){
     Object.entries(P()).forEach(([k,p])=>{if(k===uid||p.state!=='alive'||!p.ts)return;const age=t-p.ts;
       if(age>gwv(g)*1000)evW(k+'_w_'+p.ts,lbl(p)+' hat das Signal verloren',k);
       if(age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',lbl(p)+' wurde disqualifiziert (Signal verloren)',k)}})}
