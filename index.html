@@ -74,12 +74,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .rl{padding:6px 0;border-bottom:1px solid #222b34;display:flex;justify-content:space-between;gap:10px}.rl small{text-align:right}
 .cm{width:30px;height:30px;border-radius:50%;background:var(--danger);border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}
 #toast{display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2100;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:12px;font-weight:600;max-width:90vw;text-align:center}
-#mmbtn{position:fixed;right:10px;top:98px;z-index:1200;display:none;background:#0b0e12d9;border:0;border-radius:999px;padding:7px 13px;min-height:36px;color:var(--fg);width:auto;font-size:13px}
-#mmn{position:fixed;right:10px;top:140px;z-index:1200;display:none;width:min(250px,calc(100% - 20px));background:#0b0e12f2;border-radius:14px;padding:6px;font-size:13px}
+#mmbtn{position:fixed;right:10px;top:104px;z-index:1200;display:none;background:#0b0e12d9;border:0;border-radius:999px;padding:7px 13px;min-height:36px;color:var(--fg);width:auto;font-size:13px}
+#mmn{position:fixed;right:10px;top:152px;z-index:1200;display:none;width:min(250px,calc(100% - 20px));background:#0b0e12f2;border-radius:14px;padding:6px;font-size:13px}
 #mmn.open{display:grid}#mmn button{display:flex;justify-content:flex-start;gap:10px;align-items:center;background:none;border:0;color:var(--fg);text-align:left;width:100%;padding:8px 8px;min-height:0;border-radius:10px;font:500 13px var(--f-b)}
 #mmn button:active{background:#ffffff14}#mmn svg{width:28px;height:28px;flex:none}#mmn small{display:block;font-size:12px;color:var(--mut);font-weight:400}
-#mmc{position:fixed;left:10px;top:98px;z-index:1200;display:none;background:#0b0e12d9;color:var(--fg);border:0;border-radius:999px;padding:7px 13px;min-height:36px;width:auto;font-size:13px}
-#mmbar{position:fixed;left:10px;right:10px;top:98px;z-index:1300;display:none;background:#0b0e12f2;border-radius:14px;padding:10px 12px;font-size:13px;gap:8px;align-items:center;flex-wrap:wrap}
+#mmc{position:fixed;left:10px;top:104px;z-index:1200;display:none;background:#0b0e12d9;color:var(--fg);border:0;border-radius:999px;padding:7px 13px;min-height:36px;width:auto;font-size:13px}
+#mmbar{position:fixed;left:10px;right:10px;top:104px;z-index:1300;display:none;background:#0b0e12f2;border-radius:14px;padding:10px 12px;font-size:13px;gap:8px;align-items:center;flex-wrap:wrap}
 #mmbar span{flex:1;min-width:140px}#mmbar button{width:auto;min-height:34px;padding:6px 12px;font-size:13px;margin:0}
 .bcp button{margin-top:6px;background:#1b232c;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:600 12px var(--f-b);width:auto;min-height:0;cursor:pointer;display:block}
 .mkh{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid;box-sizing:border-box;box-shadow:0 1px 4px #0007}
@@ -117,13 +117,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #resb{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:16px;display:grid;gap:8px}
 #resb h2{text-align:center}#resb .rl small{display:block}
 #map{touch-action:none}
+#cb,#mmbtn,#lgb{width:40px!important;height:40px;min-height:0!important;padding:0!important;border-radius:50%!important;place-items:center}#cb .ic,#mmbtn .ic,#lgb .ic{width:22px;height:22px}#cb{position:fixed}#cbn{position:absolute;top:-3px;right:-3px;margin:0!important;min-width:18px;line-height:18px;text-align:center;padding:0 5px!important}
+
 .meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible}
 .leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
-#nb{position:fixed;left:10px;top:140px;z-index:1200;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}
+#nb{position:fixed;left:10px;top:152px;z-index:1200;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}
 </style></head><body>
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="rotReset()" aria-label="Karte nach Norden ausrichten"><svg viewBox="0 0 26 26"><path d="M13 2L17.5 13H8.5Z" fill="#e5484d"/><path d="M13 24L8.5 13H17.5Z" fill="#e9eef3"/></svg></button><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
-<button id=cb onclick="chToggle()">Chat<span id=cbn></span></button>
-<button id=mmbtn onclick="mmTog()" aria-expanded="false">Marker ▾</button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
+<button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4c4.97 0 9 3.13 9 7s-4.03 7-9 7c-1.1 0-2.15-.15-3.12-.43L4 20l1.4-3.9C3.9 14.8 3 13 3 11c0-3.87 4.03-7 9-7z"/></svg><span id=cbn></span></button>
+<button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
 <div id=chro style="display:none;padding:10px 14px 14px;border-top:1px solid #333;color:#aaa;font-size:13px">Nur lesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</div>
 <div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()"><button onclick="chSend()">Senden</button></div></div>
@@ -615,7 +617,7 @@ function mkSync(){const g=G,m=(g&&P()[uid])||{},want=!!(g&&code&&g.status==='run
       if((x.k==='excl'&&x.t<lp)||(x.k==='arrow'&&pos&&D(pos,x)<=40)||now()-x.t>6*36e5){mkBusy=Date.now()+2500;db.ref('marks/'+code+'/'+id).remove().catch(()=>{})}})}
   mkUI(alive)}
 function mkUI(al){const g=G,m=(g&&P()[uid])||{};if(al===undefined)al=!!(mkL&&m.state==='alive');
-  const b=$('mmbtn');b.style.display=al&&!mkMode?'block':'none';if(!al||mkMode){$('mmn').className='';b.setAttribute('aria-expanded','false')}
+  const b=$('mmbtn');b.style.display=al&&!mkMode?'grid':'none';if(!al||mkMode){$('mmn').className='';b.setAttribute('aria-expanded','false')}
   const n=Object.keys(MK).filter(id=>hidM.has(id)).length,c=$('mmc');c.style.display=n&&!mkMode&&mkL?'block':'none';c.textContent=n+' Marker ausgeblendet · Alle einblenden'}
 function mkMine(){return [0,1,2].map(i=>uid+'_'+i)}
 function mkFree(){return mkMine().find(id=>!MK[id])||null}
@@ -895,7 +897,7 @@ function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('
 function chPath(ch){const m=P()[uid]||{};return isDm(ch)?`chats/${code}/dm/${m.role}/${pairKey(ch.slice(3))}`:`chats/${code}/${ch}`}
 function chSend(){const i=$('chi'),x=i.value.trim().slice(0,200);if(!x||!code||!chCur||!chCanWrite(chCur))return;
   const m=P()[uid]||{};db.ref(chPath(chCur)).push({u:uid,n:(m.name||'Agent').slice(0,16),t:now(),x,r:m.role});i.value=''}
-function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&cs.length)?'block':'none';
+function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&cs.length)?'grid':'none';
   const key=cs.join()+'|'+mt.join()+'|'+(G.rn||0);if(!code||!cs.length||key===chSet)return;
   Object.values(chRefs).forEach(r=>r.off());chRefs={};chSet=key;chUnread=0;dmUn={};chBadge();chSince=now()-1000;
   const all=cs.concat(mt.map(u=>'dm:'+u));
@@ -1055,7 +1057,7 @@ const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunte
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
-  b.style.display='block';b.innerHTML=ic('info')+' Legende';b.setAttribute('aria-expanded',lgOpen);
+  b.style.display='grid';b.innerHTML=ic('info');b.setAttribute('aria-label','Legende');b.setAttribute('aria-expanded',lgOpen);
   const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');
   const ks=isSpec(m)?['hider','hunter','out','next','stale','catch'].concat(tk):m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(hpOn(G)?['ping']:[],tk,['hunter','next']);
   l.innerHTML=ks.map(k=>`<div>${shape(k,uid)}<span>${LG[k][0]}${LG[k][1]?`<small>${LG[k][1]}</small>`:''}</span></div>`).join('');
