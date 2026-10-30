@@ -515,7 +515,7 @@ function hdSet(h,src,raw){if(!isFinite(h))return;h=(h%360+360)%360;if(HD==null||
   hdT=Date.now();hdSrc=src;if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
 function hdOk(){return HD!=null&&Date.now()-hdT<(hdSrc==='gps'?30000:4000)}
 function hdPaint(){const e=document.getElementById('meh');if(!e)return;const ok=hdOk();e.style.display=ok?'':'none';if(ok)e.style.transform=`rotate(${HD+ROT}deg)`}
-const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M25.94 6.23L18 -4L10.06 6.23A14.2 14.2 0 0 1 25.94 6.23Z" fill="#1e7cf0"/></svg></div>`;
+const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M26.74 6.81L18 -2.5L9.26 6.81A14.2 14.2 0 0 1 26.74 6.81Z" fill="#1e7cf0"/></svg></div>`;
 addEventListener('deviceorientationabsolute',e=>{if(e.alpha==null)return;hdAbs=1;hdSet(360-e.alpha+scrA(),'kompass')},true);
 addEventListener('deviceorientation',e=>{if(e.webkitCompassHeading!=null&&e.webkitCompassHeading>=0)hdSet(e.webkitCompassHeading+scrA(),'kompass');else if(e.absolute&&e.alpha!=null&&!hdAbs)hdSet(360-e.alpha+scrA(),'kompass')},true);
 // iPhone: Zugriff auf den Kompass muss nach einem Tippen erfragt werden
