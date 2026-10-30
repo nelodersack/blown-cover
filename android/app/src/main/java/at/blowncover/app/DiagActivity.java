@@ -26,7 +26,6 @@ public class DiagActivity extends Activity {
     private Ui.Item svc, rdy;
     private TextView log;
     private ScrollView logScroll;
-    private TextView segTest, segLive;
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
@@ -103,34 +102,6 @@ public class DiagActivity extends Activity {
         row.addView(back, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         root.addView(row, Ui.lp(this, 8));
 
-        root.addView(Ui.label(this, "Für Tests"), Ui.lp(this, 14));
-        LinearLayout seg = new LinearLayout(this);
-        seg.setOrientation(LinearLayout.HORIZONTAL);
-        seg.setBackground(Ui.box(this, Ui.PANEL2, Ui.LINE, 10));
-        int sp = Ui.dp(this, 3);
-        seg.setPadding(sp, sp, sp, sp);
-        segTest = segment("App-Test-Seite", "test");
-        segLive = segment("Live-Seite", "live");
-        LinearLayout.LayoutParams sl = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        seg.addView(segTest, sl);
-        seg.addView(segLive, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        root.addView(seg, Ui.lp(this, 8));
-    }
-
-    private TextView segment(String t, final String mode) {
-        TextView v = Ui.text(this, t, 13, Ui.MUT, null);
-        v.setTypeface(Ui.label(this, "").getTypeface());
-        v.setGravity(Gravity.CENTER);
-        int py = Ui.dp(this, 7);
-        v.setPadding(0, py, 0, py);
-        v.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View x) {
-                Prefs.setMode(DiagActivity.this, mode);
-                Diag.log(DiagActivity.this, "Seitenwahl: " + ("test".equals(mode) ? "App-Test-Seite" : "Live-Seite"));
-                refresh();
-            }
-        });
-        return v;
     }
 
     private void share() {
@@ -168,15 +139,6 @@ public class DiagActivity extends Activity {
                 logScroll.fullScroll(View.FOCUS_DOWN);
             }
         });
-
-        boolean test = "test".equals(Prefs.mode(this));
-        styleSeg(segTest, test);
-        styleSeg(segLive, !test);
-    }
-
-    private void styleSeg(TextView v, boolean on) {
-        v.setBackground(on ? Ui.box(this, Ui.FG, 0, 7) : null);
-        v.setTextColor(on ? Ui.BG : Ui.MUT);
     }
 
     @Override

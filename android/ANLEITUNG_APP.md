@@ -42,10 +42,10 @@ Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beend
 
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
-Ganz unten „Für Tests“: Wahl zwischen **App-Test-Seite** (Standard, `index_app.html` mit App-Anbindung) und **Live-Seite**.
+Die App lädt immer die Live-Seite; die App-Anbindung steckt seit v0.2.6 direkt in `index.html` (im Browser ohne Wirkung).
 
 ## 6. Mischen mit Browser-Spielern
-App und Browser nutzen dieselbe Datenbank: App-Spieler (Testseite) und Browser-Spieler (Live-Seite, auch iPhone) können in derselben Lobby spielen. Klappt die App bei jemandem nicht, einfach im Browser mit demselben Code beitreten.
+App und Browser nutzen dieselbe Datenbank: App-Spieler und Browser-Spieler (auch iPhone) können in derselben Lobby spielen. Klappt die App bei jemandem nicht, einfach im Browser mit demselben Code beitreten.
 
 ## Was zu beachten ist
 - Chrome-Fernzugriff zur Fehlersuche: In der App ist das WebView-Debugging an (`chrome://inspect` am PC, Handy per USB).
