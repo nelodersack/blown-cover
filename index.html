@@ -483,13 +483,14 @@ function rotSize(on){if(rotSq===on&&!on)return;rotSq=on;const s=mapEl.style;
   else{s.inset=s.width=s.height=s.left=s.top=''}
   map.invalidateSize({pan:true,animate:false})}
 // Zone einpassen: bei gedrehter Karte nur in den sichtbaren Bildschirmausschnitt (nicht in das größere Quadrat)
-function fitZ(b){if(FM)return;if(!rotSq)return map.fitBounds(b);const p=Math.max(0,(map.getSize().x-Math.min(innerWidth,innerHeight))/2);map.fitBounds(b,{padding:[p,p]})}
+function fitZ(b){if(fmOn())return;if(!rotSq)return map.fitBounds(b);const p=Math.max(0,(map.getSize().x-Math.min(innerWidth,innerHeight))/2);map.fitBounds(b,{padding:[p,p]})}
 function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!rotSq)rotSize(true);
   mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
   nbPaint();hdPaint()}
 
 // Kartenausrichtung: 0 = Norden oben (frei), 1 = Mitlaufen, 2 = Blickrichtung
-let FM=0,fmRaf=0,nbFM=-1,nbtT=0;
+// FM = gewählter Modus (bleibt als Symbol stehen), FA = Modus gerade aktiv. Verschieben/Drehen pausiert ihn nur.
+let FM=0,FA=false,fmRaf=0,nbFM=-1,nbtT=0;const fmOn=()=>!!(FM&&FA);
 const NBI=['<svg viewBox="0 0 26 26"><path d="M13 2L17.5 13H8.5Z" fill="#e5484d"/><path d="M13 24L8.5 13H17.5Z" fill="#e9eef3"/></svg>',
  '<svg class=l viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>',
  '<svg class=l viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l6.5 16L12 15.8l-6.5 3.7z"/></svg>'];
@@ -497,31 +498,34 @@ function nbPaint(){const n=$('nb');n.style.display=rotOn?'grid':'none';n.style.c
   if(nbFM!==FM){nbFM=FM;n.innerHTML=NBI[FM];n.setAttribute('aria-label',['Norden oben','Mitlaufen','Blickrichtung'][FM])}
   if(FM===0)n.firstChild.style.transform=`rotate(${ROT}deg)`}
 function nbTip(t){const e=$('nbt');e.textContent=t;e.style.display='block';clearTimeout(nbtT);nbtT=setTimeout(()=>e.style.display='none',1600)}
-function fmCenter(anim){if(!FM||!pos)return;const c=map.getCenter();if(map.distance(c,[pos.lat,pos.lng])<1)return;map.setView([pos.lat,pos.lng],map.getZoom(),anim?{animate:true,duration:.4}:{animate:false})}
-function fmSet(m,quiet){if(m&&!pos){nbTip('Noch kein Standort');m=0}FM=m;nbPaint();cancelAnimationFrame(fmRaf);fmRaf=0;
+function fmCenter(anim){if(!fmOn()||!pos)return;const c=map.getCenter();if(map.distance(c,[pos.lat,pos.lng])<1)return;map.setView([pos.lat,pos.lng],map.getZoom(),anim?{animate:true,duration:.4}:{animate:false})}
+function fmSet(m,quiet){if(m&&!pos){nbTip('Noch kein Standort');m=0}FM=m;FA=true;nbPaint();cancelAnimationFrame(fmRaf);fmRaf=0;
   if(m===0){if(!quiet){rotReset();nbTip('Norden oben')}return}
   if(m===1){rotReset();nbTip('Mitlaufen')}
   if(m===2){nbTip(hdOk()?'Blickrichtung':'Blickrichtung · wartet auf Kompass oder Gehrichtung');fmTurn()}
   fmCenter(true)}
 // Nadel bei gedrehter Karte: erster Tipp nur nach Norden, erst der nächste wechselt den Modus
-let nbN=0;function nbTap(){if(FM===0&&Math.abs(ROT)>.5&&performance.now()>nbN){nbN=performance.now()+400;rotReset();nbTip('Norden oben');return}fmSet((FM+1)%3)}
+// Tipp: pausierten bzw. nicht mehr erfüllten Modus wiederherstellen; nur wenn er schon aktiv ist, zum nächsten wechseln
+let nbN=0;function nbTap(){const t=performance.now();if(t<nbN)return;nbN=t+400;
+  if(FM===0?Math.abs(ROT)>.5:!FA){fmSet(FM);return}fmSet((FM+1)%3)}
 // Folgt der Blickrichtung weich; dreht erst ab 3° Abweichung los, damit die Karte nicht zittert
-function fmTurn(){if(FM!==2||fmRaf||!hdOk())return;const t=-HD,d=((t-ROT)%360+540)%360-180;if(Math.abs(d)<3)return;
-  const st=()=>{fmRaf=0;if(FM!==2||!hdOk())return;const d=((-HD-ROT)%360+540)%360-180;if(Math.abs(d)<.4)return;rotSet(ROT+d*.18);fmRaf=requestAnimationFrame(st)};fmRaf=requestAnimationFrame(st)}
-map.on('dragstart',()=>{if(FM)fmSet(0,1)});
-map.on('zoomend',()=>{if(FM)fmCenter(false)});
+function fmTurn(){if(FM!==2||!FA||fmRaf||!hdOk())return;const t=-HD,d=((t-ROT)%360+540)%360-180;if(Math.abs(d)<3)return;
+  const st=()=>{fmRaf=0;if(FM!==2||!FA||!hdOk())return;const d=((-HD-ROT)%360+540)%360-180;if(Math.abs(d)<.4)return;rotSet(ROT+d*.18);fmRaf=requestAnimationFrame(st)};fmRaf=requestAnimationFrame(st)}
+const fmPause=()=>{if(!fmOn())return;FA=false;cancelAnimationFrame(fmRaf);fmRaf=0};
+map.on('dragstart',fmPause);
+map.on('zoomend',()=>{if(fmOn())fmCenter(false)});
 function rotReset(){const a0=ROT,t0=performance.now();if(!a0)return;
   const st=t=>{const k=Math.min(1,(t-t0)/250);rotSet(a0*(1-k*(2-k)));if(k<1)requestAnimationFrame(st)};requestAnimationFrame(st)}
 // In einer Runde bleibt die Karte dauerhaft im großen Quadrat: so muss beim Drehen/Norden nie neu gezeichnet werden (kein Flackern)
-function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable();if(vt)vt.options.padding=.05;rotSize(true);nbPaint()}else{gz=null;tps.clear();FM=0;cancelAnimationFrame(fmRaf);fmRaf=0;rotSet(0);if(vt)vt.options.padding=.1;rotSize(false);map.touchZoom.enable()}}
+function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable();if(vt)vt.options.padding=.05;rotSize(true);nbPaint()}else{gz=null;tps.clear();FM=0;FA=false;cancelAnimationFrame(fmRaf);fmRaf=0;rotSet(0);if(vt)vt.options.padding=.1;rotSize(false);map.touchZoom.enable()}}
 addEventListener('resize',()=>{if(rotSq){rotSq=false;rotSize(true)}});
 // Zwei-Finger-Geste: zoomen, verschieben und (ab 15° Drehung) drehen
 const tps=new Map();let gz=null,gRaf=0;
 const gPts=()=>{const v=[...tps.values()];return{a:Math.atan2(v[1][1]-v[0][1],v[1][0]-v[0][0])*180/Math.PI,d:Math.hypot(v[1][0]-v[0][0],v[1][1]-v[0][1])||1,c:[(v[0][0]+v[1][0])/2,(v[0][1]+v[1][1])/2]}};
 function gStart(){const p=gPts();map._stop();if(map.dragging._draggable&&map.dragging._draggable._moving)map.dragging._draggable.finishDrag();
-  gz={a0:p.a,d0:p.d,r0:ROT,z0:map.getZoom(),ll:FM&&pos?L.latLng(pos.lat,pos.lng):map.containerPointToLatLng(toCP(p.c[0],p.c[1])),fix:!!(FM&&pos),rot:false};map._moveStart(true,false)}
+  gz={a0:p.a,d0:p.d,r0:ROT,z0:map.getZoom(),ll:fmOn()&&pos?L.latLng(pos.lat,pos.lng):map.containerPointToLatLng(toCP(p.c[0],p.c[1])),fix:!!(fmOn()&&pos),rot:false};map._moveStart(true,false)}
 function gMove(){gRaf=0;if(!gz||tps.size<2)return;const p=gPts();let da=((p.a-gz.a0)%360+540)%360-180;
-  if(!gz.rot&&Math.abs(da)>15){gz.rot=true;gz.a0=p.a;gz.r0=ROT;da=0;if(FM){FM=0;gz.fix=false;cancelAnimationFrame(fmRaf);fmRaf=0;gz.ll=map.containerPointToLatLng(toCP(p.c[0],p.c[1]));nbPaint()}}
+  if(!gz.rot&&Math.abs(da)>15){gz.rot=true;gz.a0=p.a;gz.r0=ROT;da=0;if(fmOn()){fmPause();gz.fix=false;gz.ll=map.containerPointToLatLng(toCP(p.c[0],p.c[1]))}}
   if(gz.rot)rotSet(gz.r0+da);
   const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom(),gz.z0+Math.log2(p.d/gz.d0))),sz=map.getSize(),pc=gz.fix?sz.divideBy(2):toCP(p.c[0],p.c[1]);
   const c=map.unproject(map.project(gz.ll,z).subtract(pc.subtract(sz.divideBy(2))),z);map._move(c,z,{pinch:true,round:false})}
@@ -535,7 +539,7 @@ addEventListener('pointerup',gUp,true);addEventListener('pointercancel',gUp,true
 let HD=null,hdT=0,hdSrc='',hdAbs=0,hdAsk=0,hdRaf=0,crP=null;
 const scrA=()=>(screen.orientation&&screen.orientation.angle)||+window.orientation||0;
 function hdSet(h,src,raw){if(!isFinite(h))return;h=(h%360+360)%360;if(HD==null||raw)HD=h;else{const d=((h-HD)%360+540)%360-180;HD=(HD+d*0.3+360)%360}
-  hdT=Date.now();hdSrc=src;if(FM===2)fmTurn();if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
+  hdT=Date.now();hdSrc=src;if(FM===2&&FA)fmTurn();if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
 function hdOk(){return HD!=null&&Date.now()-hdT<(hdSrc==='gps'?30000:4000)}
 function hdPaint(){const e=document.getElementById('meh');if(!e)return;const ok=hdOk();e.style.display=ok?'':'none';if(ok)e.style.transform=`rotate(${HD+ROT}deg)`}
 const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M26.74 6.81L18 -2.5L9.26 6.81A14.2 14.2 0 0 1 26.74 6.81Z" fill="#1e7cf0"/></svg></div>`;
