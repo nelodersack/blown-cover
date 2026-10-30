@@ -184,11 +184,15 @@ window.addEventListener('unhandledrejection',e=>lg('rej',String((e.reason&&(e.re
 try{const R_=firebase.database.Reference.prototype;['set','update','remove'].forEach(m=>{const o=R_[m];R_[m]=function(...a){const p=o.apply(this,a);try{p&&p.catch&&p.catch(e=>lg('wf',[m,String(this).replace(/^https?:\/\/[^/]+/,'').slice(0,90),String((e&&(e.code||e.message))||'').slice(0,60)]))}catch(x){}return p}})}catch(e){}
 // Host: Analysedaten zusammenbauen und herunterladen
 let anB=0;
+const wfHarmless=z=>Array.isArray(z)&&/\/ev\/[^/]+$/.test(String(z[1]))&&/PERMISSION_DENIED/.test(String(z[2]));
 function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(pl[a].j||0)-(pl[b].j||0)),al={};
   ids.forEach((k,i)=>al[k]='S'+(i+1));Object.keys(v).forEach(k=>{if(!al[k])al[k]='S?'+k.slice(0,4)});
   const L={};Object.entries(v).forEach(([k,s])=>{try{L[k]=JSON.parse(s)}catch(e){}});
   const R0=g.startAt?rs(g):null,rel=t=>R0==null?null:Math.round((t-R0)/100)/10,tl=[],seen={};
   Object.entries(L).forEach(([k,d])=>(d.ev||[]).forEach(e=>{const t=e[0],kd=e[1],dt=e[2];
+    if(kd==='g'&&/^players\/[^/]+\/(lat|lng|ts)$/.test(dt[0]))return;
+    if(kd==='chat'&&Array.isArray(dt)){const key='chat|'+(String(dt[0]).startsWith('dm:')?'dm':dt[0])+'|'+dt[3]+'|'+dt[4],o=seen[key],c=dt.slice();if(c[1]==='me')c[1]=String((pl[k]||{}).name||'?');
+      if(o){if(!o.by.includes(al[k]))o.by.push(al[k]);return}const x={t,k:'chat',d:c,by:[al[k]]};seen[key]=x;tl.push(x);return}
     if(kd==='g'){const key=dt[0]+'|'+JSON.stringify(dt[2]),o=seen[key];if(o&&Math.abs(o.t-t)<6000){o.by.push(al[k]);return}const x={t,k:'g',d:dt,by:[al[k]]};seen[key]=x;tl.push(x);return}
     tl.push({t,k:kd,d:dt,by:[al[k]]})}));
   tl.sort((a,b)=>a.t-b.t);
@@ -198,7 +202,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
       if(R0!=null&&a[0]>=R0&&a[5]!=null&&a[6]!=null&&a[5]>a[6])out++;if(a[7])hid++;if(a[9]>20)nn++;
       if(i){const p=sm[i-1];mg=Math.max(mg,a[0]-p[0]);if(a[1]!=null&&p[1]!=null){const m=D({lat:p[1],lng:p[2]},{lat:a[1],lng:a[2]});if(m>120)jp++;else dist+=m}}}
     const x={samples:sm.length,distM:Math.round(dist),secOutsideZone:out*5,secPageHidden:hid*5,secNoFix10s:nf*5,secNoNet20s:nn*5,maxSampleGapS:Math.round(mg/1000),gpsJumps120m:jp,avgAccM:aN?Math.round(aS/aN):null,
-      hiddenPeriods:cnt(d,'vis',z=>z===0),freezes:cnt(d,'freeze'),dbDisconnects:cnt(d,'db',z=>z===0),netOffline:cnt(d,'net',z=>z===0),gpsErrors:cnt(d,'gps',z=>Array.isArray(z)),writeFails:cnt(d,'wf'),jsErrors:cnt(d,'err')+cnt(d,'rej'),lagEvents:cnt(d,'lag'),boots:cnt(d,'boot')};
+      hiddenPeriods:cnt(d,'vis',z=>z===0),freezes:cnt(d,'freeze'),dbDisconnects:cnt(d,'db',z=>z===0),netOffline:cnt(d,'net',z=>z===0),gpsErrors:cnt(d,'gps',z=>Array.isArray(z)),writeFails:cnt(d,'wf',z=>!wfHarmless(z)),jsErrors:cnt(d,'err')+cnt(d,'rej'),lagEvents:cnt(d,'lag'),boots:cnt(d,'boot')};
     st[al[k]]=x;const n=al[k];
     if(x.hiddenPeriods)an.push(n+': Seite '+x.hiddenPeriods+'× unsichtbar (zusammen ca. '+x.secPageHidden+' s, '+(testMode?'Testmodus: vermutlich Tab-Wechsel':'Display aus oder andere App')+')');
     if(x.secNoFix10s&&!testMode)an.push(n+': ca. '+x.secNoFix10s+' s ohne frischen GPS-Fix (>10 s alt)');
@@ -235,6 +239,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     else if(x.k==='chat')H(x.t,'Chat ['+x.d[0]+'] '+x.d[1]+': '+x.d[3]);
     else if(x.k==='mk+')H(x.t,'Marker gesetzt: '+x.d[2]+' von '+x.d[1]);
     else if(x.k==='mk-')H(x.t,'Marker entfernt');
+    else if(x.k==='wf'&&wfHarmless(x.d))return;
     else if(x.k==='err'||x.k==='rej'||x.k==='wf')H(x.t,'FEHLER bei '+x.by.join(',')+': '+JSON.stringify(x.d))});
   if(R0!=null&&g.s){const sh=(g.s.shrink||1)*6e4,pg=(g.s.ping||1)*1000;let r=g.s.r0;
     for(let k=1;R0+k*sh<=tEnd&&k<200;k++){const r2=Rad(g,R0+k*sh);if(r2!==r){H(R0+k*sh,'Zone schrumpft auf '+r2+' m (planmäßig)');r=r2}}
@@ -246,7 +251,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
   const out={format:'blown-cover-analyse',v:1,generated:new Date().toISOString(),code,round:g.rn||0,
     legend:{highlights:'Lesbare Zusammenfassung [sek_seit_Spielstart, Text] – Spielereignisse, Aufgaben, Meldungen, Chat, Marker, Fehler; Zone/Ping nur planmäßig berechnet.',timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
       tracks:'Pro Spieler: [t_ms, lat, lng, genauigkeit_m, alter_letzter_fix_s, abstand_zonenmitte_m, zonenradius_m, seite_unsichtbar(1/0), fixes_seit_letzter_messung, sek_ohne_bestaetigte_verbindung]',
-      note:'Spieler-IDs sind anonymisiert (S1…, nach Beitrittsreihenfolge). Positionen sind echte GPS-Werte des jeweiligen Geräts.'},
+      note:'Spieler-IDs sind anonymisiert (S1…, nach Beitrittsreihenfolge). Positionen sind echte GPS-Werte des jeweiligen Geräts. Positionsänderungen (lat/lng/ts) stehen nur in tracks, nicht in timeline. Chat ist geräteübergreifend zusammengeführt (von = alle Geräte, die die Nachricht sahen). Abgelehnte Doppel-Meldungen (ev, PERMISSION_DENIED) sind harmlos und nicht als Fehler gezählt.'},
     game:{settings:g.s,center:g.c,startAt:g.startAt||null,headstartEnd:R0,winner:g.winner||null,status:g.status,host:al[g.host]||null,receivedLogs:Object.keys(L).length,expectedLogs:ids.filter(k=>!pl[k].lf).length},
     anomalies:an,highlights:hl.map(x=>[x[1],x[2]]),players,timeline:tl.map(x=>[x.t,rel(x.t),x.by.join(','),x.k,x.d]),tracks,finalState:gg};
   let s=JSON.stringify(out);Object.entries(al).forEach(([k,a])=>{s=s.split(k).join(a)});return s}
@@ -819,7 +824,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
   const all=cs.concat(mt.map(u=>'dm:'+u));
   $('chm').innerHTML=all.map(c=>`<div class=chc data-ch="${c}"></div>`).join('');
   all.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(chPath(ch)).limitToLast(50);chRefs[ch]=ref;
-    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
+    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;if((c.t||0)>=chSince)lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
       const d=document.createElement('div'),rr_=ch==='out'&&(c.r==='hunter'||c.r==='hider')?c.r:'';d.className='m'+(c.u===uid?' me':'')+(rr_?' r-'+rr_:'');
       const n=document.createElement('b');n.textContent=(c.u===uid?'Du':String(c.n||'?'))+(rr_?(rr_==='hunter'?' · Hunter':' · Hider'):'');
       const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
@@ -1057,7 +1062,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(vis!==lastTV){const was=lastTV.split(',');lastTV=vis;
       vis.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{toast(tkMsg(x));navigator.vibrate&&navigator.vibrate([200,100,200])});
       draw();panel(1)}}
-  if(m.role==='hunter'&&m.state==='alive'){const T=g.tasks||{},ids=Object.keys(T).filter(i=>(i==='sh'||i==='ev'||isDd(i)||isMt(i))&&T[i]&&t>=T[i].t0).sort().join();
+  if(m.role==='hunter'&&m.state==='alive'){const T=g.tasks||{},ids=Object.keys(T).filter(i=>(i==='sh'||i==='ev'||isDd(i)||isMt(i))&&T[i]&&t>=T[i].t0&&!T[i].ex).sort().join();
     if(ids!==lastHT){const was=lastHT===null?[]:lastHT.split(','),ms=new Set();lastHT=ids;
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
