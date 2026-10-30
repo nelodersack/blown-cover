@@ -266,6 +266,7 @@ let me={name:LS.n||''};
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){connSince=Date.now();connLost=0}else if(!connLost)connLost=Date.now();lg('db',conn?1:0)});
 let lastAck=0,netOkSince=0; // Eigene Verbindung nachweislich ok? (Schutz gegen Fehl-Disqualifikationen aus dem Funkloch)
+const BOOT=Date.now(); // Seitenstart (GPS-Lücke nach Neuladen erst ab hier zählen)
 const netGap=()=>{const n=Date.now();return Math.max(connLost?n-connLost:0,wrOld?n-wrOld:0)};
 function rcn(){const mm=P()[uid],n=Date.now();if(!mm||mm.state!=='alive'||!G||G.status!=='running'||now()<G.startAt||n-lastRcn<8000)return;lastRcn=n;evW(uid+'_r_'+n,lbl(mm)+' ist wieder verbunden')}
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
@@ -1026,7 +1027,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     h=`<span>${ic('clock')}${fmt(g.s.dur*6e4-el)}</span><span>${ic('zone')}${Math.round(Rad(g,t))} m${Rad(g,t)>g.s.rMin?' · '+fmt(nextS):''}</span><span>${ic('ping')}${fmt(nextP)}</span>`}
   // GPS-Verlust (alle Rollen) & Zone (Hider)
   if(m.role&&m.state==='alive'&&t>=g.startAt){
-    const gap=Date.now()-lastFix,GW=gwv(g),GD=gdv(g);
+    const gap=Date.now()-Math.max(lastFix,BOOT),GW=gwv(g),GD=gdv(g); // ab Seitenstart zählen: Neuladen ≠ „seit Ewigkeit kein GPS“
     if(gap>GW*1000)h+=`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,GD-Math.floor(gap/1000))} s</span>`;
     const ng=netGap();
     if(ng>GW*1000){h+=`<span class=w>Keine Internetverbindung! DQ in ${Math.max(0,GD-Math.floor(ng/1000))} s</span>`;if(!netW){netW=1;lg('netwarn',1);toast('Keine Internetverbindung');navigator.vibrate&&navigator.vibrate([200,100,200])}}
