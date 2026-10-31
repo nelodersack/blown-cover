@@ -118,7 +118,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #resb h2{text-align:center}#resb .rl small{display:block}
 #map{touch-action:none}
 .tl{position:relative;height:34px;margin:6px 0 2px;touch-action:none;cursor:pointer}.tl .bar{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:2px;background:#2a343f}.tl .fill{position:absolute;left:0;top:15px;height:4px;border-radius:2px;background:var(--fg)}
-.tl .pg{position:absolute;top:15px;width:2px;height:4px;margin-left:-1px;background:#4fb3f0;opacity:.75;pointer-events:none}.lg2 i.pgi{width:2px;height:10px;border-radius:1px;background:#4fb3f0}
+.tl .pg{position:absolute;top:11px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:#2a343f;pointer-events:none}
 .tl .ev{position:absolute;top:9px;width:4px;height:16px;border-radius:2px;margin-left:-2px;pointer-events:none}.tl .kn{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:var(--fg);margin-left:-9px;box-shadow:0 0 0 3px var(--panel);pointer-events:none}
 .lg2{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.lg2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
 .ctl{display:flex;gap:8px;align-items:center}.ctl .pp{width:44px!important;height:44px;min-height:0!important;border-radius:50%!important;padding:0!important;display:grid;place-items:center;flex:none!important;background:var(--fg);color:var(--bg);border:0;font-size:15px}
@@ -571,7 +571,7 @@ function crs(){if(!pos)return;if(!crP){crP=pos;return}const d=map.distance([crP.
 // Bei Spielende lädt jedes Handy seinen eigenen Weg nach rp/<code>/<uid>; alle holen sich die Wege der anderen und bauen daraus dieselbe Datei.
 // Gelöscht wird rp/<code> bei „Neue Runde“ bzw. „Auflösen“.
 const rpOn=g=>!!(g&&g.s&&g.s.rp);
-const RPP=/^(tasks|hb|live|xp|catches)(\/|$)|^players\/[^/]+\/(state|sT|immUntil|used)(\/|$)/;
+const RPP=/^(tasks|hb|live|xp|catches)(\/|$)|^players\/[^/]+\/(state|sT|immUntil|used|out|revealUntil)(\/|$)/;
 const rpFlat=(o,pre,out)=>{if(o&&typeof o==='object'){for(const k in o)rpFlat(o[k],pre?pre+'/'+k:k,out)}else if(pre&&o!=null)out[pre]=o;return out};
 let RP=null,rpRef=null,rpT=0;
 function rpInit(){const k='rp_'+code+'_'+(G.rn||0);if(RP&&RP.k===k)return;
@@ -724,7 +724,9 @@ function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);map.off('zoomstart
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
   const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
   const rows=[];
-  if(p.role==='hider'){const im=(q.immUntil||0)>t;if(im)rows.push(`<span style="color:#f2b705;font-weight:600">Immun</span> · noch ${fmt(q.immUntil-t)}`);
+  if(p.role==='hider'){const im=(q.immUntil||0)>t,lh=Object.entries((S.live||{})[id]||{}).filter(([h,u])=>u>t);
+    lh.forEach(([h,u])=>rows.push(`<span style="color:var(--live);font-weight:600">Live geortet</span> von ${esc((RV.pl[h]||{}).name||'?')} · noch ${fmt(u-t)}`));
+    if(q.out===true)rows.push(`<span style="color:var(--live);font-weight:600">Außerhalb der Zone</span> · Standort sichtbar`);else if((q.revealUntil||0)>t)rows.push(`<span style="color:var(--live);font-weight:600">Strafzeit</span> · noch ${fmt(q.revealUntil-t)}`);if(im)rows.push(`<span style="color:#f2b705;font-weight:600">Immun</span> · noch ${fmt(q.immUntil-t)}`);
     myItems(gT,id).forEach(i=>{const u=q.used&&q.used[i.id];rows.push(`${i.type==='radar'?'Hunter-Radar':'Immunität ('+fmt(i.sec*1000)+')'}: ${u?'eingesetzt':'bereit'}`)})}
   else{Object.entries(hbMine(gT,id)).forEach(([b,i])=>{if(i.k==='x')return;const n=HBK[i.k]||i.k;rows.push(`${n}: ${i.u&&i.u<=t?'eingesetzt '+rvTm(i.u,g.R0):i.d?'verworfen':t<i.av?'Cooldown '+fmt(i.av-t):'bereit'}`)});
     const L_=S.live||{};for(const x in L_)if(L_[x]&&L_[x][id]>t)rows.push(`Live-Ortung auf ${esc((RV.pl[x]||{}).name||'?')}: noch ${fmt(L_[x][id]-t)}`)}
@@ -738,15 +740,16 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false})]).addTo(RV.L)}
     else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}});
   RV.lnI=RV.lnI||{};
-  f.players.forEach(p=>{const a=RV.sm[p.id]||[],pos_=rvAt(a,t),out=rvOut(p,t),q=S.players[p.id]||{},im=!out&&p.role==='hider'&&(q.immUntil||0)>t;
+  f.players.forEach(p=>{const a=RV.sm[p.id]||[],pos_=rvAt(a,t),out=rvOut(RV.pl[p.id],t),q=S.players[p.id]||{},im=!out&&p.role==='hider'&&(q.immUntil||0)>t,
+      lv=!out&&p.role==='hider'&&(Object.values((S.live||{})[p.id]||{}).some(u=>u>t)||q.out===true||(q.revealUntil||0)>t);
     if(!RV.zm){let lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}
       const key=lo+(pos_&&!pos_[2]?':'+Math.round(pos_[0]*1e5)+','+Math.round(pos_[1]*1e5):'');
       if(RV.lnI[p.id]!==key){RV.lnI[p.id]=key;const pts=a.slice(0,lo).map(x=>[x[1],x[2]]);if(pos_&&!pos_[2])pts.push([pos_[0],pos_[1]]);RV.ln[p.id].setLatLngs(pts)}}
-    const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(im?'i':'');
+    const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(im?'i':'')+(lv?'l':'');
     if(!pos_){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
     let m=RV.m[p.id];if(!m||m._k!==key){const op=m&&m.isPopupOpen();if(m)RV.L.removeLayer(m);
       const ring=im?`<svg style="position:absolute;inset:0;overflow:visible" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#f2b705" stroke-width="2.6"/></svg>`:'';
-      m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw',html:shape(k,p.id)+ring,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out?0:500,keyboard:false}).addTo(RV.L);m._k=key;
+      m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw'+(lv&&k!=='stale'?' live':''),html:shape(k,p.id)+ring,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out?0:500,keyboard:false}).addTo(RV.L);m._k=key;
       m.bindPopup(()=>rvInfo(p.id,RV.t),{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240});if(op)m.openPopup()}
     else m.setLatLng([pos_[0],pos_[1]]);
     if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
@@ -770,7 +773,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
   if(RV.tab==='map'){let pg='';for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)pg+=`<span class=pg style="left:${X(t)}%"></span>`;
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
      <div class=tl id=rvT onpointerdown="rvScrub(event)"><span class=bar></span>${pg}<span class=fill id=rvF></span>${RV.ev.filter(e=>RVC[e.k]).map(e=>`<span class=ev style="left:${X(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=kn id=rvK></span></div>
-     <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#7c6cff"></i>Aufgabe</span><span><i style="background:#4fb3f0"></i>Bonus</span><span><i class=pgi></i>Ping</span></div>
+     <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#7c6cff"></i>Aufgabe</span><span><i style="background:#4fb3f0"></i>Bonus</span></div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`+tabs}
   else{const st=RV.st,nm=k=>esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
