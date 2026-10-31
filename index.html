@@ -621,13 +621,15 @@ function rvConv(o){if(o&&o.format==='blown-cover-replay')return o;if(!o||o.forma
   const players=o.players.map(p=>({id:p.id,name:p.name,role:p.role,col:Math.max(0,PALN.indexOf(p.color)),state:'alive',sT:null,lf:p.left}));
   const byId={};players.forEach(p=>byId[p.id]=p);const catches=[],hun={},tasks={},T_=k=>tasks[k]||(tasks[k]={});
   tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt||x[0]>end+5000)return;const[p,,v]=x[4];let m;
-    if((m=/^players\/(S\d+)\/state$/.exec(p))&&byId[m[1]]&&v&&v!=='alive'){byId[m[1]].state=v;byId[m[1]].sT=x[0]}
+    if((m=/^players\/(S\d+)\/state$/.exec(p))&&byId[m[1]]&&v&&v!=='alive'){if(byId[m[1]].state==='alive'){byId[m[1]].state=v;byId[m[1]].sT=x[0]}}
+    else if((m=/^players\/(S\d+)\/sT$/.exec(p))&&byId[m[1]]&&v&&!byId[m[1]].sTv)byId[m[1]].sTv=v;
     else if((m=/^catches\/(S\d+)\/hunter$/.exec(p)))hun[m[1]]=v;
     else if((m=/^catches\/(S\d+)$/.exec(p))&&v&&v.hunter)hun[m[1]]=v.hunter;
     else if((m=/^tasks\/(\w+)\/(t0|fin|ex)$/.exec(p))&&v!=null)T_(m[1])[m[2]]=v;
     else if((m=/^tasks\/(\w+)\/loc\/(lat|lng)$/.exec(p))&&v!=null)(T_(m[1]).loc=T_(m[1]).loc||{})[m[2]]=v;
     else if((m=/^tasks\/(\w+)\/(dep|pick)\/(t|u)$/.exec(p))&&v!=null)(T_(m[1])[m[2]]=T_(m[1])[m[2]]||{})[m[3]]=v;
     else if((m=/^tasks\/(\w+)\/in\/(S\d+)\/t$/.exec(p))&&v){const q=T_(m[1]).in=T_(m[1]).in||[];if(!q.some(o=>o.u===m[2]))q.push({u:m[2],t:v})}});
+  players.forEach(p=>{if(p.sTv){if(p.state!=='alive')p.sT=p.sTv;delete p.sTv}});
   players.forEach(p=>{if(p.state==='caught')catches.push({t:p.sT,hider:p.id,hunter:byId[hun[p.id]]?hun[p.id]:null})});
   const tracks={};Object.entries(o.tracks||{}).forEach(([k,a])=>tracks[k]=a.filter(x=>x[1]!=null).map(x=>[x[0],x[1],x[2],x[3]]));
   return{format:'blown-cover-replay',v:1,code:o.code,round:o.round,game:{s,c:o.game.center,startAt,R0,end,winner:win},players,tracks,catches,
