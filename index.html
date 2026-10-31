@@ -118,6 +118,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #resb h2{text-align:center}#resb .rl small{display:block}
 #map{touch-action:none}
 .tl{position:relative;height:34px;margin:6px 0 2px;touch-action:none;cursor:pointer}.tl .bar{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:2px;background:#2a343f}.tl .fill{position:absolute;left:0;top:15px;height:4px;border-radius:2px;background:var(--fg)}
+.tl .pg{position:absolute;top:15px;width:2px;height:4px;margin-left:-1px;background:#4fb3f0;opacity:.75;pointer-events:none}.lg2 i.pgi{width:2px;height:10px;border-radius:1px;background:#4fb3f0}
 .tl .ev{position:absolute;top:9px;width:4px;height:16px;border-radius:2px;margin-left:-2px;pointer-events:none}.tl .kn{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:var(--fg);margin-left:-9px;box-shadow:0 0 0 3px var(--panel);pointer-events:none}
 .lg2{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.lg2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
 .ctl{display:flex;gap:8px;align-items:center}.ctl .pp{width:44px!important;height:44px;min-height:0!important;border-radius:50%!important;padding:0!important;display:grid;place-items:center;flex:none!important;background:var(--fg);color:var(--bg);border:0;font-size:15px}
@@ -553,7 +554,8 @@ function hdSet(h,src,raw){if(!isFinite(h))return;h=(h%360+360)%360;if(HD==null||
   hdT=Date.now();hdSrc=src;if(FM===2&&FA)fmTurn();if(!hdRaf)hdRaf=requestAnimationFrame(()=>{hdRaf=0;hdPaint()})}
 function hdOk(){return HD!=null&&Date.now()-hdT<(hdSrc==='gps'?30000:4000)}
 function hdPaint(){const e=document.getElementById('meh');if(!e)return;const ok=hdOk();e.style.display=ok?'':'none';if(ok)e.style.transform=`rotate(${HD+ROT}deg)`}
-const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M26.74 6.81L18 -2.5L9.26 6.81A14.2 14.2 0 0 1 26.74 6.81Z" fill="#1e7cf0"/></svg></div>`;
+let imT=0;const imMe=()=>{const m=P()[uid];return!!m&&!RV&&(m.immUntil||0)>now()};
+const meH=()=>`<div id=meh class=meh style="display:${hdOk()?'':'none'};transform:rotate(${(HD||0)+ROT}deg)"><svg viewBox="0 0 36 36"><path d="M26.74 6.81L18 -2.5L9.26 6.81A14.2 14.2 0 0 1 26.74 6.81Z" fill="${imMe()?'#f2b705':'#1e7cf0'}"/></svg></div>`;
 addEventListener('deviceorientationabsolute',e=>{if(e.alpha==null)return;hdAbs=1;hdSet(360-e.alpha+scrA(),'kompass')},true);
 addEventListener('deviceorientation',e=>{if(e.webkitCompassHeading!=null&&e.webkitCompassHeading>=0)hdSet(e.webkitCompassHeading+scrA(),'kompass');else if(e.absolute&&e.alpha!=null&&!hdAbs)hdSet(360-e.alpha+scrA(),'kompass')},true);
 // iPhone: Zugriff auf den Kompass muss nach einem Tippen erfragt werden
@@ -564,27 +566,33 @@ function crs(){if(!pos)return;if(!crP){crP=pos;return}const d=map.distance([crP.
     hdSet(Math.atan2(y,x)*180/Math.PI,'gps',1)}crP=pos}
 
 // ===== Replay: Aufzeichnung während der Runde (nur wenn der Host „Runde aufzeichnen“ einschaltet) =====
-// Jedes Handy schreibt seinen eigenen GPS-Weg mit (auch ohne Netz) und nebenbei die Positionen, die es von den anderen empfängt.
+// Jedes Handy schreibt seinen eigenen GPS-Weg mit (auch ohne Netz), nebenbei die Positionen, die es von den anderen empfängt,
+// und ein Protokoll der Spielzustände (Aufgaben, Boni, Immunität, Fänge) als [Zeit, Pfad, Wert].
 // Bei Spielende lädt jedes Handy seinen eigenen Weg nach rp/<code>/<uid>; alle holen sich die Wege der anderen und bauen daraus dieselbe Datei.
 // Gelöscht wird rp/<code> bei „Neue Runde“ bzw. „Auflösen“.
 const rpOn=g=>!!(g&&g.s&&g.s.rp);
+const RPP=/^(tasks|hb|live|xp|catches)(\/|$)|^players\/[^/]+\/(state|sT|immUntil|used)(\/|$)/;
+const rpFlat=(o,pre,out)=>{if(o&&typeof o==='object'){for(const k in o)rpFlat(o[k],pre?pre+'/'+k:k,out)}else if(pre&&o!=null)out[pre]=o;return out};
 let RP=null,rpRef=null,rpT=0;
 function rpInit(){const k='rp_'+code+'_'+(G.rn||0);if(RP&&RP.k===k)return;
   let o=null;try{o=JSON.parse(LS[k]||'null')}catch(e){}
   if(rpRef){rpRef.off();rpRef=null}
-  RP=o&&o.k===k?o:{k,own:[],seen:{},snap:null,got:{}};RP.got=RP.got||{};RP.up=0;
+  RP=o&&o.k===k?o:{k,own:[],seen:{},log:[],snap:null,got:{}};RP.got=RP.got||{};RP.log=RP.log||[];RP.prev=null;RP.up=0;
   try{for(let i=LS.length-1;i>=0;i--){const q=LS.key(i);if(q&&q.indexOf('rp_')===0&&q!==k)LS.removeItem(q)}}catch(e){}}
-function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,snap:RP.snap,got:RP.got})}catch(e){}}
+function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,log:RP.log,snap:RP.snap,got:RP.got})}catch(e){}}
 function rpOwn(){if(!G||G.status!=='running'||!rpOn(G)||!pos)return;rpInit();const t=now(),o=RP.own,l=o[o.length-1];if(l&&t-l[0]<4000)return;
   o.push([t,+pos.lat.toFixed(5),+pos.lng.toFixed(5),typeof gAcc==='number'?Math.round(gAcc):null])}
+// Spielzustand protokollieren: nur geänderte Werte der relevanten Pfade
+function rpLog(g){const f={},all=rpFlat({tasks:g.tasks,hb:g.hb,live:g.live,xp:g.xp,catches:g.catches,players:g.players},'',{});
+  for(const p in all)if(RPP.test(p))f[p]=all[p];
+  const pv=RP.prev||{},t=now();for(const p in f)if(pv[p]!==f[p])RP.log.push([t,p,f[p]]);for(const p in pv)if(!(p in f))RP.log.push([t,p,null]);RP.prev=f}
 function rpSnap(g){const pl={};Object.entries(g.players||{}).forEach(([k,p])=>{if(p.role)pl[k]={name:p.name,role:p.role,col:p.col,j:p.j||0,state:p.state,sT:p.sT||null,lf:!!p.lf}});
-  const tk={};Object.entries(g.tasks||{}).forEach(([k,v])=>{tk[k]={t0:v.t0||null,loc:v.loc||null,fin:v.fin||null,dep:v.dep||null,pick:v.pick||null,ex:!!v.ex,in:v.in||null}});
-  return{code,rn:g.rn||0,s:g.s,c:g.c,startAt:g.startAt,end:Math.min(now(),g.startAt+(g.s.head+g.s.dur)*6e4+5000),winner:g.winner||null,players:pl,catches:g.catches||{},tasks:tk}}
+  return{code,rn:g.rn||0,s:g.s,c:g.c,startAt:g.startAt,end:Math.min(now(),g.startAt+(g.s.head+g.s.dur)*6e4+5000),winner:g.winner||null,players:pl}}
 function rpData(){const g=G;if(!g||!rpOn(g)){if(rpRef&&(!g||g.status!=='over')){rpRef.off();rpRef=null}return}
-  if(g.status==='running'){rpInit();
+  if(g.status==='running'){rpInit();rpLog(g);
     Object.entries(g.players||{}).forEach(([k,p])=>{if(k===uid||p.lat==null||!p.ts)return;const a=RP.seen[k]||(RP.seen[k]=[]),l=a[a.length-1];if(!l||p.ts-l[0]>=3000)a.push([p.ts,+(+p.lat).toFixed(5),+(+p.lng).toFixed(5)])});
     const t=Date.now();if(t-rpT>15000){rpT=t;rpSave()}}
-  else if(g.status==='over'){rpInit();if(!RP.snap){RP.snap=rpSnap(g);rpSave()}rpUp();rpListen()}
+  else if(g.status==='over'){rpInit();if(!RP.snap){rpLog(g);RP.snap=rpSnap(g);rpSave()}rpUp();rpListen()}
   else if(rpRef){rpRef.off();rpRef=null}}
 function rpUp(){if(!RP||RP.up||!code)return;RP.up=1;const o=RP.own,t0=o.length?o[0][0]:0;
   const s=JSON.stringify({v:1,t0,tr:o.map(x=>[Math.round((x[0]-t0)/1000),Math.round(x[1]*1e5),Math.round(x[2]*1e5),x[3]])});
@@ -597,14 +605,14 @@ function rpCard(){if(!RP||!RP.snap)return'';const need=rpNeed(),n=need.filter(k=
   return`<div class=card style="margin-top:12px;text-align:left"><div class="row sp"><div class=hd style="flex:none">${ic('play')}Replay</div><span class="chip ${n>=need.length?'ok':'or'}" style="flex:none">${n} von ${need.length} Wegen da</span></div>
    <button onclick="rpDl()">Replay herunterladen</button><small class=mut>Abspielen: Startseite → „Replay abspielen“. Am iPhone landet die Datei in der Dateien-App.${n<need.length?' Fehlende Wege werden aus dem ergänzt, was dein Handy empfangen hat.':''}</small></div>`}
 function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.players[a].j||0)-(S.players[b].j||0)),id={};ids.forEach((k,i)=>id[k]='p'+(i+1));
-  const tracks={},players=[],catches=[];
+  const mp=x=>typeof x==='string'&&id[x]?id[x]:x,mpP=p=>p.split('/').map(mp).join('/');
+  const tracks={},players=[];
   ids.forEach(k=>{let tr=null;if(k===uid&&RP.own.length)tr=RP.own;else if(RP.got[k]&&RP.got[k].length)tr=RP.got[k];else tr=(RP.seen[k]||[]).map(x=>[x[0],x[1],x[2],null]);
     tracks[id[k]]=tr.map(x=>[x[0],+(+x[1]).toFixed(5),+(+x[2]).toFixed(5),x[3]==null?null:x[3]]);
     const p=S.players[k];players.push({id:id[k],name:p.name,role:p.role,col:p.col,state:p.state,sT:p.sT,lf:p.lf})});
-  Object.entries(S.catches||{}).forEach(([k,c])=>{if(c&&c.status==='done'&&id[k]&&id[c.hunter])catches.push({t:(S.players[k]||{}).sT||c.t,hider:id[k],hunter:id[c.hunter]})});
-  const mu=x=>x&&id[x.u]?{u:id[x.u],t:x.t}:null,tasks=Object.entries(S.tasks||{}).map(([k,v])=>({id:k,t0:v.t0,loc:v.loc,fin:v.fin,dep:mu(v.dep),pick:mu(v.pick),ex:v.ex,in:Object.entries(v.in||{}).filter(([u])=>id[u]).map(([u,o])=>({u:id[u],t:o.t}))}));
-  return{format:'blown-cover-replay',v:1,code:S.code,round:S.rn,generated:new Date().toISOString(),
-    game:{s:S.s,c:S.c,startAt:S.startAt,R0:S.startAt+S.s.head*6e4,end:S.end,winner:S.winner},players,tracks,catches,tasks}}
+  const log=RP.log.filter(e=>!/^players\//.test(e[1])||id[e[1].split('/')[1]]).map(e=>[e[0],mpP(e[1]),mp(e[2])]);
+  return{format:'blown-cover-replay',v:2,code:S.code,round:S.rn,generated:new Date().toISOString(),
+    game:{s:S.s,c:S.c,startAt:S.startAt,R0:S.startAt+S.s.head*6e4,end:S.end,winner:S.winner},players,tracks,log}}
 function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(f)],{type:'application/json'}));a.download=`blowncover_replay_${f.code}_r${f.round}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){toast('Replay konnte nicht erstellt werden')}}
@@ -612,37 +620,61 @@ function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>
 // ===== Replay: Abspielen =====
 function rvPick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
   i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{rvLoad(JSON.parse(r.result))}catch(e){toast('Diese Datei ist kein Replay')}};r.readAsText(f)};i.click()}
-// Analyse-Dateien lassen sich auch abspielen (gleiche Positionen, andere Form)
-function rvConv(o){if(o&&o.format==='blown-cover-replay')return o;if(!o||o.format!=='blown-cover-analyse')throw 0;
-  const s=o.game.settings,tl=o.timeline||[];let startAt=o.game.startAt,end=null;
-  tl.forEach(x=>{if(x[3]!=='g')return;const[p,,v]=x[4];if(p==='startAt'&&v)startAt=v});
-  let win=o.game.winner;tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt)return;if(x[4][0]==='status'&&x[4][2]==='over'&&!end)end=x[0];if(x[4][0]==='winner'&&x[4][2]&&!win)win=x[4][2]});
-  const R0=startAt+s.head*6e4;end=end||R0+s.dur*6e4;
-  const players=o.players.map(p=>({id:p.id,name:p.name,role:p.role,col:Math.max(0,PALN.indexOf(p.color)),state:'alive',sT:null,lf:p.left}));
-  const byId={};players.forEach(p=>byId[p.id]=p);const catches=[],hun={},tasks={},T_=k=>tasks[k]||(tasks[k]={});
-  tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt||x[0]>end+5000)return;const[p,,v]=x[4];let m;
-    if((m=/^players\/(S\d+)\/state$/.exec(p))&&byId[m[1]]&&v&&v!=='alive'){if(byId[m[1]].state==='alive'){byId[m[1]].state=v;byId[m[1]].sT=x[0]}}
-    else if((m=/^players\/(S\d+)\/sT$/.exec(p))&&byId[m[1]]&&v&&!byId[m[1]].sTv)byId[m[1]].sTv=v;
-    else if((m=/^catches\/(S\d+)\/hunter$/.exec(p)))hun[m[1]]=v;
-    else if((m=/^catches\/(S\d+)$/.exec(p))&&v&&v.hunter)hun[m[1]]=v.hunter;
-    else if((m=/^tasks\/(\w+)\/(t0|fin|ex)$/.exec(p))&&v!=null)T_(m[1])[m[2]]=v;
-    else if((m=/^tasks\/(\w+)\/loc\/(lat|lng)$/.exec(p))&&v!=null)(T_(m[1]).loc=T_(m[1]).loc||{})[m[2]]=v;
-    else if((m=/^tasks\/(\w+)\/(dep|pick)\/(t|u)$/.exec(p))&&v!=null)(T_(m[1])[m[2]]=T_(m[1])[m[2]]||{})[m[3]]=v;
-    else if((m=/^tasks\/(\w+)\/in\/(S\d+)\/t$/.exec(p))&&v){const q=T_(m[1]).in=T_(m[1]).in||[];if(!q.some(o=>o.u===m[2]))q.push({u:m[2],t:v})}});
-  players.forEach(p=>{if(p.sTv){if(p.state!=='alive')p.sT=p.sTv;delete p.sTv}});
-  players.forEach(p=>{if(p.state==='caught')catches.push({t:p.sT,hider:p.id,hunter:byId[hun[p.id]]?hun[p.id]:null})});
+// Einheitliche Form: game, players (id,name,role,col), tracks, log [[t,pfad,wert]]. Analyse-Dateien und ältere Replays werden umgewandelt.
+function rvConv(o){
+  if(o&&o.format==='blown-cover-replay'&&o.log)return o;
+  if(o&&o.format==='blown-cover-replay'){const log=[];   // v1 ohne Protokoll
+    (o.players||[]).forEach(p=>{if(p.state&&p.state!=='alive'&&p.sT){log.push([p.sT,'players/'+p.id+'/sT',p.sT]);log.push([p.sT,'players/'+p.id+'/state',p.state])}});
+    (o.catches||[]).forEach(c=>{if(c.hunter)log.push([c.t,'catches/'+c.hider+'/hunter',c.hunter])});
+    (o.tasks||[]).forEach(k=>{const p='tasks/'+k.id+'/',t0=k.t0||o.game.startAt;log.push([t0,p+'t0',k.t0]);if(k.loc)log.push([t0,p+'loc/lat',k.loc.lat],[t0,p+'loc/lng',k.loc.lng]);if(k.fin)log.push([k.fin,p+'fin',k.fin])});
+    log.sort((a,b)=>a[0]-b[0]);return Object.assign({},o,{log})}
+  if(!o||o.format!=='blown-cover-analyse')throw 0;
+  const s=o.game.settings,tl=o.timeline||[];let startAt=o.game.startAt,end=null,win=o.game.winner;
+  tl.forEach(x=>{if(x[3]==='g'&&x[4][0]==='startAt'&&x[4][2])startAt=x[4][2]});
+  tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt)return;if(x[4][0]==='status'&&x[4][2]==='over'&&!end)end=x[0];if(x[4][0]==='winner'&&x[4][2]&&!win)win=x[4][2]});
+  const R0=startAt+s.head*6e4;end=end||R0+s.dur*6e4;const log=[];
+  tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt-5000||x[0]>end+5000)return;const[p,,v]=x[4];
+    if(v&&typeof v==='object'){const f=rpFlat(v,p,{});for(const q in f)if(RPP.test(q))log.push([x[0],q,f[q]])}else if(RPP.test(p))log.push([x[0],p,v])});
+  const players=o.players.map(p=>({id:p.id,name:p.name,role:p.role,col:Math.max(0,PALN.indexOf(p.color)),lf:p.left}));
   const tracks={};Object.entries(o.tracks||{}).forEach(([k,a])=>tracks[k]=a.filter(x=>x[1]!=null).map(x=>[x[0],x[1],x[2],x[3]]));
-  return{format:'blown-cover-replay',v:1,code:o.code,round:o.round,game:{s,c:o.game.center,startAt,R0,end,winner:win},players,tracks,catches,
-    tasks:Object.entries(tasks).map(([k,v])=>Object.assign({id:k},v))}}
+  return{format:'blown-cover-replay',v:2,code:o.code,round:o.round,game:{s,c:o.game.center,startAt,R0,end,winner:win},players,tracks,log}}
 const rvD=(a,b)=>{const la=(a[0]+b[0])/2*Math.PI/180;return Math.hypot((b[0]-a[0])*111195,(b[1]-a[1])*111195*Math.cos(la))};
+// Zustand zu einem Zeitpunkt (Protokoll bis t angewendet)
+function rvSetP(o,p,v){const a=p.split('/');let c=o;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object'){if(v==null)return;c[a[i]]={}}c=c[a[i]]}if(v==null)delete c[a[a.length-1]];else c[a[a.length-1]]=v}
+function rvState(t){if(RV._st&&RV._st.t<=t&&RV._st.i<RV.f.log.length&&RV.f.log[RV._st.i][0]>t){RV._st.t=t;return RV._st.o}
+  let st=RV._st&&RV._st.t<=t?RV._st:{o:{players:{}},i:0};const L_=RV.f.log;while(st.i<L_.length&&L_[st.i][0]<=t){rvSetP(st.o,L_[st.i][1],L_[st.i][2]);st.i++}
+  st.t=t;RV._st=st;return st.o}
+// GPS-Weg glätten (nur Darstellung): Ausreißer weg, dann gewichteter Mittelwert über 5 Punkte
+function rvSmooth(a){if(a.length<3)return a;const s=a.filter((x,i)=>{if(i===0||i===a.length-1)return true;const p=a[i-1],n=a[i+1],v1=rvD([p[1],p[2]],[x[1],x[2]])/Math.max(1,(x[0]-p[0])/1000),v2=rvD([x[1],x[2]],[n[1],n[2]])/Math.max(1,(n[0]-x[0])/1000);return!(v1>7&&v2>7)});
+  return s.map((x,i)=>{let la=0,ln=0,w=0;for(let j=Math.max(0,i-2);j<=Math.min(s.length-1,i+2);j++){if(Math.abs(s[j][0]-x[0])>25000)continue;const q=s[j],ww=1/Math.pow(Math.max(5,q[3]||15),2)*(j===i?2:1);la+=q[1]*ww;ln+=q[2]*ww;w+=ww}return[x[0],la/w,ln/w,x[3]]})}
 function rvAt(a,t,gap){if(!a||!a.length||t<a[0][0])return null;let lo=0,hi=a.length-1;if(t>=a[hi][0])return[a[hi][1],a[hi][2],t-a[hi][0]>(gap||60000)];
   while(hi-lo>1){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m;else hi=m}const p=a[lo],q=a[hi],dt=q[0]-p[0];
   if(dt>(gap||60000))return[p[1],p[2],true];const f=(t-p[0])/dt;return[p[1]+(q[1]-p[1])*f,p[2]+(q[2]-p[2])*f,false]}
 const rvOut=(p,t)=>p.state&&p.state!=='alive'&&p.sT&&t>=p.sT;
 const rvTm=(t,R0)=>{const s=Math.round((t-R0)/1000),a=Math.abs(s);return(s<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')};
 const rvDur=ms=>ms>=60000?Math.round(ms/60000)+' Min':Math.round(ms/1000)+' s';
+const rvTN=id=>id==='sh'?'Safehouse':id==='ev'?'Evakuierung':isDd(id)?'Dead Drop':isMt(id)?'Meeting':'Aufgabe';
+// Ereignisse und Endzustand aus dem Protokoll: nur echte Wechsel zählen (Wiederholungen nach Neuladen werden ignoriert)
+function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={players:{}},g=f.game;
+  f.log.forEach(([t,p,v])=>{if(cur[p]===v)return;const old=cur[p];cur[p]=v;rvSetP(st,p,v);let m;
+    if((m=/^players\/([^/]+)\/state$/.exec(p))&&P_[m[1]]&&v&&v!=='alive'&&(old==null||old==='alive')){const q=P_[m[1]];if(!q.sT){q.state=v;q.sT=t}}
+    else if((m=/^players\/([^/]+)\/sT$/.exec(p))&&P_[m[1]]&&v&&!P_[m[1]]._sT)P_[m[1]]._sT=v;
+    else if((m=/^tasks\/(\w+)\/t0$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],x:`${rvTN(m[1])} erscheint`,start:1});
+    else if((m=/^tasks\/(\w+)\/in\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'task',x:`${nm(m[2])} erreicht ${m[1]==='sh'?'das Safehouse':'die '+rvTN(m[1])}`});
+    else if((m=/^tasks\/(\w+)\/fin$/.exec(p))&&v){const k=st.tasks[m[1]];ev.push({t:v,k:'task',x:isMt(m[1])&&k?`Meeting erfüllt: ${nm(k.a)} und ${nm(k.b)}`:`${rvTN(m[1])} erledigt`})}
+    else if((m=/^tasks\/(\w+)\/ex$/.exec(p))&&v){const k=st.tasks[m[1]]||{};ev.push({t:Math.max(t,k.t0||0),k:'task',x:`${rvTN(m[1])} entfällt (Partner ausgeschieden)`})}
+    else if((m=/^players\/([^/]+)\/used\/([^/]+)$/.exec(p))&&v){const u=m[1],it=myItems({s:g.s,tasks:st.tasks||{}},u).find(i=>i.id===m[2]);ev.push({t,k:'bonus',x:`${nm(u)} setzt ${it&&it.type==='radar'?'Hunter-Radar':'Immunität'} ein`})}});
+  Object.entries(st.tasks||{}).forEach(([id,k])=>{if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',x:`${nm(k.dep.u)} legt den Dead Drop ab`});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',x:`${nm(k.pick.u)} holt den Dead Drop ab`})});
+  Object.entries(st.hb||{}).forEach(([h,o])=>Object.values(o||{}).forEach(i=>{if(!i||!i.u)return;let tg='';
+    if(i.k==='live'){const L_=st.live||{};for(const x in L_)if(L_[x]&&L_[x][h]&&Math.abs(L_[x][h]-(i.u+(g.s.hbL||60)*1000))<15000)tg=' auf '+nm(x)}
+    ev.push({t:i.u,k:'bonus',x:`${nm(h)} setzt ${i.k==='live'?'Live-Standort'+tg:'Extra-Ping'} ein`})}));
+  Object.values(P_).forEach(p=>{if(p._sT&&p.state&&p.state!=='alive')p.sT=p._sT;delete p._sT});
+  const ca=(st.catches)||{};Object.values(P_).forEach(p=>{if(p.state==='caught'&&p.sT){const h=(ca[p.id]||{}).hunter;ev.push({t:p.sT,k:'catch',x:`${h&&P_[h]?nm(h):'Ein Hunter'} fängt ${nm(p.id)}`,hider:p.id,hunter:h})}});
+  const SX={safe:'ist in Sicherheit',quit:'hat aufgegeben',dq:'wurde disqualifiziert'};
+  Object.values(P_).forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`})});
+  return{ev,final:st}}
 // Statistik (Schwellen an Runde DZLMEM vom 30.10. abgestimmt: GPS-Zittern ~14 m)
-function rvStats(f,P_){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map(p=>p.id),tr=f.tracks,nm=k=>P_[k].name,endOf=k=>{const p=P_[k];return p.state&&p.state!=='alive'&&p.sT?Math.min(p.sT,T1):T1};
+function rvStats(f,P_,catches){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map(p=>p.id),tr=f.tracks,nm=k=>P_[k].name,endOf=k=>{const p=P_[k];return p.state&&p.state!=='alive'&&p.sT?Math.min(p.sT,T1):T1};
   const seg=k=>(tr[k]||[]).filter(x=>x[0]>=g.startAt&&x[0]<=endOf(k));
   const dist=ids.map(k=>{const v=seg(k);let anc=v[0],d=0;for(let i=1;i<v.length;i++){const s=rvD([anc[1],anc[2]],[v[i][1],v[i][2]]);if(s>Math.max(15,v[i][3]||15)){d+=s;anc=v[i]}}return[k,d]}).sort((a,b)=>b[1]-a[1]);
   const sprint=ids.map(k=>{const v=seg(k);let b=[k,0,null];for(let i=0;i+3<v.length;i++){const dt=(v[i+3][0]-v[i][0])/1000;if(dt<10||dt>25)continue;let ok=true;
@@ -659,70 +691,86 @@ function rvStats(f,P_){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map(p=>p.id
     Object.entries(run).forEach(([h,r])=>{if(r)knapp.push({hider:k,hunter:h,d:r.d,t:r.t})});if(b[2])close.push(b)});
   close.sort((a,b)=>a[1]-b[1]);
   knapp.sort((a,b)=>a.t-b.t);const km_=[];knapp.forEach(e=>{const l=km_.find(x=>x.hider===e.hider&&x.hunter===e.hunter&&e.t-x.last<150000);if(l){l.last=e.t;if(e.d<l.d){l.d=e.d;l.t=e.t}}else km_.push(Object.assign({last:e.t},e))});
-  const kn=km_.filter(e=>!(f.catches||[]).some(c=>c.hider===e.hider&&c.t>=e.t-5000&&c.t<=e.last+60000));
-  const hunt=H.map(h=>[h,(f.catches||[]).filter(c=>c.hunter===h)]).sort((a,b)=>b[1].length-a[1].length);
+  const kn=km_.filter(e=>!catches.some(c=>c.hider===e.hider&&c.t>=e.t-5000&&c.t<=e.last+60000));
+  const hunt=H.map(h=>[h,catches.filter(c=>c.hunter===h)]).sort((a,b)=>b[1].length-a[1].length);
   return{dist,sprint,statue,edge,close,knapp:kn,hunt,nm}}
-function rvEvents(f,P_,st){const g=f.game,R0=g.R0,ev=[],nm=k=>esc((P_[k]||{}).name||'?');
-  for(let t=R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)ev.push({t,k:'ping',x:'Ping: Hider-Positionen gehen an die Hunter'});
-  (f.catches||[]).forEach(c=>ev.push({t:c.t,k:'catch',x:`${c.hunter?nm(c.hunter):'Ein Hunter'} fängt ${nm(c.hider)}`}));
-  st.knapp.forEach(e=>ev.push({t:e.t,k:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
-  const SX={safe:'ist in Sicherheit',quit:'hat aufgegeben',dq:'wurde disqualifiziert'};
-  f.players.forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`})});
-  (f.tasks||[]).forEach(k=>{const n={sh:'Safehouse'}[k.id]||(isDd(k.id)?'Dead Drop':isMt(k.id)?'Meeting':k.id==='ev'?'Evakuierung':'Aufgabe');
-    if(k.t0&&k.t0>=g.startAt)ev.push({t:k.t0,k:'task',x:`${n} erscheint`});if(k.fin)ev.push({t:k.fin,k:'task',x:`${n} erledigt`});
-    if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',x:`${nm(k.dep.u)} legt den Dead Drop ab`});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',x:`${nm(k.pick.u)} holt den Dead Drop ab`});
-    (k.in||[]).forEach(o=>ev.push({t:o.t,k:'task',x:`${nm(o.u)} erreicht ${k.id==='sh'?'das Safehouse':n}`}))});
-  ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
-  return ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t)}
 function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Replay');return}
   if(!f.game||!f.game.startAt||!f.players||!f.tracks){toast('Replay ist unvollständig');return}
   if(RV)rvClose();
-  const pl={};f.players.forEach(p=>pl[p.id]=p);
-  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},raf:0,last:0};
-  RV.st=rvStats(f,pl);RV.ev=rvEvents(f,pl,RV.st);
-  const g=f.game;RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);
-  (f.tasks||[]).forEach(k=>{if(!k.loc||k.loc.lat==null)return;L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}).addTo(RV.L);
-    L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(k.id==='sh'?'sh':isDd(k.id)?'dd':isMt(k.id)?'mt':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false}).addTo(RV.L)});
-  f.players.forEach(p=>{const a=f.tracks[p.id]||[],c=PAL[Number.isInteger(p.col)?p.col:0];
+  f.log=(f.log||[]).slice().sort((a,b)=>a[0]-b[0]);
+  const pl={};f.players.forEach(p=>{pl[p.id]=Object.assign({},p,{state:'alive',sT:null})});
+  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},raf:0,last:0,zm:0};
+  const sc=rvScan(f,pl);RV.fin=sc.final;const catches=sc.ev.filter(e=>e.k==='catch').map(e=>({t:e.t,hider:e.hider,hunter:e.hunter}));
+  RV.st=rvStats(f,pl,catches);const nm=k=>esc((pl[k]||{}).name||'?');
+  RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
+  const g=f.game;sc.ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
+  RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);
+  RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
+  RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
+  f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
     L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
     RV.ln[p.id]=L.polyline([],{color:c,weight:3,opacity:.85,interactive:false}).addTo(RV.L)});
-  $('res').style.display='none';rotMode(true);
-  panel(1);rvFit();rvDraw()}
-function rvFocus(lat,lng,z){const ph=Math.min($('panel').offsetHeight,innerHeight*.6);if(z!=null)map.setView([lat,lng],z,{animate:false});else map.setView([lat,lng],map.getZoom(),{animate:false});
+  map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
+  $('res').style.display='none';rotMode(true);panel(1);rvFit();rvDraw()}
+// Während eines Zooms keine Linien/Kreise neu berechnen, sonst passen sie nicht zur gerade skalierten Ebene
+function rvZs(){if(RV)RV.zm=1}
+function rvZe(){if(RV){RV.zm=0;RV.zr=-1;RV.lnI={};rvDraw()}}
+function rvFocus(lat,lng,z){const ph=Math.min($('panel').offsetHeight,innerHeight*.6);map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
 function rvFit(){const g=RV.f.game,ph=Math.min($('panel').offsetHeight,innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
-function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
-function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t;
-  RV.zone.setRadius(RadS(g.s,t-g.R0));
-  f.players.forEach(p=>{const a=f.tracks[p.id]||[],pos_=rvAt(a,t),out=rvOut(p,t);
-    let i=0,lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}i=lo;
-    const pts=a.slice(0,i).map(x=>[x[1],x[2]]);if(pos_&&!pos_[2])pts.push([pos_[0],pos_[1]]);RV.ln[p.id].setLatLngs(pts);
-    const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(pos_?'1':'0');
+function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
+// Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
+function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
+  const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
+  const rows=[];
+  if(p.role==='hider'){const im=(q.immUntil||0)>t;if(im)rows.push(`<span style="color:#f2b705;font-weight:600">Immun</span> · noch ${fmt(q.immUntil-t)}`);
+    myItems(gT,id).forEach(i=>{const u=q.used&&q.used[i.id];rows.push(`${i.type==='radar'?'Hunter-Radar':'Immunität ('+fmt(i.sec*1000)+')'}: ${u?'eingesetzt':'bereit'}`)})}
+  else{Object.entries(hbMine(gT,id)).forEach(([b,i])=>{if(i.k==='x')return;const n=HBK[i.k]||i.k;rows.push(`${n}: ${i.u&&i.u<=t?'eingesetzt '+rvTm(i.u,g.R0):i.d?'verworfen':t<i.av?'Cooldown '+fmt(i.av-t):'bereit'}`)});
+    const L_=S.live||{};for(const x in L_)if(L_[x]&&L_[x][id]>t)rows.push(`Live-Ortung auf ${esc((RV.pl[x]||{}).name||'?')}: noch ${fmt(L_[x][id]-t)}`)}
+  return h+(rows.length?rows.map(r=>`<div style="font-size:12.5px;line-height:1.45">${r}</div>`).join(''):'<div class=mut style="font-size:12.5px">Keine Boni</div>')}
+function rvTaskShow(id,k,t){if(!k||!k.loc||k.loc.lat==null||isMt(id))return false;if(!k.t0||t<k.t0)return false;return true}
+function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
+  const zr=Math.round(RadS(g.s,t-g.R0));if(!RV.zm&&zr!==RV.zr){RV.zone.setRadius(zr);RV.zr=zr}
+  // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
+  const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t),m=RV.tk[id];
+    if(on&&!m){RV.tk[id]=L.layerGroup([L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
+      L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false})]).addTo(RV.L)}
+    else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}});
+  RV.lnI=RV.lnI||{};
+  f.players.forEach(p=>{const a=RV.sm[p.id]||[],pos_=rvAt(a,t),out=rvOut(p,t),q=S.players[p.id]||{},im=!out&&p.role==='hider'&&(q.immUntil||0)>t;
+    if(!RV.zm){let lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}
+      const key=lo+(pos_&&!pos_[2]?':'+Math.round(pos_[0]*1e5)+','+Math.round(pos_[1]*1e5):'');
+      if(RV.lnI[p.id]!==key){RV.lnI[p.id]=key;const pts=a.slice(0,lo).map(x=>[x[1],x[2]]);if(pos_&&!pos_[2])pts.push([pos_[0],pos_[1]]);RV.ln[p.id].setLatLngs(pts)}}
+    const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(im?'i':'');
     if(!pos_){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
-    let m=RV.m[p.id];if(!m||m._k!==key){if(m)RV.L.removeLayer(m);m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw',html:shape(k,p.id),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out?0:500,keyboard:false}).addTo(RV.L);m._k=key;
-      m.bindPopup(()=>`<b>${esc(p.name)}</b><span>${p.role==='hunter'?'Hunter':'Hider'}${out?' · '+({caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'}[p.state]||''):''}</span>`,{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14]})}
-    else m.setLatLng([pos_[0],pos_[1]])});
-  const el=t-g.R0,dur=g.s.dur*6e4;
-  $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${Math.round(RadS(g.s,el))} m</span>`;
-  const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,k=$('rvK'),fl=$('rvF'),c=$('rvC');if(k)k.style.left=fr+'%';if(fl)fl.style.width=fr+'%';
-  if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<45000&&e.k!=='ping').pop()||RV.ev.filter(e=>e.t<=t&&t-e.t<8000).pop();
+    let m=RV.m[p.id];if(!m||m._k!==key){const op=m&&m.isPopupOpen();if(m)RV.L.removeLayer(m);
+      const ring=im?`<svg style="position:absolute;inset:0;overflow:visible" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#f2b705" stroke-width="2.6"/></svg>`:'';
+      m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw',html:shape(k,p.id)+ring,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out?0:500,keyboard:false}).addTo(RV.L);m._k=key;
+      m.bindPopup(()=>rvInfo(p.id,RV.t),{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240});if(op)m.openPopup()}
+    else m.setLatLng([pos_[0],pos_[1]]);
+    if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
+  const el=t-g.R0;
+  $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`;
+  const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,kn=$('rvK'),fl=$('rvF'),c=$('rvC');if(kn)kn.style.left=fr+'%';if(fl)fl.style.width=fr+'%';
+  if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<45000&&e.k!=='out').pop()||RV.ev.filter(e=>e.t<=t&&t-e.t<20000).pop();
     const h=e?`<small class=mut>${rvTm(e.t,g.R0)}</small><b style="color:var(--fg)">${e.x}</b>`:`<small class=mut>${rvTm(t,g.R0)}</small><span class=mut>Keine Ereignisse gerade</span>`;if(c._h!==h){c._h=h;c.innerHTML=h}}}
 function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
   if(RV.t>=RV.T1){RV.play=false;panel(1)}rvDraw();if(RV&&RV.play)RV.raf=requestAnimationFrame(rvLoop)}
 function rvPlay(){if(!RV)return;if(RV.t>=RV.T1)RV.t=RV.T0;RV.play=!RV.play;RV.last=0;cancelAnimationFrame(RV.raf);if(RV.play)RV.raf=requestAnimationFrame(rvLoop);panel(1)}
 function rvSpeed(v){RV.speed=v;panel(1)}
 function rvJump(t,k){RV.t=Math.max(RV.T0,Math.min(RV.T1,t-8000));RV.tab='map';RV.play=true;RV.last=0;cancelAnimationFrame(RV.raf);RV.raf=requestAnimationFrame(rvLoop);panel(1);
-  const a=k&&rvAt(RV.f.tracks[k],t);if(a)rvFocus(a[0],a[1],Math.max(map.getZoom(),17));rvDraw()}
+  const a=k&&rvAt(RV.sm[k],t);if(a)rvFocus(a[0],a[1],Math.max(map.getZoom(),17));rvDraw()}
 function rvScrub(e){const b=$('rvT');if(!b)return;const r=b.getBoundingClientRect(),go=x=>{RV.t=RV.T0+Math.max(0,Math.min(1,(x-r.left)/r.width))*(RV.T1-RV.T0);rvDraw()};
   go(e.clientX);const mv=ev=>go(ev.clientX),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+const RVC={catch:'#e5484d',knapp:'#ff8a1f',task:'#7c6cff',bonus:'#4fb3f0'};
 function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle('tall',RV.tab==='stat');
   const tabs=`<div class=rvtab><button class="${RV.tab==='map'?'on':''}" onclick="RV.tab='map';panel(1)">Karte</button><button class="${RV.tab==='stat'?'on':''}" onclick="RV.tab='stat';panel(1)">Statistik</button></div>`;
-  const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet';
-  if(RV.tab==='map'){const ev=RV.ev.filter(e=>e.k==='catch'||e.k==='knapp'||e.k==='ping'),C={catch:'#e5484d',knapp:'#ff8a1f',ping:'#4fb3f0'};
+  const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet',X=t=>(t-RV.T0)/(RV.T1-RV.T0)*100;
+  if(RV.tab==='map'){let pg='';for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)pg+=`<span class=pg style="left:${X(t)}%"></span>`;
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
-     <div class=tl id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${ev.map(e=>`<span class=ev style="left:${(e.t-RV.T0)/(RV.T1-RV.T0)*100}%;background:${C[e.k]}"></span>`).join('')}<span class=kn id=rvK></span></div>
-     <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#4fb3f0"></i>Ping</span></div>
+     <div class=tl id=rvT onpointerdown="rvScrub(event)"><span class=bar></span>${pg}<span class=fill id=rvF></span>${RV.ev.filter(e=>RVC[e.k]).map(e=>`<span class=ev style="left:${X(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=kn id=rvK></span></div>
+     <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#7c6cff"></i>Aufgabe</span><span><i style="background:#4fb3f0"></i>Bonus</span><span><i class=pgi></i>Ping</span></div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`+tabs}
   else{const st=RV.st,nm=k=>esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
@@ -1336,7 +1384,8 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<60000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Radar '+ago(radar.t)]));
-  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:shape('me',uid)+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
+  if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:(imMe()?shape('me',uid).replace('stroke="#1e7cf0"','stroke="#f2b705"'):shape('me',uid))+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
+  if(imMe()){clearTimeout(imT);imT=setTimeout(()=>{if(G)draw()},Math.max(500,(P()[uid].immUntil||0)-now()+300))}
   drawMarks(m,t);
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
