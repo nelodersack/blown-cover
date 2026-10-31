@@ -1466,7 +1466,7 @@ function bfData(g,cd){const s=g.s,rn=g.rn||0,S='Sektor '+cd,R0=rs(g),pl=Object.v
   if(mt.length){const t=t0(mt);zi.push([t,'meet',(mt.length>1?mt.length+' Treffen zwischen Agenten ':'Treffen zweier Agenten ')+bfMin(t,R0)])}
   if(T.sh){zi.push([T.sh.t0,'home','Ein Safehouse wird '+bfMin(T.sh.t0,R0)+' freigegeben']);zu.push([T.sh.t0,'home','Der Gegner richtet ein Safehouse ein.',1])}
   if(T.ev){zi.push([T.ev.t0,'exit','Der Extraktionspunkt wird '+bfMin(T.ev.t0,R0)+' freigegeben']);zu.push([T.ev.t0,'exit','Der Gegner plant eine Extraktion.',1])}
-  if(T.hk){zi.push([T.hk.t0,'hack','Ein Terminal der Gegenseite ist '+bfMin(T.hk.t0,R0)+' angreifbar. Achtung: Die Gegenseite kennt seinen Standort.']);zu.push([T.hk.t0,'hack','Unser Terminal ist Ziel eines Angriffs. Sichert es.',0])}
+  if(T.hk){zi.push([T.hk.t0,'hack','Ein Terminal der Gegenseite ist '+bfMin(T.hk.t0,R0)+' angreifbar. Achtung: Die Gegenseite kennt seinen Standort.']);zu.push([T.hk.t0,'hack','Unser Terminal ist Ziel eines Angriffs. Sichert es.',01])}
   if(dd.length||mt.length)zu.push([t0(dd.concat(mt)),dd.length?'box':'meet',`Abgefangener Funkverkehr deutet auf ${dd.length&&mt.length?'Übergaben und Treffen':dd.length?'Übergaben':'Treffen'} hin.`,1]);
   const so=a=>a.sort((x,y)=>x[0]-y[0]);
   return{name:nm,cd,rn,hider:{op:'Operation '+nm,role:'Agenten im Feld',lage:lageH,auf:aufH,zl:'Missionsziele'+(ms?'':' (optional)'),z:so(zi).map(x=>[x[1],x[2],0]),ft:'Diese Nachricht zerstört sich nicht selbst. Viel Glück.'},
