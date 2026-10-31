@@ -43,6 +43,7 @@ Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beend
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
 Die App lädt immer die Live-Seite; die App-Anbindung steckt seit v0.2.6 direkt in `index.html` (im Browser ohne Wirkung).
+Seit v0.2.7 kann die Seite Dateien öffnen (Dateiauswahl), z. B. für „Replay abspielen“.
 
 ## 6. Mischen mit Browser-Spielern
 App und Browser nutzen dieselbe Datenbank: App-Spieler und Browser-Spieler (auch iPhone) können in derselben Lobby spielen. Klappt die App bei jemandem nicht, einfach im Browser mit demselben Code beitreten.

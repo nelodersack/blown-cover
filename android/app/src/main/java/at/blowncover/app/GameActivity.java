@@ -23,6 +23,7 @@ import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.RenderProcessGoneDetail;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -55,6 +56,9 @@ public class GameActivity extends Activity {
     }
 
     private WebView web;
+    /** Offene Dateiauswahl der Seite (z. B. „Replay abspielen“). */
+    private ValueCallback<Uri[]> fileCb;
+    private static final int REQ_FILE = 7;
     private long loadStart;
     private String loadedUrl;
     private FrameLayout frame;
@@ -218,6 +222,25 @@ public class GameActivity extends Activity {
             }
 
             @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams params) {
+                if (fileCb != null) fileCb.onReceiveValue(null);
+                fileCb = cb;
+                try {
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("*/*");
+                    startActivityForResult(Intent.createChooser(i, "Datei wählen"), REQ_FILE);
+                    Diag.log(GameActivity.this, "Dateiauswahl geöffnet");
+                    return true;
+                } catch (Exception e) {
+                    Diag.log(GameActivity.this, "Dateiauswahl FEHLER: " + e);
+                    fileCb = null;
+                    cb.onReceiveValue(null);
+                    return false;
+                }
+            }
+
+            @Override
             public boolean onConsoleMessage(ConsoleMessage m) {
                 if (m.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
                     String t = m.message();
@@ -286,6 +309,17 @@ public class GameActivity extends Activity {
         super.onNewIntent(i);
         setIntent(i);
         if (i.getBooleanExtra(EXTRA_READY, false)) showReady();
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == REQ_FILE && fileCb != null) {
+            Uri[] r = WebChromeClient.FileChooserParams.parseResult(res, data);
+            Diag.log(this, "Dateiauswahl: " + (r == null ? "abgebrochen" : r.length + " Datei"));
+            fileCb.onReceiveValue(r);
+            fileCb = null;
+        }
     }
 
     @Override
