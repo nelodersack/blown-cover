@@ -732,11 +732,15 @@ function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.
   else{Object.entries(hbMine(gT,id)).forEach(([b,i])=>{if(i.k==='x')return;const n=HBK[i.k]||i.k;rows.push(`${n}: ${i.u&&i.u<=t?'eingesetzt '+rvTm(i.u,g.R0):i.d?'verworfen':t<i.av?'Cooldown '+fmt(i.av-t):'bereit'}`)});
     const L_=S.live||{};for(const x in L_)if(L_[x]&&L_[x][id]>t)rows.push(`Live-Ortung auf ${esc((RV.pl[x]||{}).name||'?')}: noch ${fmt(L_[x][id]-t)}`)}
   return h+(rows.length?rows.map(r=>`<div style="font-size:12.5px;line-height:1.45">${r}</div>`).join(''):'<div class=mut style="font-size:12.5px">Keine Boni</div>')}
-function rvTaskShow(id,k,t){if(!k||!k.loc||k.loc.lat==null||isMt(id))return false;if(!k.t0||t<k.t0)return false;return true}
+// Aufgabe auf der Karte: ab Start sichtbar, nach Erfüllung oder Entfallen wieder weg (Meeting hat keinen Ort)
+function rvTaskShow(id,k,t,S){if(!k||!k.loc||k.loc.lat==null||isMt(id))return false;if(!k.t0||t<k.t0)return false;
+  const q=((S&&S.tasks)||{})[id]||{};if(q.ex||(q.fin&&q.fin<=t)||(q.pick&&q.pick.t&&q.pick.t<=t)||(q.sol&&q.fin))return false;
+  if(id==='sh'&&Object.values(q.in||{}).filter(o=>o&&o.t<=t).length>=2)return false;   // Safehouse: Belohnung gibt es nur für die ersten zwei
+  return true}
 function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const zr=Math.round(RadS(g.s,t-g.R0));if(!RV.zm&&zr!==RV.zr){RV.zone.setRadius(zr);RV.zr=zr}
   // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
-  const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t),m=RV.tk[id];
+  const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t,S),m=RV.tk[id];
     if(on&&!m){RV.tk[id]=L.layerGroup([L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
       L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false})]).addTo(RV.L)}
     else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}});
