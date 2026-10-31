@@ -65,7 +65,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .acc>button{width:100%;background:var(--panel2);color:var(--fg);border:0;border-radius:0;padding:11px 12px;display:flex;justify-content:flex-start;text-align:left;font:600 14px var(--f-b);min-height:48px;margin:0}
 .acc>button small{display:block;font-weight:400;font-size:12px}.acc>button .ic{width:18px;height:18px;color:var(--mut)}.acc>button>span{flex:1}
 .acc .in{padding:4px 12px 10px;display:grid;background:var(--panel)}
-.fl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #222b34;min-height:48px}.fl:last-child{border:0}.fl label{font-size:14px}.fl small{display:block;font-size:12px}
+.fl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #222b34;min-height:48px}.fl:last-child{border:0}.fl.sub{margin-left:10px;padding-left:12px;border-left:2px solid var(--line)}.fl.sub label{color:var(--mut)}.fl:has(+.fl.sub){border-bottom-color:transparent}.fl label{font-size:14px}.fl small{display:block;font-size:12px}
 .num{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;flex:none}
 .num button.n{background:none;color:var(--fg);border:0;width:36px;height:38px;min-height:0;padding:0;margin:0;font:600 20px var(--f-b);display:block}
 .num input{width:62px;text-align:center;border:0;background:none;font:500 14px var(--f-m);padding:0;margin:0;min-height:38px;border-radius:0;-moz-appearance:textfield}.num input::-webkit-outer-spin-button,.num input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -1278,8 +1278,8 @@ function balGo(){if(!G||G.host!==uid||G.status!=='lobby')return;const{H,X}=balRo
   const u=Object.assign({},c.o,{ddN:c.dd,mtN:c.mt});if(md(G)==='survive')u.shOn=true;if(G.s.hk)Object.assign(u,hkDef(Object.assign({},G.s,u)));
   db.ref(`games/${code}/s`).update(u).then(()=>{ui.balLast={H,X};ui.balRoll=null;toast('Balancing angewendet');panel(1)}).catch(e=>toast('Konnte nicht speichern: '+(e&&e.code||e)))}
 
-const nf=k=>{const f=FD[k],v=G.s[k]??DEF[k]??hkDef(G.s)[k];return `<div class=fl><label>${f[0]}</label><div class=num><button class=n onclick="stp('${k}',-1)" aria-label="weniger">−</button><input type=number inputmode=numeric value="${v}" min=${f[1]} max=${f[2]} onchange="setS('${k}',this.value,${f[1]},${f[2]})" aria-label="${f[0]}"><span class=u>${f[4]}</span><button class=n onclick="stp('${k}',1)" aria-label="mehr">+</button></div></div>`};
-const swt=(k,on,l,sub='')=>`<div class=fl><label>${l}${sub?`<small>${sub}</small>`:''}</label><button class="sw ${on?'on':''}" role=switch aria-checked="${on}" aria-label="${l}" onclick="setB('${k}','${on?0:1}')"></button></div>`;
+const nf=(k,sb)=>{const f=FD[k],v=G.s[k]??DEF[k]??hkDef(G.s)[k];return `<div class="fl${sb?' sub':''}"><label>${f[0]}</label><div class=num><button class=n onclick="stp('${k}',-1)" aria-label="weniger">−</button><input type=number inputmode=numeric value="${v}" min=${f[1]} max=${f[2]} onchange="setS('${k}',this.value,${f[1]},${f[2]})" aria-label="${f[0]}"><span class=u>${f[4]}</span><button class=n onclick="stp('${k}',1)" aria-label="mehr">+</button></div></div>`};
+const swt=(k,on,l,sub='',sb)=>`<div class="fl${sb?' sub':''}"><label>${l}${sub?`<small>${sub}</small>`:''}</label><button class="sw ${on?'on':''}" role=switch aria-checked="${on}" aria-label="${l}" onclick="setB('${k}','${on?0:1}')"></button></div>`;
 const acc=(id,icn,title,sum,body)=>`<div class=acc><button onclick="ui.open.${id}=!ui.open.${id};panel(1)" aria-expanded="${!!ui.open[id]}">${ic(icn)}<span>${title}<small>${sum}</small></span><span style="display:grid;transform:rotate(${ui.open[id]?90:0}deg)">${ic('chev')}</span></button>${ui.open[id]?`<div class=in>${body}</div>`:''}</div>`;
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
 const tabGo=(k,v)=>{ui[k]=v;$('pb').scrollTop=0;panel(1)};
@@ -1299,20 +1299,19 @@ function lobbyUI(g,host,me_){
       immNeed=(sv&&s.shOn)||(bonOn(g)&&(s.mtN||0)>0);
     const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),
       tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`+(s.hk?' · Hacking':'');
-    let t='';
-    if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT'):'');
+    let t=nf('ddN')+((s.ddN||0)>0?nf('ddT',1):'')+nf('mtN')+((s.mtN||0)>0?nf('mtT',1):'');
+    if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT',1):'');
     else t+=nf('evT')+swt('bon',s.bon!==false,'Aufgaben-Boni','Belohnung für Dead Drop und Meeting');
-    t+=nf('ddN')+((s.ddN||0)>0?nf('ddT'):'')+nf('mtN')+((s.mtN||0)>0?nf('mtT'):'');
-    t+=`<div class=fl><label>Hacking-Challenge<small>Riskante Hider-Aufgabe mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Hacking-Challenge" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?nf('hkS')+nf('hkZ')+nf('hkT')+nf('hkR')+nf('hkN')+nf('ozR'):'');
+    t+=`<div class=fl><label>Hacking-Challenge<small>Riskante Hider-Aufgabe mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Hacking-Challenge" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
     if(immNeed)t+=nf('imm');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
-    const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping und Live-Standort nach einem Fang')+(hbOn(g)?nf('hbN')+nf('hbC')+nf('hbL')+nf('hbT'):'');
+    const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping und Live-Standort nach einem Fang')+(hbOn(g)?nf('hbN',1)+nf('hbC',1)+nf('hbL',1)+nf('hbT',1):'');
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     ${balAcc(g)}<div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler')+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd'):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hacking-Challenge',s.hk?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
@@ -1476,29 +1475,27 @@ function hkResTxt(r){return r.k==='ok'?'System gehackt!':r.k==='df'?'Hacking-Zon
 function hkHCard(g,t,m){const H=hkSt(g,t);if(!H||!H.seen)return'';const k=H.k,Z=hkZv(g),d=pos?Math.round(D(pos,k.loc)):null,inz=d!==null&&d<=Z,
   btn=(txt,fn)=>`<button ${inz?'':'class=g disabled'} onclick="${fn}">${txt}${inz?'':(d===null?' (warte auf GPS)':' (noch '+Math.max(0,d-Z)+' m)')}</button>`,
   C=x=>`<div class=tk>${TH('hack','Hacking-Challenge')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;let h='';
-  if(H.res){h=C([hkResTxt(H.res)]);
+  if(H.res){
     if(H.res.k==='ok'){const ho=hkHolder(g),cm=k.cm;
       if(ho===uid)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>Du hältst die Gegenüberwachung. Beim Einsetzen sehen alle Hider ${hkRv(g)} s lang die Standorte aller Hunter. Die Hunter bekommen sofort eine Meldung.</small><br><button class="s" onclick="hkCmUse()">Einsetzen</button></div>`;
-      else if(cm)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>${esc((P()[cm.u]||{}).name||'?')} hat sie eingesetzt.</small></div>`;
-      else if(ho)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>${esc((P()[ho]||{}).name||'?')} hält die Gegenüberwachung.</small></div>`;
-      else h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>Verfallen: Kein beteiligter Hider ist mehr frei.</small></div>`}
+      else if(cm){if(hkCmOn(g,t))h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>${esc((P()[cm.u]||{}).name||'?')} hat sie eingesetzt.</small></div>`}
+      else if(ho)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>${esc((P()[ho]||{}).name||'?')} hält die Gegenüberwachung.</small></div>`}
     return h}
   if(H.run){const a=H.run,me=a.p&&a.p[uid],gone=a.x&&a.x[uid],pr=hkProg(g,a,t),hs=hkNames(a);
     if(me&&!gone)return C([`Du hackst das System. Bleib in der Hacking-Zone (Radius ${Z} m)! Wer sie länger als 10 s verlässt, scheidet aus und ist ${g.s.hbL||60} s sichtbar. Mit einem Helfer geht es schneller.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Hacker: ${hs||'–'}</small>`]);
     if(me&&gone)return C([`Du bist aus diesem Versuch ausgeschieden.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Hacker: ${hs||'–'}</small>`]);
     return C([`${hs||'Ein Hider'} hackt gerade. Hilf mit, dann geht es 50 % schneller. Für dich gilt dasselbe: Immunität endet, keine Pings, Zone nicht verlassen.`,hkBar(pr)+`<small>${Math.round(pr*100)} %</small><br>`+btn('Mithelfen','hkJoin()')])}
   if(H.open)return C([`Betrete die Hacking-Zone (Radius ${Z} m) und starte den Hack. Er dauert ${fmt(hkTv(g)*1000)}. Die Hunter kennen die Zone und sehen den Fortschritt. Belohnung: Immunität und die Gegenüberwachung. Versuch ${H.n+1} von ${hkNv(g)}, möglich noch ${fmt(hkLast(g)-t)}.`,btn('Hacken starten','hkJoin()')]);
-  return C(['Die Zeit für die Hacking-Challenge ist abgelaufen.'])}
+  return ''}
 function hkHunterCard(g,t,m){const H=hkSt(g,t);if(!H)return'';const k=H.k,Z=hkZv(g);let h='';
   const C=x=>`<div class=tk>${TH('hack','Hacking-Zone')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;
-  if(H.res)h+=C([hkResTxt(H.res)]);
+  if(H.res){}
   else if(H.run){const pr=hkProg(g,H.run,t);h+=C([`Hack läuft: ${hkNames(H.run)||'–'} (Zone: Radius ${Z} m, siehe Karte). Fang alle Hacker, bevor der Balken voll ist.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Versuch ${H.ln} von ${hkNv(g)}</small>`])}
   else if(!H.seen)h+=C([`Die Hider können in ${fmt(k.t0-t)} hacken. Bewacht die Zone oder jagt. Bei Erfolg orten sie euch alle. Wer die Zone verteidigt, bekommt das Sperrgebiet.`]);
   else if(H.open)h+=C([`Die Hider können jederzeit hacken (${H.n} von ${hkNv(g)} Versuchen verbraucht). Bewacht die Zone oder jagt.`]);
-  else h+=C(['Die Zeit für die Hacking-Challenge ist abgelaufen.']);
   const oh=ozHolder(g),oz=k.oz,op=ozPh(g,t),hs=ozRv(g);
   if(oh===uid)h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>Du hast die Zone verteidigt. Lege einen Kreis (Radius ${hs} m) in die Spielzone: Nach ${fmt(Math.round((g.s.hbC||0)/2)*1000)} Vorwarnung wird jeder Hider darin ${fmt(hkTv(g)*1000)} lang live geortet, solange er drin bleibt.</small><br><button class="s" onclick="ozStart()">Setzen</button></div>`;
-  else if(oz&&op)h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>${esc((P()[oz.u]||{}).name||'?')}: ${op.p==='warn'?'aktiv in '+fmt(op.w-t):op.p==='on'?'aktiv, noch '+fmt(op.e-t):'aufgehoben'}.</small></div>`;
+  else if(oz&&op){if(op.p!=='end')h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>${esc((P()[oz.u]||{}).name||'?')}: ${op.p==='warn'?'aktiv in '+fmt(op.w-t):'aktiv, noch '+fmt(op.e-t)}.</small></div>`}
   else if(oh)h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>${esc((P()[oh]||{}).name||'?')} hält das Sperrgebiet.</small></div>`;
   return h}
 // Hacking-Zone, Gegenüberwachung und Sperrgebiet auf der Karte
@@ -1513,7 +1510,7 @@ function hkDraw(g,t,m,spec){const k=hkK(g);if(!k||g.status!=='running')return;co
     L.circle([o.lat,o.lng],{radius:ozRv(g),color:'#ff5f1f',weight:on?3:2.5,dashArray:on?null:'7 6',fillColor:'#ff5f1f',fillOpacity:on?.2:.08}).addTo(lay);
     mkr('oz',[o.lat,o.lng],'tkoz',()=>['Sperrgebiet',(on?'aktiv, noch '+fmt(op.e-t):'aktiv in '+fmt(op.w-t))+' · '+((P()[o.u]||{}).name||'?')]);
     if(on&&m.role==='hunter'&&!spec)Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hider'||u===uid||!p.lat)return;if(D(p,o)<=ozRv(g)&&locatable(p,t,u))mkr('live',[p.lat,p.lng],'oz'+u,()=>['Hider '+p.name,'im Sperrgebiet'],u)})}}
-const hkSig=(g,t)=>{const H=hkK(g)?hkSt(g,t):null;if(!H)return 0;const o=H.k.oz;return[H.n,H.open,H.dead,H.seen,H.res&&H.res.k,H.run?Math.floor(hkProg(g,H.run,t)*40):0,hkHolder(g),ozHolder(g),!!H.k.cm,o?ozPh(g,t).p:0,H.run&&Object.keys(H.run.p||{}).join(),H.run&&Object.keys(H.run.x||{}).join(),pos?Math.round(D(pos,H.k.loc)/10):0]};
+const hkSig=(g,t)=>{const H=hkK(g)?hkSt(g,t):null;if(!H)return 0;const o=H.k.oz;return[H.n,H.open,H.dead,H.seen,H.res&&H.res.k,H.run?Math.floor(hkProg(g,H.run,t)*40):0,hkHolder(g),ozHolder(g),!!H.k.cm,hkCmOn(g,t),o?ozPh(g,t).p:0,H.run&&Object.keys(H.run.p||{}).join(),H.run&&Object.keys(H.run.x||{}).join(),pos?Math.round(D(pos,H.k.loc)/10):0]};
 // ===== Ende Hacking =====
 
 // Karte zeichnen
