@@ -117,11 +117,21 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #resb{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:16px;display:grid;gap:8px}
 #resb h2{text-align:center}#resb .rl small{display:block}
 #map{touch-action:none}
+.tl{position:relative;height:34px;margin:6px 0 2px;touch-action:none;cursor:pointer}.tl .bar{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:2px;background:#2a343f}.tl .fill{position:absolute;left:0;top:15px;height:4px;border-radius:2px;background:var(--fg)}
+.tl .ev{position:absolute;top:9px;width:4px;height:16px;border-radius:2px;margin-left:-2px;pointer-events:none}.tl .kn{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:var(--fg);margin-left:-9px;box-shadow:0 0 0 3px var(--panel);pointer-events:none}
+.lg2{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.lg2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.ctl{display:flex;gap:8px;align-items:center}.ctl .pp{width:44px!important;height:44px;min-height:0!important;border-radius:50%!important;padding:0!important;display:grid;place-items:center;flex:none!important;background:var(--fg);color:var(--bg);border:0;font-size:15px}
+.rvtab{display:flex;gap:6px}.rvtab button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:10px;min-height:42px}.rvtab button.on{color:var(--fg);border-color:var(--fg)}
+.aw2{border-bottom:1px solid #222b34}.aw{display:grid;grid-template-columns:34px 1fr auto 16px;gap:10px;align-items:center;padding:9px 0;cursor:pointer}.aw .e{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--panel2);color:var(--fg)}.aw .e svg{width:19px;height:19px}
+.aw b{display:block;color:var(--fg);font-size:14px}.aw small{color:var(--mut)}.aw .v{display:grid;justify-items:end;gap:3px;font:700 16px var(--f-d);color:var(--fg)}.cv{display:grid;color:var(--mut)}.cv .ic{width:16px;height:16px}
+.jp{width:auto!important;min-height:0!important;padding:2px 8px!important;border-radius:999px!important;font:600 11px var(--f-b)!important;background:#1e7cf022!important;color:#7fb2ff!important;border:1px solid #1e7cf055!important;flex:none;margin:0}
+.al{display:grid;gap:2px;padding:0 0 10px 44px}.ar{display:grid;grid-template-columns:18px 1fr auto 62px;gap:8px;align-items:center;font-size:13px;min-height:28px}.ar .rk{color:var(--mut);font-size:12px}.ar .nm{color:var(--fg)}.ar .vv{color:var(--fg);font-weight:600}.ar .jp{justify-self:end}
+
 #cb,#mmbtn,#lgb{width:40px!important;height:40px;min-height:0!important;padding:0!important;border-radius:50%!important;place-items:center}#cb .ic,#mmbtn .ic,#lgb .ic{width:22px;height:22px}#cb{position:fixed}#cbn{position:absolute;top:-3px;right:-3px;margin:0!important;min-width:18px;line-height:18px;text-align:center;padding:0 5px!important}
 
 .meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible;filter:none}
 .leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
-#nb{position:fixed;left:10px;top:152px;z-index:1200;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}#nb svg.l{width:22px;height:22px}#nbt{position:fixed;left:58px;top:159px;z-index:1300;display:none;background:#0b0e12e6;color:var(--fg);font:600 12px var(--f-b);padding:6px 10px;border-radius:999px;pointer-events:none}
+#nb{position:fixed;left:10px;top:152px;z-index:999;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}#nb svg.l{width:22px;height:22px}#nbt{position:fixed;left:58px;top:159px;z-index:1300;display:none;background:#0b0e12e6;color:var(--fg);font:600 12px var(--f-b);padding:6px 10px;border-radius:999px;pointer-events:none}
 </style></head><body>
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
 <button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span id=cbn></span></button>
@@ -285,7 +295,8 @@ function rcn(){const mm=P()[uid],n=Date.now();if(!mm||mm.state!=='alive'||!G||G.
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos((a.lat+b.lat)*t/2);return 6371000*Math.hypot(x,y)};
-const P=()=>(G&&G.players)||{};
+let RV=null;// laufendes Replay (Abspielen)
+const P=()=>(G&&G.players)||(RV&&RV.pl)||{};
 const lbl=p=>(p.role==='hunter'?'Hunter ':'Hider ')+p.name;
 const gwv=g=>g.s.gw||20,gdv=g=>Math.max(g.s.gd||60,gwv(g)+5);
 const dqOn=g=>!!(g.s&&g.s.dq===true),hpOn=g=>!(g.s&&g.s.hp===false); // Signal-DQ: Standard aus · Hider-Pings der anderen: Standard an
@@ -304,7 +315,7 @@ function resHTML(r,mode){
   const txt=x=>x.s==='alive'?(x.r==='hider'?'überlebt, frei':'bis zum Ende dabei'):x.s==='caught'?'gefangen'+resTm(x)+(x.by?' von '+esc(x.by):''):x.s==='safe'?'in Sicherheit'+resTm(x):x.s==='quit'?'aufgegeben'+resTm(x):'disqualifiziert (Verbindung)'+resTm(x);
   const sec=(role,title)=>{const a=r.l.filter(x=>x.r===role);return a.length?`<small style="margin-top:8px">${title}</small>`+a.map(x=>`<div class=rl><b>${esc(x.n)}</b><small>${txt(x)}${x.lf?' · hat das Spiel verlassen':''}</small></div>`).join(''):''};
   return `<h2>${T}</h2>`+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')+sec('hider','Hider')+sec('hunter','Hunter')+
-    `<div class=row style="margin-top:12px">`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row style="margin-top:6px"><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
+    rpCard()+`<div class=row style="margin-top:12px">`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row style="margin-top:6px"><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
 function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;
   if(g.status==='over'){r=buildRes(g)}
   else if(g.status==='lobby'&&me_.w&&g.prev){try{r=JSON.parse(g.prev.j)}catch(x){}}
@@ -407,7 +418,7 @@ async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
 function toast(m){lg('toast',String(m).slice(0,120));if(NB&&(document.hidden||window.bcHidden)){try{NB.notify('Blown Cover',String(m))}catch(e){}}const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3500)}
 
-const SV={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
+const SV={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
 const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0','#8a5a2b','#8e2a3a','#e02fb5','#f28c00','#7b3fe4'],PALN=['Blau','Gelb','Dunkelgrün','Türkis','Schiefer','Grün','Himmelblau','Braun','Bordeaux','Magenta','Orange','Violett'],PALK=PAL.map(h=>{const v=[1,3,5].map(k=>{const c=parseInt(h.substr(k,2),16)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]>.3?'#1a1a1a':'#fff'});
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
@@ -506,7 +517,7 @@ function fmSet(m,quiet){if(m&&!pos){nbTip('Noch kein Standort');m=0}FM=m;FA=true
   fmCenter(true)}
 // Nadel bei gedrehter Karte: erster Tipp nur nach Norden, erst der nächste wechselt den Modus
 // Tipp: pausierten bzw. nicht mehr erfüllten Modus wiederherstellen; nur wenn er schon aktiv ist, zum nächsten wechseln
-let nbN=0;function nbTap(){const t=performance.now();if(t<nbN)return;nbN=t+400;
+let nbN=0;function nbTap(){if(RV){rotReset();return}const t=performance.now();if(t<nbN)return;nbN=t+400;
   if(FM===0?Math.abs(ROT)>.5:!FA){fmSet(FM);return}fmSet((FM+1)%3)}
 // Folgt der Blickrichtung weich; dreht erst ab 3° Abweichung los, damit die Karte nicht zittert
 function fmTurn(){if(FM!==2||!FA||fmRaf||!hdOk())return;const t=-HD,d=((t-ROT)%360+540)%360-180;if(Math.abs(d)<3)return;
@@ -552,6 +563,185 @@ function crs(){if(!pos)return;if(!crP){crP=pos;return}const d=map.distance([crP.
   if(Date.now()-hdT>3000||hdSrc==='gps'){const y=Math.sin((pos.lng-crP.lng)*Math.PI/180)*Math.cos(pos.lat*Math.PI/180),x=Math.cos(crP.lat*Math.PI/180)*Math.sin(pos.lat*Math.PI/180)-Math.sin(crP.lat*Math.PI/180)*Math.cos(pos.lat*Math.PI/180)*Math.cos((pos.lng-crP.lng)*Math.PI/180);
     hdSet(Math.atan2(y,x)*180/Math.PI,'gps',1)}crP=pos}
 
+// ===== Replay: Aufzeichnung während der Runde (nur wenn der Host „Runde aufzeichnen“ einschaltet) =====
+// Jedes Handy schreibt seinen eigenen GPS-Weg mit (auch ohne Netz) und nebenbei die Positionen, die es von den anderen empfängt.
+// Bei Spielende lädt jedes Handy seinen eigenen Weg nach rp/<code>/<uid>; alle holen sich die Wege der anderen und bauen daraus dieselbe Datei.
+// Gelöscht wird rp/<code> bei „Neue Runde“ bzw. „Auflösen“.
+const rpOn=g=>!!(g&&g.s&&g.s.rp);
+let RP=null,rpRef=null,rpT=0;
+function rpInit(){const k='rp_'+code+'_'+(G.rn||0);if(RP&&RP.k===k)return;
+  let o=null;try{o=JSON.parse(LS[k]||'null')}catch(e){}
+  if(rpRef){rpRef.off();rpRef=null}
+  RP=o&&o.k===k?o:{k,own:[],seen:{},snap:null,got:{}};RP.got=RP.got||{};RP.up=0;
+  try{for(let i=LS.length-1;i>=0;i--){const q=LS.key(i);if(q&&q.indexOf('rp_')===0&&q!==k)LS.removeItem(q)}}catch(e){}}
+function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,snap:RP.snap,got:RP.got})}catch(e){}}
+function rpOwn(){if(!G||G.status!=='running'||!rpOn(G)||!pos)return;rpInit();const t=now(),o=RP.own,l=o[o.length-1];if(l&&t-l[0]<4000)return;
+  o.push([t,+pos.lat.toFixed(5),+pos.lng.toFixed(5),typeof gAcc==='number'?Math.round(gAcc):null])}
+function rpSnap(g){const pl={};Object.entries(g.players||{}).forEach(([k,p])=>{if(p.role)pl[k]={name:p.name,role:p.role,col:p.col,j:p.j||0,state:p.state,sT:p.sT||null,lf:!!p.lf}});
+  const tk={};Object.entries(g.tasks||{}).forEach(([k,v])=>{tk[k]={t0:v.t0||null,loc:v.loc||null,fin:v.fin||null,dep:v.dep||null,pick:v.pick||null,ex:!!v.ex,in:v.in||null}});
+  return{code,rn:g.rn||0,s:g.s,c:g.c,startAt:g.startAt,end:Math.min(now(),g.startAt+(g.s.head+g.s.dur)*6e4+5000),winner:g.winner||null,players:pl,catches:g.catches||{},tasks:tk}}
+function rpData(){const g=G;if(!g||!rpOn(g)){if(rpRef&&(!g||g.status!=='over')){rpRef.off();rpRef=null}return}
+  if(g.status==='running'){rpInit();
+    Object.entries(g.players||{}).forEach(([k,p])=>{if(k===uid||p.lat==null||!p.ts)return;const a=RP.seen[k]||(RP.seen[k]=[]),l=a[a.length-1];if(!l||p.ts-l[0]>=3000)a.push([p.ts,+(+p.lat).toFixed(5),+(+p.lng).toFixed(5)])});
+    const t=Date.now();if(t-rpT>15000){rpT=t;rpSave()}}
+  else if(g.status==='over'){rpInit();if(!RP.snap){RP.snap=rpSnap(g);rpSave()}rpUp();rpListen()}
+  else if(rpRef){rpRef.off();rpRef=null}}
+function rpUp(){if(!RP||RP.up||!code)return;RP.up=1;const o=RP.own,t0=o.length?o[0][0]:0;
+  const s=JSON.stringify({v:1,t0,tr:o.map(x=>[Math.round((x[0]-t0)/1000),Math.round(x[1]*1e5),Math.round(x[2]*1e5),x[3]])});
+  db.ref('rp/'+code+'/'+uid).set(s).catch(()=>{RP.up=0;setTimeout(()=>{if(G&&G.status==='over')rpUp()},5000)})}
+function rpListen(){if(rpRef)return;rpRef=db.ref('rp/'+code);
+  rpRef.on('value',s=>{const v=s.val()||{};for(const k in v){try{const o=JSON.parse(v[k]);RP.got[k]=o.tr.map(x=>[o.t0+x[0]*1000,x[1]/1e5,x[2]/1e5,x[3]])}catch(e){}}
+    rpSave();if(G&&G.status==='over')resSync(G)},()=>{})}
+function rpNeed(){const S=RP.snap;return Object.keys(S.players).filter(k=>!S.players[k].lf)}
+function rpCard(){if(!RP||!RP.snap)return'';const need=rpNeed(),n=need.filter(k=>RP.got[k]||(k===uid&&RP.own.length)).length;
+  return`<div class=card style="margin-top:12px;text-align:left"><div class="row sp"><div class=hd style="flex:none">${ic('play')}Replay</div><span class="chip ${n>=need.length?'ok':'or'}" style="flex:none">${n} von ${need.length} Wegen da</span></div>
+   <button onclick="rpDl()">Replay herunterladen</button><small class=mut>Abspielen: Startseite → „Replay abspielen“. Am iPhone landet die Datei in der Dateien-App.${n<need.length?' Fehlende Wege werden aus dem ergänzt, was dein Handy empfangen hat.':''}</small></div>`}
+function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.players[a].j||0)-(S.players[b].j||0)),id={};ids.forEach((k,i)=>id[k]='p'+(i+1));
+  const tracks={},players=[],catches=[];
+  ids.forEach(k=>{let tr=null;if(k===uid&&RP.own.length)tr=RP.own;else if(RP.got[k]&&RP.got[k].length)tr=RP.got[k];else tr=(RP.seen[k]||[]).map(x=>[x[0],x[1],x[2],null]);
+    tracks[id[k]]=tr.map(x=>[x[0],+(+x[1]).toFixed(5),+(+x[2]).toFixed(5),x[3]==null?null:x[3]]);
+    const p=S.players[k];players.push({id:id[k],name:p.name,role:p.role,col:p.col,state:p.state,sT:p.sT,lf:p.lf})});
+  Object.entries(S.catches||{}).forEach(([k,c])=>{if(c&&c.status==='done'&&id[k]&&id[c.hunter])catches.push({t:(S.players[k]||{}).sT||c.t,hider:id[k],hunter:id[c.hunter]})});
+  const mu=x=>x&&id[x.u]?{u:id[x.u],t:x.t}:null,tasks=Object.entries(S.tasks||{}).map(([k,v])=>({id:k,t0:v.t0,loc:v.loc,fin:v.fin,dep:mu(v.dep),pick:mu(v.pick),ex:v.ex,in:Object.entries(v.in||{}).filter(([u])=>id[u]).map(([u,o])=>({u:id[u],t:o.t}))}));
+  return{format:'blown-cover-replay',v:1,code:S.code,round:S.rn,generated:new Date().toISOString(),
+    game:{s:S.s,c:S.c,startAt:S.startAt,R0:S.startAt+S.s.head*6e4,end:S.end,winner:S.winner},players,tracks,catches,tasks}}
+function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(f)],{type:'application/json'}));a.download=`blowncover_replay_${f.code}_r${f.round}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){toast('Replay konnte nicht erstellt werden')}}
+
+// ===== Replay: Abspielen =====
+function rvPick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
+  i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{rvLoad(JSON.parse(r.result))}catch(e){toast('Diese Datei ist kein Replay')}};r.readAsText(f)};i.click()}
+// Analyse-Dateien lassen sich auch abspielen (gleiche Positionen, andere Form)
+function rvConv(o){if(o&&o.format==='blown-cover-replay')return o;if(!o||o.format!=='blown-cover-analyse')throw 0;
+  const s=o.game.settings,tl=o.timeline||[];let startAt=o.game.startAt,end=null;
+  tl.forEach(x=>{if(x[3]!=='g')return;const[p,,v]=x[4];if(p==='startAt'&&v)startAt=v});
+  let win=o.game.winner;tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt)return;if(x[4][0]==='status'&&x[4][2]==='over'&&!end)end=x[0];if(x[4][0]==='winner'&&x[4][2]&&!win)win=x[4][2]});
+  const R0=startAt+s.head*6e4;end=end||R0+s.dur*6e4;
+  const players=o.players.map(p=>({id:p.id,name:p.name,role:p.role,col:Math.max(0,PALN.indexOf(p.color)),state:'alive',sT:null,lf:p.left}));
+  const byId={};players.forEach(p=>byId[p.id]=p);const catches=[],hun={},tasks={},T_=k=>tasks[k]||(tasks[k]={});
+  tl.forEach(x=>{if(x[3]!=='g'||x[0]<startAt||x[0]>end+5000)return;const[p,,v]=x[4];let m;
+    if((m=/^players\/(S\d+)\/state$/.exec(p))&&byId[m[1]]&&v&&v!=='alive'){byId[m[1]].state=v;byId[m[1]].sT=x[0]}
+    else if((m=/^catches\/(S\d+)\/hunter$/.exec(p)))hun[m[1]]=v;
+    else if((m=/^catches\/(S\d+)$/.exec(p))&&v&&v.hunter)hun[m[1]]=v.hunter;
+    else if((m=/^tasks\/(\w+)\/(t0|fin|ex)$/.exec(p))&&v!=null)T_(m[1])[m[2]]=v;
+    else if((m=/^tasks\/(\w+)\/loc\/(lat|lng)$/.exec(p))&&v!=null)(T_(m[1]).loc=T_(m[1]).loc||{})[m[2]]=v;
+    else if((m=/^tasks\/(\w+)\/(dep|pick)\/(t|u)$/.exec(p))&&v!=null)(T_(m[1])[m[2]]=T_(m[1])[m[2]]||{})[m[3]]=v;
+    else if((m=/^tasks\/(\w+)\/in\/(S\d+)\/t$/.exec(p))&&v){const q=T_(m[1]).in=T_(m[1]).in||[];if(!q.some(o=>o.u===m[2]))q.push({u:m[2],t:v})}});
+  players.forEach(p=>{if(p.state==='caught')catches.push({t:p.sT,hider:p.id,hunter:byId[hun[p.id]]?hun[p.id]:null})});
+  const tracks={};Object.entries(o.tracks||{}).forEach(([k,a])=>tracks[k]=a.filter(x=>x[1]!=null).map(x=>[x[0],x[1],x[2],x[3]]));
+  return{format:'blown-cover-replay',v:1,code:o.code,round:o.round,game:{s,c:o.game.center,startAt,R0,end,winner:win},players,tracks,catches,
+    tasks:Object.entries(tasks).map(([k,v])=>Object.assign({id:k},v))}}
+const rvD=(a,b)=>{const la=(a[0]+b[0])/2*Math.PI/180;return Math.hypot((b[0]-a[0])*111195,(b[1]-a[1])*111195*Math.cos(la))};
+function rvAt(a,t,gap){if(!a||!a.length||t<a[0][0])return null;let lo=0,hi=a.length-1;if(t>=a[hi][0])return[a[hi][1],a[hi][2],t-a[hi][0]>(gap||60000)];
+  while(hi-lo>1){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m;else hi=m}const p=a[lo],q=a[hi],dt=q[0]-p[0];
+  if(dt>(gap||60000))return[p[1],p[2],true];const f=(t-p[0])/dt;return[p[1]+(q[1]-p[1])*f,p[2]+(q[2]-p[2])*f,false]}
+const rvOut=(p,t)=>p.state&&p.state!=='alive'&&p.sT&&t>=p.sT;
+const rvTm=(t,R0)=>{const s=Math.round((t-R0)/1000),a=Math.abs(s);return(s<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')};
+const rvDur=ms=>ms>=60000?Math.round(ms/60000)+' Min':Math.round(ms/1000)+' s';
+// Statistik (Schwellen an Runde DZLMEM vom 30.10. abgestimmt: GPS-Zittern ~14 m)
+function rvStats(f,P_){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map(p=>p.id),tr=f.tracks,nm=k=>P_[k].name,endOf=k=>{const p=P_[k];return p.state&&p.state!=='alive'&&p.sT?Math.min(p.sT,T1):T1};
+  const seg=k=>(tr[k]||[]).filter(x=>x[0]>=g.startAt&&x[0]<=endOf(k));
+  const dist=ids.map(k=>{const v=seg(k);let anc=v[0],d=0;for(let i=1;i<v.length;i++){const s=rvD([anc[1],anc[2]],[v[i][1],v[i][2]]);if(s>Math.max(15,v[i][3]||15)){d+=s;anc=v[i]}}return[k,d]}).sort((a,b)=>b[1]-a[1]);
+  const sprint=ids.map(k=>{const v=seg(k);let b=[k,0,null];for(let i=0;i+3<v.length;i++){const dt=(v[i+3][0]-v[i][0])/1000;if(dt<10||dt>25)continue;let ok=true;
+      for(let j=i;j<i+3;j++){const s=rvD([v[j][1],v[j][2]],[v[j+1][1],v[j+1][2]])/Math.max(1,(v[j+1][0]-v[j][0])/1000)*3.6;if(s>30||(v[j][3]!=null&&v[j][3]>25))ok=false}
+      if(!ok)continue;const sp=rvD([v[i][1],v[i][2]],[v[i+3][1],v[i+3][2]])/dt*3.6;if(sp>b[1])b=[k,sp,v[i][0]]}return b}).sort((a,b)=>b[1]-a[1]);
+  const statue=ids.map(k=>{const v=seg(k).filter(x=>x[0]>=R0);let b=[k,0,null];for(let i=0;i<v.length;i++){let j=i;while(j+1<v.length&&rvD([v[i][1],v[i][2]],[v[j+1][1],v[j+1][2]])<=20&&v[j+1][0]-v[j][0]<=60000)j++;
+      if(v[j][0]-v[i][0]>b[1])b=[k,v[j][0]-v[i][0],v[i][0]]}return b}).sort((a,b)=>b[1]-a[1]);
+  const edge=ids.map(k=>{let b=[k,1e9,null];seg(k).forEach(x=>{if(x[0]<R0)return;const r=RadS(g.s,x[0]-R0),dc=rvD([g.c.lat,g.c.lng],[x[1],x[2]]);if(dc<=r&&r-dc<b[1])b=[k,r-dc,x[0]]});return b}).filter(x=>x[2]).sort((a,b)=>a[1]-b[1]);
+  const H=ids.filter(k=>P_[k].role==='hunter'),X=ids.filter(k=>P_[k].role==='hider'),close=[],knapp=[];
+  X.forEach(k=>{let b=[k,1e9,null,null];const run={};
+    for(let t=R0;t<=endOf(k);t+=5000){const a=rvAt(tr[k],t,30000);if(!a||a[2])continue;
+      H.forEach(h=>{if(rvOut(P_[h],t))return;const c=rvAt(tr[h],t,30000);if(!c||c[2])return;const d=rvD(a,c);if(d<b[1])b=[k,d,t,h];
+        const r=run[h];if(d<30){if(!r||d<r.d)run[h]={d,t,s:r?r.s:t}}else if(r){knapp.push({hider:k,hunter:h,d:r.d,t:r.t});run[h]=null}})}
+    Object.entries(run).forEach(([h,r])=>{if(r)knapp.push({hider:k,hunter:h,d:r.d,t:r.t})});if(b[2])close.push(b)});
+  close.sort((a,b)=>a[1]-b[1]);
+  knapp.sort((a,b)=>a.t-b.t);const km_=[];knapp.forEach(e=>{const l=km_.find(x=>x.hider===e.hider&&x.hunter===e.hunter&&e.t-x.last<150000);if(l){l.last=e.t;if(e.d<l.d){l.d=e.d;l.t=e.t}}else km_.push(Object.assign({last:e.t},e))});
+  const kn=km_.filter(e=>!(f.catches||[]).some(c=>c.hider===e.hider&&c.t>=e.t-5000&&c.t<=e.last+60000));
+  const hunt=H.map(h=>[h,(f.catches||[]).filter(c=>c.hunter===h)]).sort((a,b)=>b[1].length-a[1].length);
+  return{dist,sprint,statue,edge,close,knapp:kn,hunt,nm}}
+function rvEvents(f,P_,st){const g=f.game,R0=g.R0,ev=[],nm=k=>esc((P_[k]||{}).name||'?');
+  for(let t=R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)ev.push({t,k:'ping',x:'Ping: Hider-Positionen gehen an die Hunter'});
+  (f.catches||[]).forEach(c=>ev.push({t:c.t,k:'catch',x:`${c.hunter?nm(c.hunter):'Ein Hunter'} fängt ${nm(c.hider)}`}));
+  st.knapp.forEach(e=>ev.push({t:e.t,k:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
+  const SX={safe:'ist in Sicherheit',quit:'hat aufgegeben',dq:'wurde disqualifiziert'};
+  f.players.forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`})});
+  (f.tasks||[]).forEach(k=>{const n={sh:'Safehouse'}[k.id]||(isDd(k.id)?'Dead Drop':isMt(k.id)?'Meeting':k.id==='ev'?'Evakuierung':'Aufgabe');
+    if(k.t0&&k.t0>=g.startAt)ev.push({t:k.t0,k:'task',x:`${n} erscheint`});if(k.fin)ev.push({t:k.fin,k:'task',x:`${n} erledigt`});
+    if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',x:`${nm(k.dep.u)} legt den Dead Drop ab`});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',x:`${nm(k.pick.u)} holt den Dead Drop ab`});
+    (k.in||[]).forEach(o=>ev.push({t:o.t,k:'task',x:`${nm(o.u)} erreicht ${k.id==='sh'?'das Safehouse':n}`}))});
+  ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
+  return ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t)}
+function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Replay');return}
+  if(!f.game||!f.game.startAt||!f.players||!f.tracks){toast('Replay ist unvollständig');return}
+  if(RV)rvClose();
+  const pl={};f.players.forEach(p=>pl[p.id]=p);
+  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},raf:0,last:0};
+  RV.st=rvStats(f,pl);RV.ev=rvEvents(f,pl,RV.st);
+  const g=f.game;RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);
+  (f.tasks||[]).forEach(k=>{if(!k.loc||k.loc.lat==null)return;L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}).addTo(RV.L);
+    L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(k.id==='sh'?'sh':isDd(k.id)?'dd':isMt(k.id)?'mt':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false}).addTo(RV.L)});
+  f.players.forEach(p=>{const a=f.tracks[p.id]||[],c=PAL[Number.isInteger(p.col)?p.col:0];
+    L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
+    RV.ln[p.id]=L.polyline([],{color:c,weight:3,opacity:.85,interactive:false}).addTo(RV.L)});
+  $('res').style.display='none';rotMode(true);
+  panel(1);rvFit();rvDraw()}
+function rvFocus(lat,lng,z){const ph=Math.min($('panel').offsetHeight,innerHeight*.6);if(z!=null)map.setView([lat,lng],z,{animate:false});else map.setView([lat,lng],map.getZoom(),{animate:false});
+  const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
+function rvFit(){const g=RV.f.game,ph=Math.min($('panel').offsetHeight,innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
+  const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
+function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
+function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t;
+  RV.zone.setRadius(RadS(g.s,t-g.R0));
+  f.players.forEach(p=>{const a=f.tracks[p.id]||[],pos_=rvAt(a,t),out=rvOut(p,t);
+    let i=0,lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}i=lo;
+    const pts=a.slice(0,i).map(x=>[x[1],x[2]]);if(pos_&&!pos_[2])pts.push([pos_[0],pos_[1]]);RV.ln[p.id].setLatLngs(pts);
+    const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(pos_?'1':'0');
+    if(!pos_){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
+    let m=RV.m[p.id];if(!m||m._k!==key){if(m)RV.L.removeLayer(m);m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw',html:shape(k,p.id),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out?0:500,keyboard:false}).addTo(RV.L);m._k=key;
+      m.bindPopup(()=>`<b>${esc(p.name)}</b><span>${p.role==='hunter'?'Hunter':'Hider'}${out?' · '+({caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'}[p.state]||''):''}</span>`,{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14]})}
+    else m.setLatLng([pos_[0],pos_[1]])});
+  const el=t-g.R0,dur=g.s.dur*6e4;
+  $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${Math.round(RadS(g.s,el))} m</span>`;
+  const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,k=$('rvK'),fl=$('rvF'),c=$('rvC');if(k)k.style.left=fr+'%';if(fl)fl.style.width=fr+'%';
+  if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<45000&&e.k!=='ping').pop()||RV.ev.filter(e=>e.t<=t&&t-e.t<8000).pop();
+    const h=e?`<small class=mut>${rvTm(e.t,g.R0)}</small><b style="color:var(--fg)">${e.x}</b>`:`<small class=mut>${rvTm(t,g.R0)}</small><span class=mut>Keine Ereignisse gerade</span>`;if(c._h!==h){c._h=h;c.innerHTML=h}}}
+function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
+  if(RV.t>=RV.T1){RV.play=false;panel(1)}rvDraw();if(RV&&RV.play)RV.raf=requestAnimationFrame(rvLoop)}
+function rvPlay(){if(!RV)return;if(RV.t>=RV.T1)RV.t=RV.T0;RV.play=!RV.play;RV.last=0;cancelAnimationFrame(RV.raf);if(RV.play)RV.raf=requestAnimationFrame(rvLoop);panel(1)}
+function rvSpeed(v){RV.speed=v;panel(1)}
+function rvJump(t,k){RV.t=Math.max(RV.T0,Math.min(RV.T1,t-8000));RV.tab='map';RV.play=true;RV.last=0;cancelAnimationFrame(RV.raf);RV.raf=requestAnimationFrame(rvLoop);panel(1);
+  const a=k&&rvAt(RV.f.tracks[k],t);if(a)rvFocus(a[0],a[1],Math.max(map.getZoom(),17));rvDraw()}
+function rvScrub(e){const b=$('rvT');if(!b)return;const r=b.getBoundingClientRect(),go=x=>{RV.t=RV.T0+Math.max(0,Math.min(1,(x-r.left)/r.width))*(RV.T1-RV.T0);rvDraw()};
+  go(e.clientX);const mv=ev=>go(ev.clientX),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle('tall',RV.tab==='stat');
+  const tabs=`<div class=rvtab><button class="${RV.tab==='map'?'on':''}" onclick="RV.tab='map';panel(1)">Karte</button><button class="${RV.tab==='stat'?'on':''}" onclick="RV.tab='stat';panel(1)">Statistik</button></div>`;
+  const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet';
+  if(RV.tab==='map'){const ev=RV.ev.filter(e=>e.k==='catch'||e.k==='knapp'||e.k==='ping'),C={catch:'#e5484d',knapp:'#ff8a1f',ping:'#4fb3f0'};
+    el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
+     <div class=tl id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${ev.map(e=>`<span class=ev style="left:${(e.t-RV.T0)/(RV.T1-RV.T0)*100}%;background:${C[e.k]}"></span>`).join('')}<span class=kn id=rvK></span></div>
+     <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#4fb3f0"></i>Ping</span></div>
+     <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
+     <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`+tabs}
+  else{const st=RV.st,nm=k=>esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
+    const A=(id,icn,t,sub,v,jt,rows,jk)=>{const o=!!RV.open[id];return`<div class="aw2"><div class=aw onclick="RV.open['${id}']=!RV.open['${id}'];panel(1)"><span class=e>${icn}</span><div><b>${t}</b><small>${sub}</small></div><span class=v>${v}${J(jt,jk)}</span><span class=cv style="transform:rotate(${o?90:0}deg)">${ic('chev')}</span></div>`
+      +(o?`<div class=al>${rows.length?rows.map(([n,v,t,pk],k)=>`<div class=ar><span class=rk>${k+1}</span><span class=nm>${n}</span><span class=vv>${v}</span>${t?J(t,pk):'<span></span>'}</div>`).join(''):'<small class=mut>Keine Daten</small>'}</div>`:'')+'</div>'};
+    const km=m=>(m/1000).toFixed(1).replace('.',',')+' km',S='viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+    const I={hb:`<svg ${S}><path d="M2 12h6M5 9l3 3-3 3M22 12h-6M19 9l-3 3 3 3"/><path d="M12 7v10" stroke-dasharray="2 2.5"/></svg>`,ma:`<svg ${S}><circle cx="5" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><path d="M7 18c4 0 3-6 7-6s3-4 3-6"/></svg>`,
+      sp:`<svg ${S}><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>`,st:`<svg ${S}><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>`,
+      ja:ic('hunter'),gr:`<svg ${S}><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 2.6"/><circle cx="18" cy="6" r="2.2" fill="currentColor" stroke="none"/></svg>`};
+    const c0=st.close[0],d0=st.dist[0],s0=st.sprint[0],t0=st.statue[0],e0=st.edge[0],h0=st.hunt[0],hn=st.hunt.reduce((a,x)=>a+x[1].length,0);
+    let h=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Statistik</h2><small class=mut style="flex:none">${g.s.dur} Min · ${W}</small></div>`;
+    if(c0)h+=A('hb',I.hb,'Haaresbreite',`${nm(c0[0])} · ${nm(c0[3])} war nur ${Math.round(c0[1])} m entfernt`,Math.round(c0[1])+' m',c0[2],st.close.map(x=>[nm(x[0]),Math.round(x[1])+' m',x[2],x[0]]),c0[0]);
+    if(d0)h+=A('ma',I.ma,'Marathon',`${nm(d0[0])} · meiste Strecke`,km(d0[1]),null,st.dist.map(x=>[nm(x[0]),km(x[1])]));
+    if(s0&&s0[2])h+=A('sp',I.sp,'Sprinter',`${nm(s0[0])} · schnellster Antritt`,Math.round(s0[1])+' km/h',s0[2],st.sprint.filter(x=>x[2]).map(x=>[nm(x[0]),Math.round(x[1])+' km/h',x[2],x[0]]),s0[0]);
+    if(t0&&t0[2])h+=A('st',I.st,'Statue',`${nm(t0[0])} · längste Zeit ohne Bewegung`,rvDur(t0[1]),t0[2],st.statue.filter(x=>x[2]).map(x=>[nm(x[0]),rvDur(x[1]),x[2],x[0]]),t0[0]);
+    if(h0)h+=A('ja',I.ja,'Jäger',hn?`${st.hunt.filter(x=>x[1].length===h0[1].length).map(x=>nm(x[0])).join(' und ')} · meiste Fänge`:'Keine Fänge in dieser Runde',String(h0[1].length),null,
+      st.hunt.flatMap(([k,a])=>a.length?a.map(c=>[nm(k),nm(c.hider),c.t,c.hider]):[[nm(k),'0',null]]));
+    if(e0)h+=A('gr',I.gr,'Grenzgänger',`${nm(e0[0])} · am nächsten am Zonenrand`,Math.round(e0[1])+' m',e0[2],st.edge.map(x=>[nm(x[0]),Math.round(x[1])+' m',x[2],x[0]]),e0[0]);
+    el.innerHTML=h+tabs}
+  $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;rvDraw()}
+
 // GPS
 let gpsErr=null,gpsWid=null,gpsTt=0;
 function startGPS(){if(startGPS.on)return;startGPS.on=1;
@@ -571,7 +761,7 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
   gpsWid=navigator.geolocation.watchPosition(onFix,
     e=>{gpsErr=e;lg('gps',[e.code,String(e.message||'').slice(0,60)]);const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
-function write(f){crs();fmCenter(true);if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
+function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
   if(!wrOld)wrOld=Date.now();
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
@@ -702,7 +892,7 @@ async function leaveGame(){const g=G,m=P()[uid]||{};
   leaving=true;if(AL.upP)try{await Promise.race([AL.upP,new Promise(r=>setTimeout(r,4000))])}catch(e){}
   const others=Object.entries(P()).filter(([k,p])=>k!==uid&&!p.lf).sort(byJ),u={};
   try{
-    if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('marks/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
+    if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('marks/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}try{await db.ref('rp/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
     if(g.host===uid)u.host=others[0][0];
     if(g.status==='lobby'){u['players/'+uid]=null;if(Number.isInteger(m.col))u['cols/'+m.col]=null}
     else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
@@ -715,7 +905,7 @@ function newRound(){const g=G;if(!g)return;const me_=P()[uid]||{};
   const u={status:'lobby',startAt:null,winner:null,tasks:null,catches:null,hb:null,live:null,xp:null,ev:null,rn:(g.rn||0)+1,prev:{j:JSON.stringify(buildRes(g))}};
   Object.entries(P()).forEach(([k,p])=>{u['players/'+k]=p.lf?null:(k===uid?{name:p.name,role:p.role,state:'alive',j:p.j||0}:{name:p.name,role:p.role,state:'alive',j:p.j||0,w:true});if(!p.lf&&Number.isInteger(p.col))u['players/'+k].col=p.col});
   const ho=P()[g.host];if(!ho||ho.lf){const c=Object.entries(P()).filter(([k,p])=>!p.lf).sort(byJ)[0];if(c)u.host=c[0]}
-  db.ref('games/'+code).update(u).then(()=>{db.ref('chats/'+code).remove().catch(()=>{});db.ref('marks/'+code).remove().catch(()=>{})}).catch(()=>{})}
+  db.ref('games/'+code).update(u).then(()=>{db.ref('chats/'+code).remove().catch(()=>{});db.ref('marks/'+code).remove().catch(()=>{});db.ref('rp/'+code).remove().catch(()=>{})}).catch(()=>{})}
 let stP=0,stTm=0;
 let stChk=false,lastChk=0;
 function stEnd(){clearInterval(stTm);stBusy=false;stChk=false}
@@ -767,7 +957,7 @@ function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')retu
   if(why){toast(CW[why]);return db.ref(`games/${code}/catches/${uid}`).update({status:'denied',why})}
   evSeen.add(uid+'_c');db.ref(`games/${code}`).update({[`players/${uid}/state`]:'caught',[`players/${uid}/sT`]:now(),[`catches/${uid}/status`]:'done',[`ev/${uid}_c`]:{t:now(),x:('Hider '+((P()[uid]||{}).name||'')+' wurde von '+(hq.name||'einem Hunter')+' gefangen').slice(0,100),u:uid}})}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
-async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
+async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}try{await db.ref('rp/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function psave(){try{LS['bp_'+code+'_'+(G.rn||0)]=JSON.stringify({ping,xping,lk})}catch(e){}}
 function pclean(all){try{const cur='bp_'+code+'_'+((G&&G.rn)||0);Object.keys(LS).forEach(k=>{if(k.indexOf('bp_')===0&&(all||k!==cur))LS.removeItem(k)})}catch(e){}}
 function leave(){rotMode(false);pclean(1);LS.removeItem('c');location.reload()}
@@ -1027,10 +1217,10 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     ${balAcc(g)}<div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler')+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd'):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink')+nf('head')+nf('ot'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+nf('pen')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler')+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd'):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
-    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus');
+    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
   }
   const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
@@ -1056,11 +1246,12 @@ function runUI(g,me_,t,host,run){
   return[h,f]}
 
 // Panel
-function panel(force){const el=$('pb');
+function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('pf').innerHTML='';
     el.innerHTML=`<div class=logo>Blown<br><span>Cover</span></div><p class="mut sm">Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.</p><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
   <button id=mkb onclick="mk()">Neues Spiel erstellen</button><div class="mut sm" style="text-align:center">oder beitreten</div>
   <div class=row><input id=cd placeholder="Code" maxlength=6 aria-label="Code" style="text-transform:uppercase;text-align:center;letter-spacing:.3em"><button class=g onclick="jn()">Beitreten</button></div>
+  <div class="mut sm" style="text-align:center">oder</div><button class=g onclick="rvPick()">${ic('play')} Replay abspielen</button>
   <small id=gs style="text-align:center">${pos?'GPS bereit ✓':'GPS wird beim Start angefragt'}</small>`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.entries(g.tasks||{}).map(([id,v])=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null,isMt(id)&&mtD(v)!==null?Math.round(mtD(v)/10):null])]):'';
@@ -1148,7 +1339,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
 function onData(){
-  lgData();rotMode(!!G);
+  lgData();rpData();rotMode(!!G);
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
