@@ -882,7 +882,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
   const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet',X=t=>(t-RV.T0)/(RV.T1-RV.T0)*100;
   if(RV.tab==='map'){const T=RV.T1-RV.T0,w=rvWin(),Y=t=>(t-RV.T0)/T*100,vis=RV.ev.filter(rvVis),n=k=>RV.ev.filter(e=>e.k===k).length,stp=w>6e5?5:2;
     let mt='';for(let m=Math.ceil((RV.T0-g.R0)/6e4);g.R0+m*6e4<=RV.T1;m++){const x=Y(g.R0+m*6e4),b=m%stp===0;mt+=`<span class="mt${b?' b':''}" style="left:${x}%"></span>`+(b?`<span class=lb style="left:${x}%">${m}′</span>`:'')}
-    el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}
+    el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${(f.round||0)+1}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class=t style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:RVC[e.k]?`<span class=ev style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`:'').join('')}</div><span class=ph id=rvP></span></div>
      <div class=rvch>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><i style="background:${RVC[k]}"></i>${l} <b>${n(k)}</b></span>`).join('')}</div>
@@ -1441,49 +1441,36 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   else [h,f]=runUI(g,me_,t,host,run);
   const sc=el.scrollTop;el.innerHTML=h;el.scrollTop=sc;$('pf').innerHTML=f;resSync(g)}
 
-// §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): Text deterministisch aus code+rn, nichts in der DB
+// §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): feste Texte, nur der Operationsname kommt deterministisch aus code+rn; nichts in der DB
 const bfRng=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h+=0x6D2B79F5;let x=h;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296}};
 const BFA=['Grau','Still','Gläsern','Schwarz','Kalt','Rot','Silbern','Leis','Blind','Bleich','Eisern','Fern','Fremd','Golden','Kühn','Lautlos','Müd','Nächtlich','Scharf','Stumm','Wild','Zerbrochen','Verborgen','Blau','Fahl'],
   BFN=[['Falke','Fuchs','Rabe','Wolf','Schatten','Turm','Mond','Kurier','Spiegel','Nebel','Reiher','Komet','Schlüssel','Funke','Hafen','Kompass','Pfeil','Bote','Läufer','Wächter','Sturm','Fluss','Stern','Dolch','Anker'],
     ['Brücke','Eule','Kobra','Viper','Lerche','Möwe','Spinne','Flamme','Linse','Münze','Stimme','Klinge','Feder','Glocke','Lampe','Maske','Rose','Welle','Elster','Katze','Mauer','Quelle','Krone','Wolke','Spur'],
     ['Auge','Echo','Siegel','Pendel','Signal','Uhrwerk','Schloss','Netz','Tor','Licht','Phantom','Orakel','Prisma','Ufer','Rätsel','Fenster','Gewitter','Feuer','Rad','Horn','Messer','Archiv','Kabel','Visier','Gambit']];
 function bfName(cd,rn){const r=bfRng('op:'+cd+':'+(rn||0)),a=BFA[r()*BFA.length|0],gi=r()*3|0,n=BFN[gi][r()*BFN[gi].length|0];return a+['er','e','es'][gi]+' '+n}
-const bfPick=(r,a)=>a[r()*a.length|0];
 const bfMin=(t,R0)=>{const m=Math.round((t-R0)/6e4);return m<=0?'von Beginn an':'ab Minute '+m};
 const bfEvery=s=>s%60===0?(s===60?'jede Minute':'alle '+s/60+' Minuten'):s<120?'alle '+s+' Sekunden':'alle '+String(Math.round(s/30)/2).replace('.',',')+' Minuten';
 // Liefert {name, hider:{...}, hunter:{...}} – gleiche Eingaben ergeben auf allen Geräten denselben Text
-function bfData(g,cd){const s=g.s,rn=g.rn||0,r=bfRng('bf:'+cd+':'+rn),S='Sektor '+cd,R0=rs(g),pl=Object.values(g.players||{}).filter(p=>p.role&&!p.w),
-    H=pl.filter(p=>p.role==='hunter').length,X=pl.filter(p=>p.role==='hider').length,T=g.tasks||{},ms=md(g)==='mission',D=s.dur,P=bfEvery(s.ping||120),nm=bfName(cd,rn);
-  const SB=`<b>${S}</b>`,J=H===1?['einen Jäger','ein Jäger','ist','hat']:[H+' Jäger',H+' Jäger','sind','haben'];
-  const lageH=bfPick(r,[`Unsere Tarnung in ${SB} ist aufgeflogen. Die Spionageabwehr hat <b>${J[0]}</b> auf euch angesetzt.`,
-    `In ${SB} wird es eng: <b>${J[1]}</b> der Spionageabwehr ${J[2]} euch auf den Fersen.`,
-    `${SB} ist kompromittiert. <b>${J[1]}</b> ${H===1?'durchkämmt':'durchkämmen'} das Gebiet nach euch.`,
-    `Eure Deckung in ${SB} hält nicht mehr. <b>${J[1]}</b> ${J[3]} eure Spur aufgenommen.`,
-    `Die Gegenseite hat ${SB} abgeriegelt und <b>${J[0]}</b> losgeschickt.`]);
-  const A=X===1?['ein feindlicher Agent','wurde','Seine Position wird','ein Agent','ist','hat sich']:[X+' feindliche Agenten','wurden','Ihre Positionen werden',X+' Agenten','sind','haben sich'];
-  const lageU=bfPick(r,[`<b>${A[0][0].toUpperCase()+A[0].slice(1)}</b> ${A[1]} in ${SB} gesichtet. ${A[2]} <b>${P}</b> übermittelt.`,
-    `In ${SB} ${X===1?'operiert':'operieren'} <b>${A[0]}</b>. Ortungsdaten kommen <b>${P}</b>.`,
-    `Die Aufklärung meldet <b>${A[3]}</b> in ${SB}. ${A[2]} <b>${P}</b> übermittelt.`,
-    `${SB}: <b>${A[3][0].toUpperCase()+A[3].slice(1)}</b> ${A[4]} untergetaucht. Die Ortung meldet sich <b>${P}</b>.`,
-    `<b>${A[3][0].toUpperCase()+A[3].slice(1)}</b> ${A[5]} in ${SB} eingenistet. ${A[2]} <b>${P}</b> übermittelt.`]);
-  const aufH=ms?bfPick(r,['Erreicht den Extraktionspunkt, sobald er freigegeben wird.','Erledigt eure Aufträge und schlagt euch zum Extraktionspunkt durch.','Haltet euch bereit: Sobald der Extraktionspunkt frei ist, müsst ihr ihn erreichen.','Der Weg nach Hause führt über den Extraktionspunkt. Lasst euch bis dahin nicht fassen.'])
-    :bfPick(r,[`Bleibt bis zum Ende der Operation <b>(${D} Min)</b> unentdeckt.`,`Haltet <b>${D} Minuten</b> durch, ohne gefasst zu werden.`,`Taucht unter und übersteht die nächsten <b>${D} Minuten</b>.`,`Euer Auftrag: <b>${D} Minuten</b> lang unsichtbar bleiben.`]);
-  const aufU=ms?bfPick(r,['Fasst alle Agenten, bevor sie den Extraktionspunkt erreichen.','Verhindert die Extraktion: Fasst die Agenten, bevor sie entkommen.','Kein Agent erreicht den Extraktionspunkt.','Fangt sie ab, bevor sie sich absetzen.'])
-    :bfPick(r,['Fasst alle Agenten, bevor die Operation endet.','Spürt die Agenten auf und setzt sie fest, bevor die Zeit abläuft.','Kein Agent verlässt diesen Sektor in Freiheit.',`Ihr habt <b>${D} Minuten</b>. Fasst sie alle.`]);
-  const fH=bfPick(r,['Diese Nachricht zerstört sich nicht selbst. Viel Glück.','Vertraut niemandem. Außer euch selbst. Vielleicht.','Wer gefasst wird, hat diese Nachricht nie gelesen.','Unauffällig bleiben. Das heißt: kein Sprint über den Hauptplatz.','Viel Erfolg. Die Zentrale glaubt an euch. Größtenteils.']);
-  const fU=bfPick(r,['Kaffee gibt es nach Dienstschluss.','Die Zentrale erwartet Ergebnisse, keine Ausreden.','Bleibt wachsam. Sie sind näher, als ihr denkt.','Überstunden werden nicht vergütet.','Niemand entkommt der Spionageabwehr. Theoretisch.']);
-  // Ziele: [Zeitpunkt, Symbol, Hider-Text, Hunter-Text|null, Hunter-Zeile genau?]; nach Zeit sortiert, frühere oben
+function bfData(g,cd){const s=g.s,rn=g.rn||0,S='Sektor '+cd,R0=rs(g),pl=Object.values(g.players||{}).filter(p=>p.role&&!p.w),
+    H=pl.filter(p=>p.role==='hunter').length,X=pl.filter(p=>p.role==='hider').length,T=g.tasks||{},ms=md(g)==='mission',D=s.dur,P=bfEvery(s.ping||120),nm=bfName(cd,rn),SB=`<b>${S}</b>`;
+  // Feste Texte (Manuel, 31.10.): nur der Operationsname wechselt
+  const lageH=`Unsere Tarnung in ${SB} ist aufgeflogen. Die Spionageabwehr hat <b>${H===1?'einen Jäger':H+' Jäger'}</b> auf euch angesetzt.`;
+  const lageU=X===1?`<b>Ein feindlicher Agent</b> wurde in ${SB} gesichtet. Seine Position wird <b>${P}</b> übermittelt.`:`<b>${X} feindliche Agenten</b> wurden in ${SB} gesichtet. Ihre Positionen werden <b>${P}</b> übermittelt.`;
+  const evM=T.ev?Math.max(0,Math.round((T.ev.t0-R0)/6e4)):null;
+  const aufH=ms?(evM?`Erreicht den Extraktionspunkt, sobald er in <b>${evM} ${evM===1?'Minute':'Minuten'}</b> freigegeben wird.`:'Erreicht den Extraktionspunkt, sobald er freigegeben wird.')
+    :`Bleibt bis zum Ende der Operation <b>(${D} Min)</b> unentdeckt.`;
+  const aufU=ms?`Fasst alle Agenten in <b>${D} Minuten</b>, bevor sie den Extraktionspunkt erreichen.`:`Fasst alle Agenten, bevor die Operation in <b>${D} Minuten</b> endet.`;
+  // Ziele: [Zeitpunkt, Symbol, Text, Hunter-Zeile ohne genaue Angaben?]; nach Zeit sortiert, frühere oben
   const ids=Object.keys(T),dd=ids.filter(isDd),mt=ids.filter(isMt),t0=a=>Math.min(...a.map(i=>T[i].t0||0)),zi=[],zu=[];
   if(dd.length){const t=t0(dd);zi.push([t,'box',(dd.length>1?dd.length+' Dossier-Übergaben ':'Dossier-Übergabe ')+bfMin(t,R0)])}
   if(mt.length){const t=t0(mt);zi.push([t,'meet',(mt.length>1?mt.length+' Treffen zwischen Agenten ':'Treffen zweier Agenten ')+bfMin(t,R0)])}
-  if(T.sh){zi.push([T.sh.t0,'home','Ein Safehouse wird '+bfMin(T.sh.t0,R0)+' freigegeben']);zu.push([T.sh.t0,'home',bfPick(r,['Der Gegner richtet ein Safehouse ein.','Es gibt Hinweise auf ein Safehouse.','Der Gegner bereitet einen sicheren Unterschlupf vor.','Irgendwo wartet ein Safehouse auf sie.']),1])}
-  if(T.ev){zi.push([T.ev.t0,'exit','Der Extraktionspunkt wird '+bfMin(T.ev.t0,R0)+' freigegeben']);zu.push([T.ev.t0,'exit',bfPick(r,['Der Gegner plant eine Extraktion.','Es wird ein Extraktionspunkt vorbereitet.','Sie wollen sich absetzen. Rechnet mit einer Extraktion.','Ein Abholpunkt für die Agenten ist in Vorbereitung.']),1])}
-  if(T.hk){zi.push([T.hk.t0,'hack','Ein Terminal der Gegenseite ist '+bfMin(T.hk.t0,R0)+' angreifbar. Achtung: Die Gegenseite kennt seinen Standort.']);zu.push([T.hk.t0,'hack',bfPick(r,['Unser Terminal ist Ziel eines Angriffs. Sichert es.','Ein Terminal in eurem Sektor wird angegriffen. Verteidigt es.','Der Gegner hat es auf unser Terminal abgesehen. Bewacht es.','Unser Terminal steht im Visier. Lasst niemanden ran.']),0])}
-  if(dd.length||mt.length){const W=dd.length&&mt.length?'Übergaben und Treffen':dd.length?'Übergaben':'Treffen';
-    zu.push([t0(dd.concat(mt)),dd.length?'box':'meet',bfPick(r,[`Der Gegner plant ${W}.`,`Abgefangener Funkverkehr deutet auf ${W} hin.`,`Haltet Ausschau nach ${W}.`,`Die Agenten bereiten ${W} vor.`]),1])}
+  if(T.sh){zi.push([T.sh.t0,'home','Ein Safehouse wird '+bfMin(T.sh.t0,R0)+' freigegeben']);zu.push([T.sh.t0,'home','Der Gegner richtet ein Safehouse ein.',1])}
+  if(T.ev){zi.push([T.ev.t0,'exit','Der Extraktionspunkt wird '+bfMin(T.ev.t0,R0)+' freigegeben']);zu.push([T.ev.t0,'exit','Der Gegner plant eine Extraktion.',1])}
+  if(T.hk){zi.push([T.hk.t0,'hack','Ein Terminal der Gegenseite ist '+bfMin(T.hk.t0,R0)+' angreifbar. Achtung: Die Gegenseite kennt seinen Standort.']);zu.push([T.hk.t0,'hack','Unser Terminal ist Ziel eines Angriffs. Sichert es.',0])}
+  if(dd.length||mt.length)zu.push([t0(dd.concat(mt)),dd.length?'box':'meet',`Abgefangener Funkverkehr deutet auf ${dd.length&&mt.length?'Übergaben und Treffen':dd.length?'Übergaben':'Treffen'} hin.`,1]);
   const so=a=>a.sort((x,y)=>x[0]-y[0]);
-  return{name:nm,cd,rn,hider:{op:'Operation '+nm,role:'Agenten im Feld',lage:lageH,auf:aufH,zl:'Missionsziele',z:so(zi).map(x=>[x[1],x[2],0]),ft:fH},
-    hunter:{op:'Abwehrmaßnahme '+nm,role:'Spionageabwehr',lage:lageU,auf:aufU,zl:'Erkenntnisse',z:so(zu).map(x=>[x[1],x[2],x[3]]),ft:fU}}}
+  return{name:nm,cd,rn,hider:{op:'Operation '+nm,role:'Agenten im Feld',lage:lageH,auf:aufH,zl:'Missionsziele'+(ms?'':' (optional)'),z:so(zi).map(x=>[x[1],x[2],0]),ft:'Diese Nachricht zerstört sich nicht selbst. Viel Glück.'},
+    hunter:{op:'Abwehrmaßnahme '+nm,role:'Spionageabwehr',lage:lageU,auf:aufU,zl:'Erkenntnisse',z:so(zu).map(x=>[x[1],x[2],x[3]]),ft:'Überstunden werden nicht vergütet.'}}}
 const AKTE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 13h8M8 16h5"/></svg>';
 const bfKey=()=>'bf_'+code+'_'+((G&&G.rn)||0);
 function bfHTML(d,role,spec){const v=d[role],hi=role==='hider';

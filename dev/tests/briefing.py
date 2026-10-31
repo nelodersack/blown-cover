@@ -30,6 +30,7 @@ print('Hider gleich:',res['u2']==res['u3'],'· Hunter gleich:',res['u1']==res['u
 for k in ('u2','u1'):
     t=res[k];print('---',k,'\n'+t)
     print('Namen im Text:',[n for n in NAMES if re.search(r'\b'+n+r'\b',t)])
+print('Überschrift Überleben (Hider/Hunter):',re.findall(r'MISSIONSZIELE[^\n]*|ERKENNTNISSE[^\n]*',res['u2']+'\n'+res['u1']))
 hz=[int(x) for x in re.findall(r'Minute (\d+)',res['u2'])];print('Hider-Zeiten sortiert:',hz,hz==sorted(hz))
 print('Hunter ohne Zeiten/Anzahl der Aufgaben:',not re.search(r'Minute \d|\d+ (Dossier|Treffen)',res['u1']))
 with app() as (pg,ev,errs):
@@ -41,7 +42,7 @@ with app() as (pg,ev,errs):
     setup(ev,'u2',tasks=False);pg.wait_for_timeout(1200);print('ohne Aufgaben: Zielliste',ev("!!$('bfd').querySelector('ul')"),'· Text:',ev("$('bfd').querySelector('.bb').innerText.replace(/\\n/g,' | ')"))
     print('errors:',errs[:5])
 with app() as (pg,ev,errs):
-    setup(ev,'u2',mode='mission');pg.wait_for_timeout(1200);print('Mission:',ev("[...$('bfd').querySelectorAll('.bb p.tx')][1].innerText"),'·',ev("[...$('bfd').querySelectorAll('li')].map(l=>l.innerText).join(' / ')"))
+    setup(ev,'u2',mode='mission');pg.wait_for_timeout(1200);print('Mission:',ev("[...$('bfd').querySelectorAll('.bb p.tx')][1].innerText"),'· Überschrift:',ev("$('bfd').querySelectorAll('.bb p.lb')[2].innerText"),'·',ev("[...$('bfd').querySelectorAll('li')].map(l=>l.innerText).join(' / ')"))
     print('errors:',errs[:5])
 for uid,w in (('u2','hider'),('u1','hider'),('u2','host')):
     with app() as (pg,ev,errs):
