@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="vendor/fonts.css">
 <style>
+/* §CSS-BASIS Farben (Tokens), Grundelemente */
 :root{--bg:#0b0e12;--panel:#141a21;--panel2:#1b232c;--line:#2a343f;--fg:#e9eef3;--mut:#8d99a8;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--grey:#7a8696;
 --f-d:'Barlow Condensed','Arial Narrow',sans-serif;--f-b:'Barlow',system-ui,sans-serif;--f-m:'JetBrains Mono',ui-monospace,monospace;color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:15px/1.4 var(--f-b);background:var(--bg);color:var(--fg)}
@@ -24,9 +25,10 @@
 #ph{padding:10px 0 8px;cursor:grab;touch-action:none;flex:none}#ph i{display:block;width:44px;height:5px;border-radius:3px;background:#4a5563;margin:0 auto}
 #pb{overflow:auto;padding:0 14px 14px;display:grid;gap:10px;align-content:start;grid-auto-rows:max-content;flex:1;min-height:0;overscroll-behavior:contain}
 #pf{flex:none;padding:10px 14px 12px;border-top:1px solid var(--line);display:grid;gap:6px;background:var(--panel)}#pf:empty{display:none}
+/* §CSS-ELEMENTE Überschriften, Buttons, Eingaben */
 h2{font:700 26px/1.05 var(--f-d);text-transform:uppercase;letter-spacing:.03em;margin:0}
 h3{font:700 12px var(--f-b);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin:4px 0 0}
-p{margin:0}small,.mut{color:var(--mut)}.sm{font-size:13px}.mono{font-family:var(--f-m)}
+p{margin:0}small,.mut{color:var(--mut)}.sm{font-size:13px}
 button,input,select{font:inherit}
 button{font:600 15px var(--f-b);border-radius:12px;border:1px solid transparent;padding:10px 14px;min-height:46px;cursor:pointer;background:var(--fg);color:var(--bg);margin:2px 0;display:inline-flex;gap:8px;align-items:center;justify-content:center}
 button:not(.s):not(.n):not(.ghost):not(.sw):not(.tile){width:100%}
@@ -40,6 +42,7 @@ button .ic{width:18px;height:18px}
 input{font:500 16px var(--f-b);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-height:44px;margin:3px 0}
 select{font:inherit;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-offset:2px}
+/* §CSS-KOMPONENTEN card/tk, chip, pl, seg, tiles, acc, fl(.sub), num, sw, rl */
 .row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}.row.sp{justify-content:space-between}
 .ic{width:20px;height:20px;display:inline-block;vertical-align:middle;flex:none}
 .logo{font:700 44px/.9 var(--f-d);text-transform:uppercase;letter-spacing:.02em}.logo span{color:var(--danger)}
@@ -73,6 +76,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .sw{width:50px;height:30px;min-height:0;border-radius:999px;background:#37424f;border:0;position:relative;padding:0;margin:0;flex:none}.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}.sw.on{background:var(--ok)}.sw.on::after{left:23px}
 .rl{padding:6px 0;border-bottom:1px solid #222b34;display:flex;justify-content:space-between;gap:10px}.rl small{text-align:right}
 .cm{width:30px;height:30px;border-radius:50%;background:var(--danger);border:3px solid #fff;color:#fff;text-align:center;line-height:24px;font-size:16px;box-shadow:0 1px 6px #0006}
+/* §CSS-OVERLAYS toast, Marker-Menü (mm*), Farbwahl (pal), Chat-Knopf, Legende, Kartenmarker (mkw), Hacking (hkb, tsq) */
 #toast{display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2100;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:12px;font-weight:600;max-width:90vw;text-align:center}
 #mmbtn{position:fixed;right:10px;top:104px;z-index:1200;display:none;background:#0b0e12d9;border:0;border-radius:999px;padding:7px 13px;min-height:36px;color:var(--fg);width:auto;font-size:13px}
 #mmn{position:fixed;right:10px;top:152px;z-index:1200;display:none;width:min(250px,calc(100% - 20px));background:#0b0e12f2;border-radius:14px;padding:6px;font-size:13px}
@@ -103,6 +107,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .tsq{width:30px;height:30px;border-radius:8px;background:var(--task);color:#fff;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}.tsq .ic{width:17px;height:17px;color:#fff}
 #lg .tsq{width:24px;height:24px;border-width:2px;flex:none}#lg .tsq .ic{width:14px;height:14px}
 .bcp .leaflet-popup-content-wrapper{background:#0b0e12;color:var(--fg);border-radius:10px;box-shadow:0 4px 14px #0008}.bcp .leaflet-popup-tip{background:#0b0e12}.bcp .leaflet-popup-content{margin:8px 12px;font:13px/1.3 var(--f-b)}.bcp b{display:block;font-weight:600;font-size:14px}.bcp span{color:var(--mut)}
+/* §CSS-CHAT */
 #chat{position:fixed;left:0;right:0;bottom:0;height:52vh;max-height:440px;z-index:1600;background:var(--panel);border-radius:20px 20px 0 0;box-shadow:0 -4px 20px #0008;display:none;flex-direction:column}
 #chat.open{display:flex}#chh{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);font-weight:700}
 #chh button{background:var(--panel2);color:var(--fg);padding:4px 12px;margin:0;width:auto;min-height:36px}
@@ -111,6 +116,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #chm .m.me{align-self:flex-end;background:#2a3544}#chm .m b{display:block;font-size:11px;color:var(--mut);font-weight:600}
 #chm .m.r-hunter{border-left:3px solid var(--danger)}#chm .m.r-hider{border-left:3px solid var(--ok)}
 #chr{display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid var(--line)}#chr input{margin:0;flex:1;width:auto}#chr button{margin:0;width:auto}
+/* §CSS-DIALOG Dialog (dlg/dbx), Ergebnis (res) */
 #dlg{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
 .dbx{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;width:min(380px,100%);box-shadow:0 12px 40px #0009}
 .dbx h3{margin:0 0 8px;font:700 22px var(--f-d);letter-spacing:.02em}.dbx p{color:var(--mut);margin:0 0 14px;font-size:14px;line-height:1.45}.dbx p b{color:var(--fg);font-weight:600}.dbx input{margin:0 0 14px}
@@ -118,6 +124,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #resb{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:16px;display:grid;gap:8px}
 #resb h2{text-align:center}#resb .rl small{display:block}
 #map{touch-action:none}
+/* §CSS-REPLAY Zeitleiste (tl), Statistik (aw/al) */
 .tl{position:relative;height:34px;margin:6px 0 2px;touch-action:none;cursor:pointer}.tl .bar{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:2px;background:#2a343f}.tl .fill{position:absolute;left:0;top:15px;height:4px;border-radius:2px;background:var(--fg)}
 .tl .pg{position:absolute;top:11px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:#2a343f;pointer-events:none}
 .tl .ev{position:absolute;top:9px;width:4px;height:16px;border-radius:2px;margin-left:-2px;pointer-events:none}.tl .kn{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:var(--fg);margin-left:-9px;box-shadow:0 0 0 3px var(--panel);pointer-events:none}
@@ -129,12 +136,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .jp{width:auto!important;min-height:0!important;padding:2px 8px!important;border-radius:999px!important;font:600 11px var(--f-b)!important;background:#1e7cf022!important;color:#7fb2ff!important;border:1px solid #1e7cf055!important;flex:none;margin:0}
 .al{display:grid;gap:2px;padding:0 0 10px 44px}.ar{display:grid;grid-template-columns:18px 1fr auto 62px;gap:8px;align-items:center;font-size:13px;min-height:28px}.ar .rk{color:var(--mut);font-size:12px}.ar .nm{color:var(--fg)}.ar .vv{color:var(--fg);font-weight:600}.ar .jp{justify-self:end}
 
+/* §CSS-KNOEPFE Runde Symbol-Knöpfe, Blickrichtungspfeil (meh), Kompass (nb) */
 #cb,#mmbtn,#lgb{width:40px!important;height:40px;min-height:0!important;padding:0!important;border-radius:50%!important;place-items:center}#cb .ic,#mmbtn .ic,#lgb .ic{width:22px;height:22px}#cb{position:fixed}#cbn{position:absolute;top:-3px;right:-3px;margin:0!important;min-width:18px;line-height:18px;text-align:center;padding:0 5px!important}
 
 .meh{position:absolute;left:0;top:0;width:36px;height:36px;transform-origin:18px 18px;pointer-events:none}.meh svg{width:36px;height:36px;display:block;overflow:visible;filter:none}
 .leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
 #nb{position:fixed;left:10px;top:152px;z-index:999;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}#nb svg.l{width:22px;height:22px}#nbt{position:fixed;left:58px;top:159px;z-index:1300;display:none;background:#0b0e12e6;color:var(--fg);font:600 12px var(--f-b);padding:6px 10px;border-radius:999px;pointer-events:none}
 </style></head><body>
+<!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
 <button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span id=cbn></span></button>
 <button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
@@ -149,6 +158,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 <script src="vendor/firebase-auth-compat.js"></script>
 <script src="vendor/firebase-database-compat.js"></script>
 <script>
+// §INIT Firebase-Konfiguration, NB (App-Bridge), TEST (#test), LS
 firebase.initializeApp({
   apiKey:"AIzaSyD0T2moi4bFBaOpJyiRWRD7iBinnuyh9N0",
   authDomain:"blown-cover.firebaseapp.com",
@@ -160,6 +170,7 @@ firebase.initializeApp({
 });
 const db=firebase.database();
 const NB=window.BlownNative||null,TEST=/test/.test(location.hash),LS=TEST?sessionStorage:localStorage;
+// §ANALYSE Analyse-Protokoll während der Runde (lg*, AL)
 // ===== Analyse-Modus (Host schaltet in der Lobby ein; Protokoll nur für den Host, erst nach Rundenende) =====
 let gAcc=null;
 const AL={pend:{},pto:0,on:0,key:'',ev:[],sm:[],prev:null,fx:0,up:0,upP:null,tries:0,dev:null,l1:Date.now(),sid:Math.random().toString(36).slice(2,8)};
@@ -193,6 +204,7 @@ function lgUp(){if(AL.up||!AL.on||!code)return AL.upP;AL.up=1;AL.tries++;lgFlush
 setInterval(lgSample,5000);setInterval(lgSave,20000);
 setInterval(()=>{const t=Date.now();if(AL.on&&t-AL.l1>3500)lg('lag',t-AL.l1);AL.l1=t},1000);
 document.addEventListener('visibilitychange',()=>{lg('vis',document.hidden?0:1);if(document.hidden)lgSave()});
+// §APP Sichtbarkeit/Fehler-Hooks, App-Modus (bcSetHidden)
 // App-Modus: Die App hält die Seite für den Browser immer „sichtbar“ (gegen Einfrieren) und meldet Display/Hintergrund selbst
 window.bcSetHidden=h=>{h=!!h;if(window.bcHidden===h)return;window.bcHidden=h;lg('vis',h?0:1);if(h)lgSave();else if(G&&G.status==='running')lock()};
 window.addEventListener('pagehide',()=>{lg('pagehide');lgSave()});
@@ -202,7 +214,7 @@ window.addEventListener('online',()=>lg('net',1));window.addEventListener('offli
 window.addEventListener('error',e=>lg('err',[String(e.message||'').slice(0,160),String(e.filename||'').split('/').pop(),e.lineno||0]));
 window.addEventListener('unhandledrejection',e=>lg('rej',String((e.reason&&(e.reason.message||e.reason))||'').slice(0,160)));
 try{const R_=firebase.database.Reference.prototype;['set','update','remove'].forEach(m=>{const o=R_[m];R_[m]=function(...a){const p=o.apply(this,a);try{p&&p.catch&&p.catch(e=>lg('wf',[m,String(this).replace(/^https?:\/\/[^/]+/,'').slice(0,90),String((e&&(e.code||e.message))||'').slice(0,60)]))}catch(x){}return p}})}catch(e){}
-// Host: Analysedaten zusammenbauen und herunterladen
+// §ANALYSE-DATEI Analyse-JSON bauen/herunterladen (anBuild, anDl, wfHarmless)
 let anB=0;
 const wfHarmless=z=>Array.isArray(z)&&/\/ev\/[^/]+$/.test(String(z[1]))&&/PERMISSION_DENIED/.test(String(z[2]));
 function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(pl[a].j||0)-(pl[b].j||0)),al={};
@@ -295,6 +307,7 @@ async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten 
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
     const miss=need.filter(k=>!v[k]).length;toast(miss?`Heruntergeladen (${miss} Protokoll${miss>1?'e':''} fehlt)`:'Analysedaten heruntergeladen')}
   catch(e){toast('Analyse nicht möglich: '+String((e&&e.message)||e).slice(0,50))}finally{anB=0}}
+// §STATE Globale Variablen, Verbindung (lastAck, netGap, rcn), Grundhelfer (now, $, esc, D, P, lbl, gwE, dqOn, hpOn), Meldungen (evW, note)
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let wrOld=0,connLost=0,netW=0,lastRcn=0,lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
@@ -317,6 +330,7 @@ const dqOn=g=>!!(g.s&&g.s.dq===true),hpOn=g=>!(g.s&&g.s.hp===false); // Signal-D
 function evW(key,x,u){if(!code||evSeen.has(key))return;evSeen.add(key);db.ref(`games/${code}/ev/${key}`).set({t:now(),x,u:u||uid}).catch(()=>{})}
 function note(m){nq.push(m);if(!nB)nxt()}
 function nxt(){if(!nq.length){nB=0;return}nB=1;toast(nq.shift());navigator.vibrate&&navigator.vibrate(120);setTimeout(nxt,2600)}
+// §ERGEBNIS Fang-Ablehnungsgründe (CW, catchWhy), Ergebnisfenster (buildRes, resHTML, resSync)
 const CW={far:'Fang abgelehnt: Hunter nicht in 40 m Nähe',stale:'Fang abgelehnt: Standort nicht aktuell'};
 const catchWhy=(p,t)=>(!p||!p.lat||!pos||t-(p.ts||0)>30000||Date.now()-lastFix>30000)?'stale':(D(pos,p)>40?'far':null);
 const resTm=x=>x.t==null?'':(x.t<0?' im Headstart':' nach '+fmt(x.t));
@@ -338,6 +352,7 @@ function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;
   else{resMode=null;e.style.display='none'}}
 function showPrev(){let r;try{r=JSON.parse(G.prev.j)}catch(e){return}resMode='prev';$('resb').innerHTML=resHTML(r,'prev');$('res').style.display='flex'}
 function closeRes(){resMode=null;$('res').style.display='none'}
+// §ZONE-AUFGABEN-RECHNUNG rs, Rad, zoneSeq, taskRad, md, Dead-Drop-Plan (ddPlan), Boni-Inventar (hb*, myTk, myItems), Aufgabenorte (ovPts, randPts, mkPts)
 const rs=g=>g.startAt+g.s.head*6e4;
 const sstp=s=>s.step||50;
 const Rad=(g,t)=>!g.startAt?g.s.r0:Math.max(g.s.rMin,g.s.r0-sstp(g.s)*Math.max(0,Math.floor((t-rs(g))/(g.s.shrink*6e4))));
@@ -345,7 +360,6 @@ const AR='<svg width=24 height=14 viewBox="0 0 24 14" fill=none stroke=currentCo
 const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
 // <helpers>
 const RadS=(s,el)=>Math.max(s.rMin,s.r0-sstp(s)*Math.max(0,Math.floor(el/(s.shrink*6e4))));
-const lastR=s=>RadS(s,s.dur*6e4-1);
 const zoneSeq=s=>{const a=[s.r0],st=Math.max(1,sstp(s));let r=s.r0;while(r>s.rMin&&a.length<500){r=Math.max(s.rMin,r-st);a.push(r)}return a};
 const taskRad=s=>s.taskR>0?s.taskR:zoneSeq(s)[Math.max(0,zoneSeq(s).length-3)];
 const md=g=>g.s.mode||'survive';
@@ -429,6 +443,7 @@ async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${
   return{pts:sel,fb,net:!j1&&!tl,tl,real,n,err:ovErr}}
 // </helpers>
 
+// §UI-BASIS toast, Icons (SV, ic), Spielerfarben (PAL, colOf), Markerformen (shape, shape0), Wake Lock
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
 function toast(m){lg('toast',String(m).slice(0,120));if(NB&&(document.hidden||window.bcHidden)){try{NB.notify('Blown Cover',String(m))}catch(e){}}const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3500)}
 
@@ -476,7 +491,7 @@ const TH=(i,t)=>`<div class=hd>${ic(i)}${t}</div>`;
 async function lock(){try{wl=await navigator.wakeLock.request('screen');lg('wl','on');wl.addEventListener('release',()=>lg('wl','off'))}catch(e){lg('wl','fail:'+(e&&e.name||''))}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.status==='running')lock()});
 
-// Karte
+// §KARTE Leaflet + MapLibre-Vektorkarte
 const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
 let vt=null;
 if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search))(vt=L.maplibreGL({fadeDuration:0,pixelRatio:Math.min(window.devicePixelRatio||1,2),maxTileCacheSize:48,style:'https://tiles.openfreemap.org/styles/positron',attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'})).addTo(map);
@@ -488,6 +503,7 @@ map.on('click',e=>{if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode
   if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
 if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
 
+// §KARTE-DREHEN
 // Karte drehen (Lobby und Spiel): Zwei-Finger-Geste wie bei Google Maps. Die ganze Karte wird per CSS gedreht und dafür auf die Bildschirmdiagonale vergrößert;
 // Marker, Popups und Beschriftungen bleiben aufrecht. Eingaben werden in ungedrehte Kartenkoordinaten zurückgerechnet.
 let ROT=0,rotOn=false,rotSq=false;
@@ -513,6 +529,7 @@ function rotSet(a){a=((a%360)+540)%360-180;if(Math.abs(a)<0.3)a=0;ROT=a;if(a&&!r
   mapEl.style.transform=a?`rotate(${a}deg)`:'';mapEl.style.setProperty('--cr',(-a)+'deg');
   nbPaint();hdPaint()}
 
+// §AUSRICHTUNG Kartenausrichtung FM/FA, Kompass-Knopf nb
 // Kartenausrichtung: 0 = Norden oben (frei), 1 = Mitlaufen, 2 = Blickrichtung
 // FM = gewählter Modus (bleibt als Symbol stehen), FA = Modus gerade aktiv. Verschieben/Drehen pausiert ihn nur.
 let FM=0,FA=false,fmRaf=0,nbFM=-1,nbtT=0;const fmOn=()=>!!(FM&&FA);
@@ -544,6 +561,7 @@ function rotReset(){const a0=ROT,t0=performance.now();if(!a0)return;
 // In einer Runde bleibt die Karte dauerhaft im großen Quadrat: so muss beim Drehen/Norden nie neu gezeichnet werden (kein Flackern)
 function rotMode(on){if(on===rotOn)return;rotOn=on;if(on){map.touchZoom.disable();if(vt)vt.options.padding=.05;rotSize(true);nbPaint()}else{gz=null;tps.clear();FM=0;FA=false;cancelAnimationFrame(fmRaf);fmRaf=0;rotSet(0);if(vt)vt.options.padding=.1;rotSize(false);map.touchZoom.enable()}}
 addEventListener('resize',()=>{if(rotSq){rotSq=false;rotSize(true)}});
+// §GESTEN Zwei-Finger-Geste
 // Zwei-Finger-Geste: zoomen, verschieben und (ab 15° Drehung) drehen
 const tps=new Map();let gz=null,gRaf=0;
 const gPts=()=>{const v=[...tps.values()];return{a:Math.atan2(v[1][1]-v[0][1],v[1][0]-v[0][0])*180/Math.PI,d:Math.hypot(v[1][0]-v[0][0],v[1][1]-v[0][1])||1,c:[(v[0][0]+v[1][0])/2,(v[0][1]+v[1][1])/2]}};
@@ -560,6 +578,7 @@ mapEl.addEventListener('pointermove',e=>{if(!tps.has(e.pointerId))return;tps.set
 const gUp=e=>{if(!tps.delete(e.pointerId))return;if(tps.size<2)gEnd()};
 addEventListener('pointerup',gUp,true);addEventListener('pointercancel',gUp,true);
 
+// §KOMPASS Blickrichtung (HD, hdSet, crs)
 // Blickrichtung: Kompass des Handys, sonst Bewegungsrichtung aus GPS
 let HD=null,hdT=0,hdSrc='',hdAbs=0,hdAsk=0,hdRaf=0,crP=null;
 const scrA=()=>(screen.orientation&&screen.orientation.angle)||+window.orientation||0;
@@ -578,6 +597,7 @@ function crs(){if(!pos)return;if(!crP){crP=pos;return}const d=map.distance([crP.
   if(Date.now()-hdT>3000||hdSrc==='gps'){const y=Math.sin((pos.lng-crP.lng)*Math.PI/180)*Math.cos(pos.lat*Math.PI/180),x=Math.cos(crP.lat*Math.PI/180)*Math.sin(pos.lat*Math.PI/180)-Math.sin(crP.lat*Math.PI/180)*Math.cos(pos.lat*Math.PI/180)*Math.cos((pos.lng-crP.lng)*Math.PI/180);
     hdSet(Math.atan2(y,x)*180/Math.PI,'gps',1)}crP=pos}
 
+// §REPLAY-AUFNAHME rp* (RP.own, RP.seen, rpLog, rpBuild)
 // ===== Replay: Aufzeichnung während der Runde (nur wenn der Host „Runde aufzeichnen“ einschaltet) =====
 // Jedes Handy schreibt seinen eigenen GPS-Weg mit (auch ohne Netz), nebenbei die Positionen, die es von den anderen empfängt,
 // und ein Protokoll der Spielzustände (Aufgaben, Boni, Immunität, Fänge) als [Zeit, Pfad, Wert].
@@ -630,6 +650,7 @@ function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>
   a.href=URL.createObjectURL(new Blob([JSON.stringify(f)],{type:'application/json'}));a.download=`blowncover_replay_${f.code}_r${f.round}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){toast('Replay konnte nicht erstellt werden')}}
 
+// §REPLAY Abspielen rv* (rvConv, rvScan, rvStats, rvDraw, rvPanel)
 // ===== Replay: Abspielen =====
 function rvPick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
   i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{rvLoad(JSON.parse(r.result))}catch(e){toast('Diese Datei ist kein Replay')}};r.readAsText(f)};i.click()}
@@ -830,7 +851,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     el.innerHTML=h+tabs}
   $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;rvDraw()}
 
-// GPS
+// §GPS startGPS, write
 let gpsErr=null,gpsWid=null,gpsTt=0,fixEma=0; // fixEma: typischer Abstand der Standort-Meldungen (ms)
 function startGPS(){if(startGPS.on)return;startGPS.on=1;
   if(TEST){const put=(la,ln)=>{pos={lat:la,lng:ln};lastFix=Date.now();write(1)};
@@ -853,7 +874,7 @@ function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G)return;const t
   if(!wrOld)wrOld=Date.now();
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
-// Start / Beitritt
+// §JOIN Erstellen/Beitreten (mk, join, appReady)
 // App: Standort/Berechtigungen erst hier abfragen. Fehlt etwas, zeigt die App „Bereit machen“ und ruft danach bcReady().
 let bcPass=false;function appReady(go){if(bcPass){bcPass=false;return true}try{if(!NB||!NB.ready||NB.ready())return true}catch(e){return true}window.bcReadyGo=go;return false}
 window.bcReady=()=>{const f=window.bcReadyGo;window.bcReadyGo=null;if(f){bcPass=true;f()}};window.bcReadyCancel=()=>{window.bcReadyGo=null};
@@ -883,7 +904,7 @@ async function join(c){
   evSince=now()-1000;db.ref(`games/${c}/ev`).limitToLast(20).on('child_added',sn=>{const e=sn.val();if(e&&e.t>=evSince&&e.u!==uid&&typeof e.x==='string')note(e.x)},()=>{});
   db.ref('games/'+c).on('value',s=>{if(!s.exists()){LS.removeItem('c');location.reload();return}G=s.val();onData()},lost)}
 
-// Dialog im App-Design
+// §DIALOG dlg()
 function dlg(o){return new Promise(res=>{const el=document.createElement('div');el.id='dlg';
   el.innerHTML=`<div class=dbx role=dialog aria-modal=true aria-label="${esc(o.t)}"><h3>${esc(o.t)}</h3>${o.x?`<p>${o.x}</p>`:''}${o.inp?`<input id=dli maxlength=${o.max||40} placeholder="${esc(o.ph||'')}" autocomplete=off>`:''}<div class=row><button class=g id=dlc>${esc(o.no||'Abbrechen')}</button><button id=dlo class="${o.bad?'dng':''}">${esc(o.ok||'OK')}</button></div></div>`;
   document.body.appendChild(el);const inp=el.querySelector('#dli'),prev=document.activeElement;
@@ -895,7 +916,7 @@ function dlg(o){return new Promise(res=>{const el=document.createElement('div');
   el.onclick=e=>{if(e.target===el)done(o.inp?null:false)};
   setTimeout(()=>(inp||el.querySelector('#dlo')).focus(),30)})}
 
-// Spielerfarben
+// §FARBWAHL
 let colBusy=0;
 function colTaken(){const o={},c=(G&&G.cols)||{};Object.entries(c).forEach(([i,u])=>{const p=P()[u];if(p&&!p.lf)o[i]=u});return o}
 async function claimCol(i){const me_=P()[uid]||{},old=Number.isInteger(me_.col)?me_.col:null,u={};
@@ -909,7 +930,7 @@ function palUI(){const tk=colTaken(),mine=colI(uid);
   return `<div class=pal><h4>Deine Farbe</h4><div class=g>`+PAL.map((c,i)=>{const o=tk[i]&&tk[i]!==uid,me_=i===mine&&tk[i]===uid;
     return `<div><b class="${o?'x':''} ${me_?'o':''}" style="background:${c};color:${PALK[i]}" ${o?'':`onclick="palPick(${i})"`} role=button aria-label="${PALN[i]}${o?' (vergeben)':''}">${me_?letOf(uid):(o?letOf(tk[i]):'')}</b><span>${o?'vergeben':PALN[i]}</span></div>`}).join('')+`</div></div>`}
 
-// Hunter-Marker
+// §MARKER Eigene Kartenmarker (mk*, drawMarks)
 let MK={},mkL=null,mkSeen=null,mkMode=null,mkTmp=null,mkBusy=0,hidM=new Set();
 const MKT={arrow:'ist unterwegs',excl:'hat einen Hider gesichtet',zone:'übernimmt einen Bereich',pin:'hat eine Stecknadel gesetzt'};
 const hkey=()=>'bp_h_'+code+'_'+((G&&G.rn)||0);
@@ -968,7 +989,7 @@ function drawMarks(m,t){if(!mkL||m.role!=='hunter')return;const lp=lastPT();
     const tip=x.k==='arrow'?[who+' · unterwegs','verschwindet bei 40 m',btn]:x.k==='excl'?['Hider gesichtet',who+(hn?' · '+hn:'')+' · bis zum nächsten Ping',btn]:x.k==='zone'?[who+' · Bereich','bis '+(own?'du ihn löschst':who+' ihn löscht'),btn]:[who+' · '+(x.x||'Stecknadel'),'Stecknadel',btn];
     if(['arrow','excl','zone','pin'].includes(x.k))mkr(x.k,ll,'mk'+id,()=>tip,x.u,x.k==='excl'&&x.h&&P()[x.h]?x.h:null)})}
 
-// Lobby-Aktionen
+// §LOBBY-AKTIONEN setRole, setS, setMode, giveUp, leaveGame, newRound, Spielstart (st)
 const setRole=r=>db.ref(`games/${code}/players/${uid}/role`).set(r);
 const setS=(k,v,mn=1,mx=100000)=>db.ref(`games/${code}/s/${k}`).set(Math.min(mx,Math.max(mn,Math.round(+v)||mn)));
 const setB=(k,v)=>db.ref(`games/${code}/s/${k}`).set(v==='1');
@@ -1037,7 +1058,7 @@ async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const
     db.ref('analysis/'+code).remove().catch(()=>{});const u={status:'running',startAt};pend.forEach(([k])=>{u['players/'+k]=null});if(Object.keys(tasks).length)u.tasks=tasks;
     await db.ref('games/'+code).update(u);stP=100;stEnd()}
   catch(e){stEnd();if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.classList.remove('busy');b.textContent='Spiel starten'}}}
-// Fangen
+// §FANG cc, rq, ok, no; fin, leave, endNow
 function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;
   cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
   if(!cand.length)toast('Keine Hider mehr');panel(1)}
@@ -1055,7 +1076,7 @@ function pclean(all){try{const cur='bp_'+code+'_'+((G&&G.rn)||0);Object.keys(LS)
 function leave(){rotMode(false);pclean(1);LS.removeItem('c');location.reload()}
 const endNow=async()=>{if(await dlg({t:'Spiel beenden?',x:'Die Runde endet für alle sofort.',ok:'Beenden',no:'Weiterspielen',bad:1}))db.ref('games/'+code).update({status:'over',winner:'host'})};
 
-// Aufgaben
+// §AUFGABEN Hunter-Boni (hb*), Meeting (mt*), Aufgaben prüfen (chk), Evakuierung (rv*), Immunität, Hider-Aufgabenkarten (hTasks), Zuschauer, Radar, Inventar (hInv)
 const hbRef=id=>db.ref(`games/${code}/hb/${uid}/${id}`);
 function hbChoose(id,k,base){const g=G;if(hbItems(g).length>=(g.s.hbN||2)){hbPick={id,k,base};return panel(1)}hbCommit(id,k,base,null)}
 function hbCommit(id,k,base,drop){const g=G,av=base+(g.s.hbC||0)*1000,u={[id]:{k,av}};if(drop)u[drop+'/d']=now();
@@ -1183,6 +1204,7 @@ function hInv(g,me_,t){const it=myItems(g),act=(me_.immUntil||0)>t;let h='';
     if(i.type==='radar')h+=`<div class=tk><b>Hunter-Radar</b> `+(used?'<small>eingesetzt</small>':`<button class="s" onclick="useRadar('${i.id}')">Einsetzen</button>`)+`</div>`;
     else h+=`<div class=tk><b>Immunität</b> ${fmt(i.sec*1000)} `+(used?'<small>eingesetzt</small>':act?'<small>Schutz läuft noch</small>':`<button class="s" onclick="useImm('${i.id}',${i.sec})">Einsetzen</button>`)+`</div>`});
   return h?`<h3>Inventar</h3>`+h:''}
+// §CHAT
 // Chat: Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene Hider lesen alles und schreiben nur in "out"
 let chSet='',chRefs={},chCur=null,chOpen=false,chUnread=0,chSince=0,dmUn={},chLastDm=null;
 const chName={hunter:'Hunter',hider:'Hider',out:'Ausgeschieden'};
@@ -1221,6 +1243,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
       if(low||c.u===uid)sc.scrollTop=sc.scrollHeight;
       if((!chOpen||ch!==chCur)&&c.u!==uid&&c.t>chSince){chUnread++;if(isDm(ch)){const u=ch.slice(3);dmUn[u]=(dmUn[u]||0)+1}chBadge();chTabs()}},()=>{})});
   chShow(all.includes(chCur)?chCur:cs[0])}
+// §PANEL-ZIEHEN
 // Panel ziehen: folgt dem Finger, rastet beim Loslassen ein
 {const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0;
  const lim=()=>P_.offsetHeight-28;
@@ -1231,7 +1254,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
    P_.style.transition='';P_.style.transform='';
    if(Math.abs(dy)<6)P_.classList.toggle('c');else P_.classList.toggle('c',p>H/3)};
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
-// UI-Zustand
+// §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0};
 const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Zusatzwahl nach (0 = aus)',0,120,5,'Min'],hkS:['Hacking ab',1,119,1,'Min'],hkZ:['Hacking-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
@@ -1243,6 +1266,7 @@ const PRN={30:'Kurz',60:'Standard',90:'Lang',120:'Extra-Lang'};
 const stp=(k,d)=>{const f=FD[k];setS(k,(G.s[k]??DEF[k]??hkDef(G.s)[k])+d*f[3],f[1],f[2])};
 const setPre=d=>{const u=Object.assign({},PRE[d]);if(G.s.hk)Object.assign(u,hkDef(Object.assign({},G.s,u)));db.ref(`games/${code}/s`).update(u)};
 const setHk=on=>{const s=G.s,u={hk:!!on};if(on){const d=hkDef(s);for(const q in d)if(s[q]==null)u[q]=d[q]}db.ref(`games/${code}/s`).update(u)};
+// §BALANCING
 // Balancing: passt die Werte des Modus einmalig an die aktuelle Besetzung an (Konzept: claude/KONZEPT_Balancing.md)
 const BAL=[1.3,1.15,1,.87,.75],BALN=['Sehr Hider-freundlich','Hider-freundlich','Ausgeglichen','Hunter-freundlich','Sehr Hunter-freundlich'];
 const balRoster=()=>{let H=0,X=0;Object.values(P()).forEach(p=>{if(p.lf)return;if(p.role==='hunter')H++;else if(p.role==='hider')X++});return{H,X}};
@@ -1278,6 +1302,7 @@ function balGo(){if(!G||G.host!==uid||G.status!=='lobby')return;const{H,X}=balRo
   const u=Object.assign({},c.o,{ddN:c.dd,mtN:c.mt});if(md(G)==='survive')u.shOn=true;if(G.s.hk)Object.assign(u,hkDef(Object.assign({},G.s,u)));
   db.ref(`games/${code}/s`).update(u).then(()=>{ui.balLast={H,X};ui.balRoll=null;toast('Balancing angewendet');panel(1)}).catch(e=>toast('Konnte nicht speichern: '+(e&&e.code||e)))}
 
+// §LOBBY-UI nf/swt (Einstellungszeilen, sb = Unterpunkt), acc, lobbyUI
 const nf=(k,sb)=>{const f=FD[k],v=G.s[k]??DEF[k]??hkDef(G.s)[k];return `<div class="fl${sb?' sub':''}"><label>${f[0]}</label><div class=num><button class=n onclick="stp('${k}',-1)" aria-label="weniger">−</button><input type=number inputmode=numeric value="${v}" min=${f[1]} max=${f[2]} onchange="setS('${k}',this.value,${f[1]},${f[2]})" aria-label="${f[0]}"><span class=u>${f[4]}</span><button class=n onclick="stp('${k}',1)" aria-label="mehr">+</button></div></div>`};
 const swt=(k,on,l,sub='',sb)=>`<div class="fl${sb?' sub':''}"><label>${l}${sub?`<small>${sub}</small>`:''}</label><button class="sw ${on?'on':''}" role=switch aria-checked="${on}" aria-label="${l}" onclick="setB('${k}','${on?0:1}')"></button></div>`;
 const acc=(id,icn,title,sum,body)=>`<div class=acc><button onclick="ui.open.${id}=!ui.open.${id};panel(1)" aria-expanded="${!!ui.open[id]}">${ic(icn)}<span>${title}<small>${sum}</small></span><span style="display:grid;transform:rotate(${ui.open[id]?90:0}deg)">${ic('chev')}</span></button>${ui.open[id]?`<div class=in>${body}</div>`:''}</div>`;
@@ -1320,6 +1345,7 @@ function lobbyUI(g,host,me_){
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
   return[b,f]}
 
+// §RUN-UI Panel im Spiel (Hider/Hunter/Zuschauer)
 function runUI(g,me_,t,host,run){
   const c=g.catches&&g.catches[uid],hh=md(g)==='mission'?'Erreiche die Evakuierung, sobald sie erscheint, und lass dich nicht fangen.':'Bleib in der Zone und lass dich nicht fangen.';
   const SPT={caught:'Du wurdest gefangen',dq:'Disqualifiziert (GPS-Signal verloren)',safe:'Du bist in Sicherheit',quit:'Du hast aufgegeben'};
@@ -1340,7 +1366,7 @@ function runUI(g,me_,t,host,run){
   f=`<div class=row><button class=ghost onclick="giveUp()">${ic('flag')} Aufgeben</button>${host?`<button class=ghost onclick="endNow()">Spiel beenden</button>`:''}</div>`;
   return[h,f]}
 
-// Panel
+// §PANEL panel() mit Signatur lastSig
 function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('pf').innerHTML='';
     el.innerHTML=`<div class=logo>Blown<br><span>Cover</span></div><p class="mut sm">Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.</p><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
@@ -1359,6 +1385,7 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   else [h,f]=runUI(g,me_,t,host,run);
   const sc=el.scrollTop;el.innerHTML=h;el.scrollTop=sc;$('pf').innerHTML=f;resSync(g)}
 
+// §HACKING
 // ===== Hacking-Challenge + Sperrgebiet (Konzept: claude/KONZEPT_Hacking.md) =====
 const hk5=v=>Math.round(v/5)*5,hk10=v=>Math.round(v/10)*10;
 function hkDef(s){const p=s.ping||120,r=s.r0||500,T=s.dur||30;
@@ -1471,7 +1498,6 @@ function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.n
 // Karten-Hinweise und Karten für Hider und Hunter
 const hkBar=p=>`<div class=hkb><i style="width:${Math.round(p*100)}%"></i></div>`;
 const hkNames=a=>hkPs(a).filter(([u])=>!hkGone(a,u)).map(([u])=>esc((P()[u]||{}).name||'?')).join(', ');
-function hkResTxt(r){return r.k==='ok'?'System gehackt!':r.k==='df'?'Hacking-Zone verteidigt: Der Hack wurde gestoppt.':'System gesichert: Drei Versuche sind gescheitert, die Hacking-Zone ist verteidigt.'}
 function hkHCard(g,t,m){const H=hkSt(g,t);if(!H||!H.seen)return'';const k=H.k,Z=hkZv(g),d=pos?Math.round(D(pos,k.loc)):null,inz=d!==null&&d<=Z,
   btn=(txt,fn)=>`<button ${inz?'':'class=g disabled'} onclick="${fn}">${txt}${inz?'':(d===null?' (warte auf GPS)':' (noch '+Math.max(0,d-Z)+' m)')}</button>`,
   C=x=>`<div class=tk>${TH('hack','Hacking-Challenge')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;let h='';
@@ -1513,7 +1539,7 @@ function hkDraw(g,t,m,spec){const k=hkK(g);if(!k||g.status!=='running')return;co
 const hkSig=(g,t)=>{const H=hkK(g)?hkSt(g,t):null;if(!H)return 0;const o=H.k.oz;return[H.n,H.open,H.dead,H.seen,H.res&&H.res.k,H.run?Math.floor(hkProg(g,H.run,t)*40):0,hkHolder(g),ozHolder(g),!!H.k.cm,hkCmOn(g,t),o?ozPh(g,t).p:0,H.run&&Object.keys(H.run.p||{}).join(),H.run&&Object.keys(H.run.x||{}).join(),pos?Math.round(D(pos,H.k.loc)/10):0]};
 // ===== Ende Hacking =====
 
-// Karte zeichnen
+// §ZEICHNEN draw(), Legende
 function dot(ll,col,tip,r=8,op=1){const m=L.circleMarker(ll,{radius:r,color:'#fff',weight:2,fillColor:col,fillOpacity:op,opacity:op}).addTo(lay);if(tip)m.bindTooltip(tip,{permanent:true,direction:'top'});return m}
 function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{zIndexOffset:/^t-/.test(kind)||kind==='oz'?-2000:0,icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
   m.bindPopup(()=>{const a=tip();return `<b>${esc(a[0])}</b>`+(a[1]?`<span>${esc(a[1])}</span>`:'')+(a[2]||'')},{closeButton:false,offset:[0,low?-26:-14],className:'bcp',autoPan:false,maxWidth:220});
@@ -1590,6 +1616,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   drawMarks(m,t);
   redrawing=false;if(reop)reop.openPopup();lgSync()}
 
+// §ONDATA onData() bei jeder DB-Änderung
 function onData(){
   lgData();rpData();rotMode(!!G);
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
@@ -1600,7 +1627,7 @@ function onData(){
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
   panel();draw();chatSync();mkSync()}
 
-// Sekundentakt
+// §TICK Sekundentakt: HUD, GPS/Netz-Warnung, Zone, Pings, Fänge, Spielende
 setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   const nw=Date.now();if(nw-lastTick>3000)skipUntil=nw+10000;lastTick=nw;
   if(pos&&nw-lastW>=8000&&nw-lastFix<15000)write(1);
@@ -1701,6 +1728,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(w){endLock=t+4000;db.ref('games/'+code).update({status:'over',winner:w}).catch(()=>{})}}
   $('hud').innerHTML=h;panel()},1000);
 
+// §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
 panel();
