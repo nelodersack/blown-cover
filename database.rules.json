@@ -133,6 +133,27 @@
           },
           "rp": {
             ".validate": "newData.isBoolean()"
+          },
+          "hkZ": {
+            ".validate": "newData.isNumber() && newData.val() >= 20 && newData.val() <= 1000"
+          },
+          "hkT": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 900"
+          },
+          "hkR": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 600"
+          },
+          "hkS": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 119"
+          },
+          "hkN": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5"
+          },
+          "ozR": {
+            ".validate": "newData.isNumber() && newData.val() >= 20 && newData.val() <= 1000"
+          },
+          "hk": {
+            ".validate": "newData.isBoolean()"
           }
         },
         "players": {
@@ -243,7 +264,7 @@
           ".write": "root.child('games').child($code).child('host').val() === auth.uid || (!newData.exists() && (root.child('games').child($code).child('status').val() === 'over' && root.child('games').child($code).child('players').child(auth.uid).exists()))",
           "$tid": {
             ".write": "root.child('games').child($code).child('host').val() === auth.uid",
-            ".validate": "$tid.matches(/^(sh|ev|d[1-9]|m[1-9])$/) && newData.hasChildren(['t0','loc','rr'])",
+            ".validate": "$tid.matches(/^(sh|ev|hk|d[1-9]|m[1-9])$/) && newData.hasChildren(['t0','loc','rr'])",
             "t0": {
               ".validate": "newData.isNumber()"
             },
@@ -360,6 +381,121 @@
               "$u": {
                 ".write": "auth.uid === $u && $tid === 'sh' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider'",
                 ".validate": "newData.val() === true"
+              }
+            },
+            "at": {
+              "$n": {
+                ".write": "$tid === 'hk' && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && root.child('games').child($code).child('status').val() === 'running' && newData.child('u').val() === auth.uid && newData.child('p').child(auth.uid).exists() && now >= data.parent().parent().child('t0').val() && ($n === '1' || ($n === '2' && data.parent().child('1').child('e').exists()) || ($n === '3' && data.parent().child('2').child('e').exists()) || ($n === '4' && data.parent().child('3').child('e').exists()) || ($n === '5' && data.parent().child('4').child('e').exists()))",
+                ".validate": "$n.matches(/^[1-5]$/) && newData.hasChildren(['s','u','p'])",
+                "s": {
+                  ".validate": "newData.isNumber()"
+                },
+                "u": {
+                  ".validate": "newData.isString()"
+                },
+                "p": {
+                  "$pid": {
+                    ".write": "$tid === 'hk' && auth.uid === $pid && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && root.child('games').child($code).child('status').val() === 'running' && !data.parent().parent().child('e').exists()",
+                    ".validate": "newData.hasChildren(['t']) && newData.child('t').isNumber()",
+                    "t": {
+                      ".validate": "newData.isNumber()"
+                    },
+                    "$o": {
+                      ".validate": false
+                    }
+                  }
+                },
+                "x": {
+                  "$pid": {
+                    ".write": "$tid === 'hk' && auth.uid === $pid && !data.exists() && newData.exists() && data.parent().parent().child('p').child($pid).exists() && !data.parent().parent().child('e').exists()",
+                    ".validate": "newData.isNumber()"
+                  }
+                },
+                "pg": {
+                  ".write": "$tid === 'hk' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && data.parent().child('p').child(auth.uid).exists() && !data.parent().child('e').exists() && newData.exists()",
+                  ".validate": "newData.hasChildren(['v','t']) && newData.child('v').isNumber() && newData.child('t').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= root.child('games').child($code).child('s').child('hkT').val() * 1000 && (!data.exists() || newData.child('v').val() >= data.child('v').val())",
+                  "v": {
+                    ".validate": "newData.isNumber()"
+                  },
+                  "t": {
+                    ".validate": "newData.isNumber()"
+                  },
+                  "$o": {
+                    ".validate": false
+                  }
+                },
+                "e": {
+                  ".write": "$tid === 'hk' && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).exists() && root.child('games').child($code).child('status').val() === 'running'",
+                  ".validate": "newData.hasChildren(['k','t']) && (newData.child('k').val() === 'ab' || newData.child('k').val() === 'df' || (newData.child('k').val() === 'ok' && data.parent().child('pg').child('v').val() >= root.child('games').child($code).child('s').child('hkT').val() * 1000))",
+                  "k": {
+                    ".validate": "newData.isString()"
+                  },
+                  "t": {
+                    ".validate": "newData.isNumber()"
+                  },
+                  "$o": {
+                    ".validate": false
+                  }
+                },
+                "$o": {
+                  ".validate": false
+                }
+              }
+            },
+            "res": {
+              ".write": "$tid === 'hk' && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).exists() && root.child('games').child($code).child('status').val() === 'running'",
+              ".validate": "newData.hasChildren(['k','t','a']) && (newData.child('k').val() === 'df' || newData.child('k').val() === 'd3' || (newData.child('k').val() === 'ok' && newData.hasChild('el') && data.parent().child('at').child(newData.child('a').val()).child('pg').child('v').val() >= root.child('games').child($code).child('s').child('hkT').val() * 1000))",
+              "k": {
+                ".validate": "newData.isString()"
+              },
+              "t": {
+                ".validate": "newData.isNumber()"
+              },
+              "a": {
+                ".validate": "newData.isString()"
+              },
+              "h": {
+                ".validate": "newData.isString()"
+              },
+              "el": {
+                "$pid": {
+                  ".validate": "newData.isNumber()"
+                }
+              },
+              "$o": {
+                ".validate": false
+              }
+            },
+            "cm": {
+              ".write": "$tid === 'hk' && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && root.child('games').child($code).child('status').val() === 'running' && data.parent().child('res').child('k').val() === 'ok' && data.parent().child('res').child('el').child(auth.uid).exists()",
+              ".validate": "newData.hasChildren(['u','t']) && newData.child('u').val() === auth.uid",
+              "u": {
+                ".validate": "newData.isString()"
+              },
+              "t": {
+                ".validate": "newData.isNumber()"
+              },
+              "$o": {
+                ".validate": false
+              }
+            },
+            "oz": {
+              ".write": "$tid === 'hk' && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('status').val() === 'running' && data.parent().child('res').child('h').val() === auth.uid",
+              ".validate": "newData.hasChildren(['u','t','lat','lng']) && newData.child('u').val() === auth.uid",
+              "u": {
+                ".validate": "newData.isString()"
+              },
+              "t": {
+                ".validate": "newData.isNumber()"
+              },
+              "lat": {
+                ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+              },
+              "lng": {
+                ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+              },
+              "$o": {
+                ".validate": false
               }
             }
           }
