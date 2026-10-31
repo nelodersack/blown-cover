@@ -24,7 +24,7 @@ with app() as (pg,ev,errs):
       rvLoad({format:'blown-cover-replay',v:2,code:'K7QF',round:0,game:{s,c:{lat:47.07,lng:15.44},startAt:T0,R0,end:R0+30*60000,winner:'hider'},players:pl,tracks:tr,log})})()""")
     pg.wait_for_timeout(600)
     print('zone-ev:',ev("JSON.stringify(RV.ev.filter(e=>e.k==='zone').map(e=>rvTm(e.t,RV.f.game.R0)+' '+e.x))"))
-    print('zs-striche:',ev("document.querySelectorAll('#rvT .zs').length"),'ping-striche:',ev("document.querySelectorAll('#rvT .pg').length"))
+    print('zs-striche:',ev("document.querySelectorAll('#rvS .zs').length"),'ping-striche:',ev("document.querySelectorAll('#rvS .pg').length"))
     for dt,l in ((9*60000+2000,'vor hack'),(9*60000+20000,'hack läuft'),(9*60000+60000,'abgebrochen')):
         ev("RV.t=RV.f.game.R0+%d;rvDraw()"%dt)
         print(l,'dash:',ev("RV.tkc.hk&&RV.tkc.hk.options.dashArray"),'weight:',ev("RV.tkc.hk&&RV.tkc.hk.options.weight"))
