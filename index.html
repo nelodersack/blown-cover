@@ -793,7 +793,8 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
   const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t,S),m=RV.tk[id];
     if(on&&!m){RV.tk[id]=L.layerGroup([RV.tkc[id]=L.circle([k.loc.lat,k.loc.lng],{radius:id==='hk'?(g.s.hkZ||75):40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
-      L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='hk'?'hk':id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-2000,interactive:false})]).addTo(RV.L)}
+      L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='hk'?'hk':id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-2000,keyboard:false})
+        .bindPopup(()=>{const a=tkInfo(g.s,id,k);return`<b>${a[0]}</b>${a[1]}`},{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240})]).addTo(RV.L)}
     else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}
     if(on&&id==='hk'){const run=Object.values(((S.tasks||{}).hk||{}).at||{}).some(a=>a&&a.s&&a.s<=t&&!(a.e&&a.e.t<=t));
       if(RV.tkc.hk._run!==run){RV.tkc.hk._run=run;RV.tkc.hk.setStyle({weight:run?3:2,dashArray:run?null:'5 5',fillOpacity:run?.22:.12})}}});
@@ -1534,7 +1535,7 @@ function hkHunterCard(g,t,m){const H=hkSt(g,t);if(!H)return'';const k=H.k,Z=hkZv
 function hkDraw(g,t,m,spec){const k=hkK(g);if(!k||g.status!=='running')return;const H=hkSt(g,t);
   if(!H.res&&!H.dead&&(spec||m.role==='hunter'||(m.role==='hider'&&H.seen))){const Z=hkZv(g),run=!!H.run,pr=run?hkProg(g,H.run,t):0;
     L.circle([k.loc.lat,k.loc.lng],{radius:Z,color:'#7c6cff',weight:run?3:2,dashArray:run?null:'6 5',fillColor:'#7c6cff',fillOpacity:run?.22:.1}).addTo(lay);
-    mkr('t-hk',[k.loc.lat,k.loc.lng],'tkhk',()=>['Hacking-Zone',run?'Hack läuft: '+Math.round(pr*100)+' %':(H.seen?'Hack möglich':'Hider können ab '+fmt(k.t0-t)+' hacken')])}
+    mkr('t-hk',[k.loc.lat,k.loc.lng],'tkhk',()=>{const tt=now(),H2=hkSt(g,tt),r2=H2.run;return['Hacking-Challenge',(r2?'Hack läuft: '+Math.round(hkProg(g,r2,tt)*100)+' %':(H2.seen?'Hack möglich':'Hider können ab '+fmt(k.t0-tt)+' hacken'))+' · Versuch '+Math.min(H2.n+(r2?0:1),hkNv(g))+' von '+hkNv(g),tkInfo(g.s,'hk',k)[1]]})}
   if(m.role==='hider'&&!spec&&hkCmOn(g,t))Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hunter'||p.state!=='alive'||p.lf||!p.lat||t-(p.ts||0)>30000)return;
     mkr('hunter',[p.lat,p.lng],'cm'+u,()=>['Hunter '+p.name,'Gegenüberwachung'],u)});
   const op=ozPh(g,t);
@@ -1547,6 +1548,14 @@ const hkSig=(g,t)=>{const H=hkK(g)?hkSt(g,t):null;if(!H)return 0;const o=H.k.oz;
 
 // §ZEICHNEN draw(), Legende
 function dot(ll,col,tip,r=8,op=1){const m=L.circleMarker(ll,{radius:r,color:'#fff',weight:2,fillColor:col,fillOpacity:op,opacity:op}).addTo(lay);if(tip)m.bindTooltip(tip,{permanent:true,direction:'top'});return m}
+// Aufgaben-Popup: Name, Belohnung und kurze Erklärung (Spiel und Replay)
+function tkInfo(s,id,k){k=k||{};const bo=s.bon!==false,im=s.imm||120,L_=x=>`<span style="display:block;margin-top:4px">${x}</span>`;
+  if(id==='sh')return['Safehouse',L_(`Die ersten zwei Hider, die hier einchecken, bekommen Immunität: Platz 1 ${fmt(im*1000)}, Platz 2 ${fmt(im*500)}.`)];
+  if(id==='ev')return['Evakuierung',L_('Wer hier bestätigt, ist in Sicherheit.')];
+  if(isDd(id))return['Dead Drop',L_('Ein Hider deponiert hier einen Datenträger, ein zweiter holt ihn ab.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: Hunter-Radar für beide.':'Ohne Belohnung (Aufgaben-Boni aus).')];
+  if(isMt(id))return['Meeting',L_('Zwei Hider treffen sich hier.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?`Belohnung: jeder wählt Immunität ${fmt(im*1000)} oder Hunter-Radar.`:'Ohne Belohnung (Aufgaben-Boni aus).')];
+  if(id==='hk')return['Hacking-Challenge',L_(`Hider hacken hier das System (allein ${fmt((s.hkT||180)*1000)}, zu zweit schneller).`)+L_(`Belohnung bei Erfolg: Immunität ${fmt((s.hbC||0)*1000)} für alle Beteiligten und die Gegenüberwachung (alle Hider sehen die Hunter ${fmt((s.hkR||60)*1000)} lang).`)+L_(`Verteidigen die Hunter, bekommen sie das Sperrgebiet (${s.ozR||75} m).`)];
+  return['Aufgabe','']}
 function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{zIndexOffset:/^t-/.test(kind)||kind==='oz'?-2000:0,icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
   m.bindPopup(()=>{const a=tip();return `<b>${esc(a[0])}</b>`+(a[1]?`<span>${esc(a[1])}</span>`:'')+(a[2]||'')},{closeButton:false,offset:[0,low?-26:-14],className:'bcp',autoPan:false,maxWidth:220});
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
@@ -1607,7 +1616,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if((m.role==='hunter'&&!spec)||spec)Object.entries(g.catches||{}).forEach(([h,c])=>{const q=P()[h];if(c.status==='done'&&c.lat&&q&&q.state==='caught')mkr('catch',[c.lat,c.lng],'ct'+h,()=>['Hider '+q.name+' (gefangen)','Fangort · nach '+fmt(Math.max(0,c.t-rs(g)))+' von '+((P()[c.hunter]||{}).name||'?')])});
   const TKK=id=>id==='sh'?'t-sh':id==='ev'?'t-ev':isDd(id)?'t-dd':'t-mt',TKT=id=>id==='sh'?'Safehouse':id==='ev'?'Evakuierung':isDd(id)?'Dead Drop':'Meeting';
   const task=(id,k)=>{L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15}).addTo(lay);
-    mkr(TKK(id),[k.loc.lat,k.loc.lng],'tk'+id,()=>[TKT(id),pos?'noch '+Math.round(D(pos,k.loc))+' m':'Ziel'])};
+    mkr(TKK(id),[k.loc.lat,k.loc.lng],'tk'+id,()=>{const a=tkInfo(g.s,id,k);return[a[0],pos&&!spec?'noch '+Math.round(D(pos,k.loc))+' m':'',a[1]]})};
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')['sh','ev'].forEach(id=>{const k=g.tasks&&g.tasks[id];
     if(!k||t<k.t0||(id==='sh'&&(Object.keys(k.in||{}).length>=2||(k.in&&k.in[uid]))))return;task(id,k)});
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')Object.entries(g.tasks||{}).filter(([id])=>isDd(id)||isMt(id)).forEach(([id,k])=>{

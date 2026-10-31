@@ -37,7 +37,7 @@ JS in Dateireihenfolge:
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |
 | §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`) |
 | §HACKING | `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |
-| §ZEICHNEN | `draw()` (alle Karten-Layer), Legende `LG` |
+| §ZEICHNEN | `draw()` (alle Karten-Layer), `mkr` (Marker mit Popup), `tkInfo` (Aufgaben-Popup: Name + Belohnung, auch im Replay), Legende `LG` |
 | §ONDATA | `onData()` nach jeder DB-Änderung |
 | §TICK | `setInterval` 1 s: HUD, GPS-/Netz-Warnung, Zone, Pings, Fänge, Spielende |
 | §BOOT | Anmeldung, Wiedereinstieg |
