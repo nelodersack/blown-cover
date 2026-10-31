@@ -254,8 +254,10 @@ public class GameActivity extends Activity {
         LocationService.sink = mySink;
         loadedUrl = Prefs.url(this);
         Diag.log(this, "App v" + Prefs.ver(this) + " · Spiel öffnen: " + loadedUrl);
-        web.loadUrl(loadedUrl);
+        // Seite immer frisch laden (GitHub Pages lässt sie sonst bis zu 10 Min im Zwischenspeicher)
+        web.loadUrl(loadedUrl + (loadedUrl.contains("?") ? "&" : "?") + "app=" + System.currentTimeMillis());
         h.postDelayed(probeLoop, 30000);
+        h.postDelayed(gameWatch, 3000);
 
         // Standort und Berechtigungen erst, wenn die Seite ein Spiel erstellt oder beitritt (BlownNative.ready()).
         // Für die Startseite und „Replay abspielen“ braucht es nichts. Aus der Diagnose („Bereit machen“) direkt zeigen.
@@ -310,6 +312,30 @@ public class GameActivity extends Activity {
 
     /** Die Seite wartet auf „bereit“ (Spiel erstellen/beitreten). */
     private boolean pendingReady;
+
+    /** Spiel offen (Lobby/laufend), aber noch nicht bereit gemacht? Dann jetzt: Dienst starten bzw. „Bereit machen“ zeigen.
+     *  Fängt den Fall ab, dass die Seite ready() nicht aufruft (z. B. ältere Seite aus dem Zwischenspeicher). */
+    private void ensureGame() {
+        if (playing || (ready != null && ready.showing())) return;
+        Diag.log(this, "Spiel erkannt ohne Bereitschaft – prüfe Berechtigungen");
+        if (Checks.all(this)) startPlaying();
+        else showReady();
+    }
+
+    private final Runnable gameWatch = new Runnable() {
+        @Override
+        public void run() {
+            if (!alive || web == null) return;
+            if (!playing) web.evaluateJavascript("(function(){try{return (typeof G!=='undefined'&&G&&G.status)?G.status:''}catch(e){return ''}})()",
+                    new android.webkit.ValueCallback<String>() {
+                        @Override
+                        public void onReceiveValue(String v) {
+                            if (v != null && v.length() > 2 && !"\"\"".equals(v)) ensureGame();
+                        }
+                    });
+            h.postDelayed(this, 3000);
+        }
+    };
 
     @Override
     protected void onNewIntent(Intent i) {
