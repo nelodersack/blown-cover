@@ -676,7 +676,8 @@ public class GameActivity extends Activity {
         /** Seite will ein Spiel erstellen/beitreten: true = alles bereit (Dienst läuft), false = „Bereit machen“ wird gezeigt, danach ruft die App bcReady(). */
         @JavascriptInterface
         public boolean ready() {
-            final boolean ok = Checks.all(GameActivity.this);
+            // Schon im Spielmodus (Dienst läuft, „Spielen“ bestätigt) oder alles grün: direkt weiter
+            final boolean ok = playing || Checks.all(GameActivity.this);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
