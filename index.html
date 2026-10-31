@@ -774,7 +774,7 @@ function rvFocus(lat,lng,z){const ph=Math.min($('panel').offsetHeight,innerHeigh
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
 function rvFit(){const g=RV.f.game,ph=Math.min($('panel').offsetHeight,innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
-function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
+function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
   const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
@@ -837,10 +837,20 @@ const rvVis=e=>!(RV.hide&&RV.hide[e.k]);                                   // Fi
 const rvWin=()=>Math.min(RV.T1-RV.T0,((RV.T1-RV.T0)>3.6e6?20:10)*60000);    // Lupe: 10 Min, ab 60 Min Spieldauer 20 Min
 const rvWA=t=>t-rvWin()/2; // Beginn des Lupen-Ausschnitts: Abspielkopf immer in der Mitte, vor Start/nach Ende bleibt die Spur leer
 function rvHide(k){RV.hide=RV.hide||{};RV.hide[k]=!RV.hide[k];panel(1)}
-// Detailspur: Wischen spult fein (ganze Breite = Lupenfenster), Tippen springt zur angetippten Stelle
-function rvDrag(e){const b=$('rvD');if(!b)return;const r=b.getBoundingClientRect(),x0=e.clientX,t0=RV.t,w=rvWin(),a0=rvWA(RV.t),cl=v=>Math.max(RV.T0,Math.min(RV.T1,v));let mv=0;
-  const m=ev=>{const dx=ev.clientX-x0;if(!mv&&Math.abs(dx)<6)return;mv=1;RV.t=cl(t0-dx/r.width*w);rvDraw()},
-    up=ev=>{removeEventListener('pointermove',m);removeEventListener('pointerup',up);if(!mv){RV.t=cl(a0+(ev.clientX-r.left)/r.width*w);rvDraw()}};
+// Detailspur: Wischen spult fein (ganze Breite = Lupenfenster), Tippen springt zur angetippten Stelle.
+// Schwung: Beim Loslassen läuft die Spur mit der Wischgeschwindigkeit weiter und rollt aus (Abklingzeit 325 ms wie beim Scrollen am Handy).
+// Antippen während des Ausrollens stoppt nur.
+function rvDrag(e){const b=$('rvD');if(!b)return;const r=b.getBoundingClientRect(),x0=e.clientX,t0=RV.t,w=rvWin(),a0=rvWA(RV.t),cl=v=>Math.max(RV.T0,Math.min(RV.T1,v)),fl=!!RV.fl;let mv=0;
+  if(RV.fl){cancelAnimationFrame(RV.fl);RV.fl=0}
+  const sm=[[performance.now(),x0]],
+    m=ev=>{const dx=ev.clientX-x0,n=performance.now();sm.push([n,ev.clientX]);while(sm.length>2&&n-sm[0][0]>100)sm.shift();if(!mv&&Math.abs(dx)<6)return;mv=1;RV.t=cl(t0-dx/r.width*w);rvDraw()},
+    up=ev=>{removeEventListener('pointermove',m);removeEventListener('pointerup',up);
+      if(!mv){if(!fl){RV.t=cl(a0+(ev.clientX-r.left)/r.width*w);rvDraw()}return}
+      const n=performance.now(),a=sm[0],z=sm[sm.length-1],dt=z[0]-a[0];if(n-z[0]>80||dt<10)return;   // Finger stand vor dem Loslassen still: kein Schwung
+      let v=-(z[1]-a[1])/dt*w/r.width;if(Math.abs(v)*r.width/w<.3)return;                          // unter 0,3 px/ms: kein Schwung
+      let last=0;const go=ts=>{if(!RV)return;const d=last?Math.min(50,ts-last):16;last=ts;RV.t=cl(RV.t+v*d);v*=Math.exp(-d/325);rvDraw();
+        if(RV.t<=RV.T0||RV.t>=RV.T1||Math.abs(v)*r.width/w<.02){RV.fl=0;return}RV.fl=requestAnimationFrame(go)};
+      RV.fl=requestAnimationFrame(go)};
   addEventListener('pointermove',m);addEventListener('pointerup',up)}
 function rvScrub(e){const b=$('rvT');if(!b)return;const r=b.getBoundingClientRect(),go=x=>{RV.t=RV.T0+Math.max(0,Math.min(1,(x-r.left)/r.width))*(RV.T1-RV.T0);rvDraw()};
   go(e.clientX);const mv=ev=>go(ev.clientX),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
