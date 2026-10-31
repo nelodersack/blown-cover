@@ -99,7 +99,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .mkw.live::after,.mkw.out::after{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;box-sizing:border-box;border-radius:50%;border:3px solid var(--live);animation:pl 1.6s ease-out infinite;pointer-events:none}
 @keyframes pl{from{transform:scale(.55);opacity:1}to{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.mkw.live::after,.mkw.out::after,.spin{animation:none}}
-.hkb{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:6px 0 2px}.hkb i{display:block;height:100%;background:#18b6c9;transition:width .8s linear}.tsq.hk{background:#18b6c9}.tsq.oz{background:#ff5f1f}
+.hkb{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:6px 0 2px}.hkb i{display:block;height:100%;background:var(--task);transition:width .8s linear}.tsq.oz{background:#ff5f1f}
 .tsq{width:30px;height:30px;border-radius:8px;background:var(--task);color:#fff;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}.tsq .ic{width:17px;height:17px;color:#fff}
 #lg .tsq{width:24px;height:24px;border-width:2px;flex:none}#lg .tsq .ic{width:14px;height:14px}
 .bcp .leaflet-popup-content-wrapper{background:#0b0e12;color:var(--fg);border-radius:10px;box-shadow:0 4px 14px #0008}.bcp .leaflet-popup-tip{background:#0b0e12}.bcp .leaflet-popup-content{margin:8px 12px;font:13px/1.3 var(--f-b)}.bcp b{display:block;font-weight:600;font-size:14px}.bcp span{color:var(--mut)}
@@ -442,7 +442,7 @@ function shape(k,pid,hid){const sv=b=>`<svg style="overflow:visible" viewBox="0 
   L_=pid?letOf(pid):'',I_=pid?inkOf(pid):'#fff';
   if(pid){switch(k){
     case'me':return sv(`<circle cx="18" cy="18" r="14" fill="none" stroke="#1e7cf0" stroke-width="2"/><circle cx="18" cy="18" r="10" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,22,12));
-    case'hider':case'ping':case'pingme':case'live':return sv(`<circle cx="18" cy="18" r="${k==='pingme'?12:10}" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,k==='pingme'?23:22.5,k==='pingme'?15:13));
+    case'hider':case'ping':case'pingme':case'live':case'out':return sv(`<circle cx="18" cy="18" r="${k==='pingme'?12:10}" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,k==='pingme'?23:22.5,k==='pingme'?15:13));
     case'hunter':case'mate':return sv(`<polygon points="18,5 31,29 5,29" fill="${C}" stroke="${W}" stroke-width="2.5" stroke-linejoin="round"/>`+tx(L_,I_,25,13));
     case'xping':return sv(`<circle cx="18" cy="18" r="15" fill="none" stroke="${C}" stroke-width="2"/><circle cx="18" cy="18" r="12" fill="none" stroke="${C}" stroke-width="2"/><circle cx="18" cy="18" r="8.5" fill="${C}" stroke="${W}" stroke-width="2"/>`+tx(L_,I_,22,11));
     case'stale':return sv(`<circle cx="18" cy="18" r="9" fill="#7a8696" fill-opacity=".65" stroke="#4f5967" stroke-width="2.5" stroke-dasharray="4 3"/>`+tx(L_,'#2c3744',22,12));
@@ -460,7 +460,7 @@ function shape0(k){const sv=b=>`<svg viewBox="0 0 36 36" aria-hidden="true">${b}
     case'hider':return sv(circ('#3fb56a'));
     case'hunter':return sv(tri('#e5484d'));
     case'mate':return sv(tri('#3fb56a'));
-    case'out':return sv(circ('#ff5f1f',10)+`<path d="M18 11.5l5.2 9h-10.4z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 15v3" stroke="#ff5f1f" stroke-width="1.6" stroke-linecap="round"/>`);
+    case'out':return sv(circ('#ff5f1f'));
     case'ping':return sv(circ('#ff8a1f'));
     case'pingme':return sv(circ('#ff8a1f',12));
     case'xping':return sv(`<circle cx="18" cy="18" r="14.5" fill="none" stroke="#ffb03b" stroke-width="2"/><circle cx="18" cy="18" r="11.5" fill="none" stroke="#ffb03b" stroke-width="2"/>`+circ('#ffb03b',7.5));
@@ -682,9 +682,11 @@ function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={pl
       Object.entries(a.p||{}).forEach(([u,o])=>{if(u!==a.u&&o&&o.t)ev.push({t:o.t,k:'task',x:`${nm(u)} hilft beim Hack`})});
       Object.entries(a.x||{}).forEach(([u,tt])=>ev.push({t:tt,k:'task',x:`${nm(u)} verlässt die Hacking-Zone und scheidet aus`}));
       if(a.e)ev.push({t:a.e.t,k:'task',x:a.e.k==='ok'?'System gehackt!':a.e.k==='df'?'Hack gestoppt: alle Hacker gefangen':`Hack abgebrochen (Versuch ${n})`})});
-    const r=k.res;if(r){if(r.k==='d3')ev.push({t:r.t,k:'task',x:'System gesichert: Hacking-Zone verteidigt'});
-      if(r.k!=='ok'&&r.h)ev.push({t:r.t,k:'bonus',x:`${nm(r.h)} erhält das Sperrgebiet`});
-      if(r.k==='ok'&&r.el){const f1=Object.entries(r.el).sort((a,b)=>a[1]-b[1])[0];if(f1)ev.push({t:r.t,k:'bonus',x:`${nm(f1[0])} erhält die Gegenüberwachung`})}}
+    const r=k.res;if(r){let ex='';
+      if(r.k==='d3')ev.push({t:r.t,k:'task',x:'System gesichert: Hacking-Zone verteidigt'});
+      if(r.k!=='ok'&&r.h)ex=`${nm(r.h)} erhält das Sperrgebiet`;
+      if(r.k==='ok'&&r.el){const f1=Object.entries(r.el).sort((a,b)=>a[1]-b[1])[0];if(f1)ex=`${nm(f1[0])} erhält die Gegenüberwachung`}
+      if(ex){const l=ev.filter(e=>e.k==='task'&&e.t===r.t).pop();if(l)l.x+=' · '+ex;else ev.push({t:r.t,k:'task',x:ex})}}
     if(k.cm)ev.push({t:k.cm.t,k:'bonus',x:`${nm(k.cm.u)} setzt die Gegenüberwachung ein`});
     if(k.oz){const ph=ozPhase(g.s,k.oz,k.oz.t);ev.push({t:k.oz.t,k:'bonus',x:`${nm(k.oz.u)} setzt das Sperrgebiet (Vorwarnung)`},{t:ph.w,k:'bonus',x:'Sperrgebiet aktiv'},{t:ph.e,k:'bonus',x:'Sperrgebiet aufgehoben'})}}}
   Object.entries(st.hb||{}).forEach(([h,o])=>Object.values(o||{}).forEach(i=>{if(!i||!i.u)return;let tg='';
@@ -764,8 +766,8 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const zr=Math.round(RadS(g.s,t-g.R0));if(!RV.zm&&zr!==RV.zr){RV.zone.setRadius(zr);RV.zr=zr}
   // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
   const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t,S),m=RV.tk[id];
-    if(on&&!m){RV.tk[id]=L.layerGroup([L.circle([k.loc.lat,k.loc.lng],{radius:id==='hk'?(g.s.hkZ||75):40,color:id==='hk'?'#18b6c9':'#7c6cff',weight:2,dashArray:'5 5',fillColor:id==='hk'?'#18b6c9':'#7c6cff',fillOpacity:.12,interactive:false}),
-      L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='hk'?'hk':id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false})]).addTo(RV.L)}
+    if(on&&!m){RV.tk[id]=L.layerGroup([L.circle([k.loc.lat,k.loc.lng],{radius:id==='hk'?(g.s.hkZ||75):40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
+      L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='hk'?'hk':id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-2000,interactive:false})]).addTo(RV.L)}
     else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}});
   {const hk=(S.tasks||{}).hk,oz=hk&&hk.oz,op=oz?ozPhase(g.s,oz,t):null,ok_=op&&op.p!=='end'?op.p:'';
     if(RV.ozK!==ok_){if(RV.ozL){RV.L.removeLayer(RV.ozL);RV.ozL=null}RV.ozK=ok_;
@@ -1383,6 +1385,12 @@ const ozPh=(g,t)=>{const k=hkK(g);return k?ozPhase(g.s,k.oz,t):null};
 function hkNear(g,u,t){const q=P()[u],hs=Object.entries(P()).filter(([k,p])=>p.role==='hunter'&&p.state==='alive'&&!p.lf);let best=null;
   if(q&&q.lat)hs.forEach(([k,p])=>{if(!p.lat||t-(p.ts||0)>30000)return;const d=D(p,q);if(!best||d<best[1])best=[k,d]});
   if(best)return best[0];const ho=hs.find(([k])=>k===g.host);return ho?ho[0]:hs.length?hs[Math.floor(Math.random()*hs.length)][0]:null}
+// Hider, dessen Standort gerade ohnehin live zu sehen ist: ein regulärer Ping bringt nichts. all=true: für alle Hunter (Zone verlassen, Strafzeit, Sperrgebiet), sonst nur für Hunter u (Live-Ortung)
+function liveNow(g,id,t,u){const p=P()[id];if(!p||p.role!=='hider'||p.state!=='alive')return false;
+  if(p.out===true||(p.revealUntil||0)>t)return true;
+  const k=hkK(g),op=k&&k.oz?ozPhase(g.s,k.oz,t):null;
+  if(op&&op.p==='on'&&locatable(p,t,id)&&D(p,k.oz)<=ozRv(g))return true;
+  return !!(u&&locatable(p,t,id)&&g.live&&g.live[id]&&g.live[id][u]>t)}
 const hkRef=()=>db.ref(`games/${code}/tasks/hk`);
 const hkInZone=g=>{const k=hkK(g);return !!(pos&&k&&D(pos,k.loc)<=hkZv(g))};
 let hkSP,hkOutMs=0,hkLT=0,hkWr=0,hkLock=0,lastCm=null,cmWas=false,ozPrev,ozIn=false,ozBusy=0,ozTmp=null;
@@ -1413,7 +1421,7 @@ function ozGo(){if(!mkTmp||!mkTmp.oz||ozHolder(G)!==uid)return mkCancel();const 
 // Sekundentakt: Fortschritt schreiben, Zone verlassen, Versuch beenden, Meldungen. Liefert HUD-Text.
 function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.now(),tg=hkTv(g)*1000,k=H.k;
   const act=hkAct(g,uid);
-  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.role==='hider'&&m.state==='alive'){toast('Hacking-Challenge verfügbar!');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
+  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.state==='alive'&&(m.role==='hider'||m.role==='hunter')){toast(m.role==='hider'?'Hacking-Challenge verfügbar!':'Hacking-Challenge gestartet: Die Hider können jetzt hacken');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
   if(act&&H.run){const a=H.run,fresh=!!pos&&nw-lastFix<10000,dt=hkLT?Math.min(3000,nw-hkLT):0;hkLT=nw;
     if(fresh){const outs=D(pos,k.loc)-(typeof gAcc==='number'?gAcc:0)>hkZv(g);hkOutMs=outs?hkOutMs+dt:0}
     if(hkOutMs>=10000){hkOutMs=0;hkLeave(H)}
@@ -1451,7 +1459,7 @@ function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.n
   if(ozPrev===undefined)ozPrev=pk;
   else if(pk!==ozPrev){ozPrev=pk;draw();panel(1);
     if(pk==='warn'&&m.role==='hider'&&m.state==='alive'){toast('Sperrgebiet! Aktiv in '+fmt(op.w-t));navigator.vibrate&&navigator.vibrate([200,100,200])}
-    else if(pk==='warn'&&m.role==='hunter'&&m.state==='alive')toast('Sperrgebiet gesetzt');
+    else if(pk==='warn'&&m.role==='hunter'&&m.state==='alive'&&k.oz.u!==uid)toast('Sperrgebiet gesetzt');
     else if(pk==='on'&&m.state==='alive')toast('Sperrgebiet aktiv');
     else if(pk==='end'&&m.role)toast('Sperrgebiet aufgehoben')}
   if(pk==='warn')h+=`<span class=w>${ic('zone')}Sperrgebiet in ${fmt(op.w-t)}</span>`;
@@ -1495,7 +1503,7 @@ function hkHunterCard(g,t,m){const H=hkSt(g,t);if(!H)return'';const k=H.k,Z=hkZv
 // Hacking-Zone, Gegenüberwachung und Sperrgebiet auf der Karte
 function hkDraw(g,t,m,spec){const k=hkK(g);if(!k||g.status!=='running')return;const H=hkSt(g,t);
   if(!H.res&&!H.dead&&(spec||m.role==='hunter'||(m.role==='hider'&&H.seen))){const Z=hkZv(g),run=!!H.run,pr=run?hkProg(g,H.run,t):0;
-    L.circle([k.loc.lat,k.loc.lng],{radius:Z,color:'#18b6c9',weight:run?3:2,dashArray:run?null:'6 5',fillColor:'#18b6c9',fillOpacity:run?.22:.1}).addTo(lay);
+    L.circle([k.loc.lat,k.loc.lng],{radius:Z,color:'#7c6cff',weight:run?3:2,dashArray:run?null:'6 5',fillColor:'#7c6cff',fillOpacity:run?.22:.1}).addTo(lay);
     mkr('t-hk',[k.loc.lat,k.loc.lng],'tkhk',()=>['Hacking-Zone',run?'Hack läuft: '+Math.round(pr*100)+' %':(H.seen?'Hack möglich':'Hider können ab '+fmt(k.t0-t)+' hacken')])}
   if(m.role==='hider'&&!spec&&hkCmOn(g,t))Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hunter'||p.state!=='alive'||p.lf||!p.lat||t-(p.ts||0)>30000)return;
     mkr('hunter',[p.lat,p.lng],'cm'+u,()=>['Hunter '+p.name,'Gegenüberwachung'],u)});
@@ -1509,12 +1517,12 @@ const hkSig=(g,t)=>{const H=hkK(g)?hkSt(g,t):null;if(!H)return 0;const o=H.k.oz;
 
 // Karte zeichnen
 function dot(ll,col,tip,r=8,op=1){const m=L.circleMarker(ll,{radius:r,color:'#fff',weight:2,fillColor:col,fillOpacity:op,opacity:op}).addTo(lay);if(tip)m.bindTooltip(tip,{permanent:true,direction:'top'});return m}
-function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
+function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{zIndexOffset:/^t-/.test(kind)||kind==='oz'?-2000:0,icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
   m.bindPopup(()=>{const a=tip();return `<b>${esc(a[0])}</b>`+(a[1]?`<span>${esc(a[1])}</span>`:'')+(a[2]||'')},{closeButton:false,offset:[0,low?-26:-14],className:'bcp',autoPan:false,maxWidth:220});
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
 map.on('popupclose',()=>{if(!redrawing)popKey=null;if(typeof mkMode!=='undefined'&&mkMode==='excl-wait')mkMode='excl'});
 const STX={caught:'gefangen',dq:'Signal verloren',quit:'aufgegeben',safe:'in Sicherheit'};
-const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Zonenausbrecher','pulsiert mit Warndreieck, Standort sichtbar'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','dunkles ✕'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-hk':['Hacking-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv']};
+const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','dunkles ✕'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-hk':['Hacking-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv']};
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
@@ -1548,12 +1556,12 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   Object.entries(P()).forEach(([k,p])=>{if(!p.lat||k===uid)return;const ll=[p.lat,p.lng];
     if(spec){
       if(p.state==='alive'){
-        if(p.role==='hider'&&p.out)mkr('out',ll,'p'+k,()=>['Hider '+p.name+' (außerhalb der Zone)','Standort sichtbar']);
+        if(p.role==='hider'&&p.out)mkr('out',ll,'p'+k,()=>['Hider '+p.name+' (außerhalb der Zone)','Standort sichtbar'],k);
         else mkr(p.role==='hunter'?'hunter':'hider',ll,'p'+k,()=>[lbl(p),specInfo(g,k,p)],k)}
       else if(p.state!=='caught'||!(g.catches&&g.catches[k]&&g.catches[k].lat))mkr('stale',ll,'p'+k,()=>[lbl(p)+' ('+(STX[p.state]||'ausgeschieden')+')','letzte bekannte Position'],k);
       return}
     if(p.role===m.role&&p.state==='alive'){if(!(m.role==='hider'&&g.status==='running'))mkr(m.role==='hunter'?'mate':'hider',ll,'p'+k,()=>[lbl(p),'dein Team'],k)}
-    else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))mkr('out',ll,'p'+k,()=>['Hider '+p.name,p.out?'außerhalb der Zone, Standort sichtbar':'Strafzeit, Standort sichtbar'])});
+    else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))mkr('out',ll,'p'+k,()=>['Hider '+p.name,p.out?'außerhalb der Zone, Standort sichtbar':'Strafzeit, Standort sichtbar'],k)});
   if(ping){const own=m.role==='hider';
     Object.entries(ping.pts).forEach(([id,p])=>{const q=P()[id];if(!q)return;
       if(own){if(q.state==='alive'){if(id===uid)mkr('pingme',[p.lat,p.lng],'pg'+id,()=>['Dein letzter Ping',ago(ping.t)],id);else mkr('ping',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name,'Ping '+ago(ping.t)],id)}return}
@@ -1669,14 +1677,15 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){const q=P()[uid];
       const pts={};
       if(q&&((q.immUntil||0)>t||hkAct(g,uid)))toast('Ping ausgesetzt: '+(hkAct(g,uid)?'Du hackst gerade':'Du bist geschützt'));
-      else if(q&&q.lat){pts[uid]={lat:q.lat,lng:q.lng,name:q.name};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort')}
+      else if(q&&q.lat&&!liveNow(g,uid,t)){pts[uid]={lat:q.lat,lng:q.lng,name:q.name};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: Hunter sehen deinen Standort')}
       // Mitspieler genau so, wie die Hunter sie beim Ping sehen (ohne Geschützte und nicht aktuelle)
-      if(hpOn(g))Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||!p.lat||(p.immUntil||0)>t||hkAct(g,id)||(!TEST&&t-(p.ts||0)>30000))return;pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
+      if(hpOn(g))Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||!p.lat||(p.immUntil||0)>t||hkAct(g,id)||liveNow(g,id,t)||(!TEST&&t-(p.ts||0)>30000))return;pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
       if(Object.keys(pts).length){ping={k,t:now(),pts};psave();draw()}}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&m.state==='alive'&&t>=R0){const k=Math.floor((t-R0)/(g.s.ping*1000));
     if(k>=1&&k!==lastK){const fr=t-(R0+k*g.s.ping*1000)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};xping=null;const nm=[],old=[],offl=!TEST&&netGap()>gwv(g)*1000;
       Object.entries(P()).forEach(([id,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
+        if(!((p.immUntil||0)>t||hkAct(g,id))&&liveNow(g,id,t,uid))return;
         if((p.immUntil||0)>t||hkAct(g,id)){nm.push(p.name);if(lk[id])ping.grey[id]=lk[id]}
         else if(p.lat){if(!TEST&&(offl||t-(p.ts||0)>30000)){old.push(p.name);ping.grey[id]={lat:p.lat,lng:p.lng,name:p.name,old:1,ts:p.ts||0}}
           else{ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name};lk[id]=ping.pts[id]}}});
