@@ -821,7 +821,10 @@ function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G)return;const t
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
 // Start / Beitritt
-async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
+// App: Standort/Berechtigungen erst hier abfragen. Fehlt etwas, zeigt die App „Bereit machen“ und ruft danach bcReady().
+let bcPass=false;function appReady(go){if(bcPass){bcPass=false;return true}try{if(!NB||!NB.ready||NB.ready())return true}catch(e){return true}window.bcReadyGo=go;return false}
+window.bcReady=()=>{const f=window.bcReadyGo;window.bcReadyGo=null;if(f){bcPass=true;f()}};window.bcReadyCancel=()=>{window.bcReadyGo=null};
+async function mk(){if(!appReady(mk))return;me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
   if(!pos){const b=$('mkb');b.textContent='GPS wird gesucht…';b.disabled=true;
     gpsErr=null;for(let i=0;i<100&&!pos;i++){await new Promise(r=>setTimeout(r,200));if(gpsErr&&((gpsErr.code===1&&i>4)||i>50))break}
     if(!pos){const b2=$('mkb')||b;b2.textContent='Neues Spiel erstellen';b2.disabled=false;return toast('Kein GPS – bitte Standort einschalten und erneut tippen')}}
@@ -830,7 +833,7 @@ async function mk(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.
   const tmo=new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),12000));
   try{await Promise.race([tmo,db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:{r0:750,rMin:300,shrink:4,step:50,head:3,dur:60,ping:180,pen:2,mode:'survive',taskR:0,imm:240,shOn:true,shT:20,evT:8,ddN:1,ddT:8,mtN:0,mtT:15,bon:true,hbOn:true,hbN:2,hbC:90,hbL:60,hbT:30,gw:20,gd:60,ot:5}})]);const b=$('mkb');if(b)b.textContent='Neues Spiel erstellen'}catch(e){const b=$('mkb');if(b){b.textContent='Neues Spiel erstellen';b.disabled=false}return toast('Keine Verbindung zur Datenbank')}
   join(c)}
-function jn(){me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
+function jn(){if(!appReady(jn))return;me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
 async function join(c){
   if(!/^[A-Z2-9]{4,6}$/.test(c))return toast('Code unbekannt');
   let st,had;
@@ -1504,7 +1507,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   $('hud').innerHTML=h;panel()},1000);
 
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
-  if(LS.c){startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
+  if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
 panel();
 setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
