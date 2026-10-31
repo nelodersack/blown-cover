@@ -127,6 +127,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 /* §CSS-REPLAY Zeitleiste (tl), Statistik (aw/al) */
 .tl{position:relative;height:34px;margin:6px 0 2px;touch-action:none;cursor:pointer}.tl .bar{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:2px;background:#2a343f}.tl .fill{position:absolute;left:0;top:15px;height:4px;border-radius:2px;background:var(--fg)}
 .tl .pg{position:absolute;top:11px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:#2a343f;pointer-events:none}
+.tl .zs{position:absolute;top:5px;width:3px;height:24px;margin-left:-1.5px;border-radius:1.5px;background:#2a343f;pointer-events:none}
 .tl .ev{position:absolute;top:9px;width:4px;height:16px;border-radius:2px;margin-left:-2px;pointer-events:none}.tl .kn{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:var(--fg);margin-left:-9px;box-shadow:0 0 0 3px var(--panel);pointer-events:none}
 .lg2{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.lg2 i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
 .ctl{display:flex;gap:8px;align-items:center}.ctl .pp{width:44px!important;height:44px;min-height:0!important;border-radius:50%!important;padding:0!important;display:grid;place-items:center;flex:none!important;background:var(--fg);color:var(--bg);border:0;font-size:15px}
@@ -308,7 +309,7 @@ async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten 
     const miss=need.filter(k=>!v[k]).length;toast(miss?`Heruntergeladen (${miss} Protokoll${miss>1?'e':''} fehlt)`:'Analysedaten heruntergeladen')}
   catch(e){toast('Analyse nicht möglich: '+String((e&&e.message)||e).slice(0,50))}finally{anB=0}}
 // §STATE Globale Variablen, Verbindung (lastAck, netGap, rcn), Grundhelfer (now, $, esc, D, P, lbl, gwE, dqOn, hpOn), Meldungen (evW, note)
-let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
+let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,zsK=null,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
 let wrOld=0,connLost=0,netW=0,lastRcn=0,lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
@@ -360,6 +361,8 @@ const AR='<svg width=24 height=14 viewBox="0 0 24 14" fill=none stroke=currentCo
 const fmt=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
 // <helpers>
 const RadS=(s,el)=>Math.max(s.rMin,s.r0-sstp(s)*Math.max(0,Math.floor(el/(s.shrink*6e4))));
+const zsStep=(s,el)=>el<0?0:Math.floor(el/(s.shrink*6e4)); // Schrumpfstufe nach el ms seit Headstart-Ende
+const zsTimes=(s,R0,end)=>{const a=[];for(let k=1;R0+k*s.shrink*6e4<end;k++){const t=R0+k*s.shrink*6e4,r=RadS(s,k*s.shrink*6e4);if(r>=RadS(s,(k-1)*s.shrink*6e4))break;a.push([t,Math.round(r)])}return a};
 const zoneSeq=s=>{const a=[s.r0],st=Math.max(1,sstp(s));let r=s.r0;while(r>s.rMin&&a.length<500){r=Math.max(s.rMin,r-st);a.push(r)}return a};
 const taskRad=s=>s.taskR>0?s.taskR:zoneSeq(s)[Math.max(0,zoneSeq(s).length-3)];
 const md=g=>g.s.mode||'survive';
@@ -745,12 +748,13 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   if(RV)rvClose();
   f.log=(f.log||[]).slice().sort((a,b)=>a[0]-b[0]);
   const pl={};f.players.forEach(p=>{pl[p.id]=Object.assign({},p,{state:'alive',sT:null})});
-  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},raf:0,last:0,zm:0};
+  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},tkc:{},raf:0,last:0,zm:0};
   const sc=rvScan(f,pl);RV.fin=sc.final;const catches=sc.ev.filter(e=>e.k==='catch').map(e=>({t:e.t,hider:e.hider,hunter:e.hunter}));
   RV.st=rvStats(f,pl,catches);const nm=k=>esc((pl[k]||{}).name||'?');
   RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
   const g=f.game;sc.ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
   for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)sc.ev.push({t,k:'ping',x:'Ping: Die Hunter sehen die Hider-Positionen'});
+  zsTimes(g.s,g.R0,g.end).forEach(([t,r])=>sc.ev.push({t,k:'zone',x:'Zone schrumpft: jetzt '+r+' m'+(r<=g.s.rMin?' (Endgröße)':'')}));
   RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);RV.aT=null;
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
@@ -788,9 +792,11 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const zr=Math.round(RadS(g.s,t-g.R0));if(!RV.zm&&zr!==RV.zr){RV.zone.setRadius(zr);RV.zr=zr}
   // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
   const T=RV.fin.tasks||{};Object.keys(T).forEach(id=>{const k=T[id],on=rvTaskShow(id,k,t,S),m=RV.tk[id];
-    if(on&&!m){RV.tk[id]=L.layerGroup([L.circle([k.loc.lat,k.loc.lng],{radius:id==='hk'?(g.s.hkZ||75):40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
+    if(on&&!m){RV.tk[id]=L.layerGroup([RV.tkc[id]=L.circle([k.loc.lat,k.loc.lng],{radius:id==='hk'?(g.s.hkZ||75):40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.12,interactive:false}),
       L.marker([k.loc.lat,k.loc.lng],{icon:L.divIcon({className:'mkw',html:shape('t-'+(id==='hk'?'hk':id==='sh'?'sh':isDd(id)?'dd':'ev')),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-2000,interactive:false})]).addTo(RV.L)}
-    else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}});
+    else if(!on&&m){RV.L.removeLayer(m);RV.tk[id]=null}
+    if(on&&id==='hk'){const run=Object.values(((S.tasks||{}).hk||{}).at||{}).some(a=>a&&a.s&&a.s<=t&&!(a.e&&a.e.t<=t));
+      if(RV.tkc.hk._run!==run){RV.tkc.hk._run=run;RV.tkc.hk.setStyle({weight:run?3:2,dashArray:run?null:'5 5',fillOpacity:run?.22:.12})}}});
   {const hk=(S.tasks||{}).hk,oz=hk&&hk.oz,op=oz?ozPhase(g.s,oz,t):null,ok_=op&&op.p!=='end'?op.p:'';
     if(RV.ozK!==ok_){if(RV.ozL){RV.L.removeLayer(RV.ozL);RV.ozL=null}RV.ozK=ok_;
       if(ok_)RV.ozL=L.circle([oz.lat,oz.lng],{radius:g.s.ozR||75,color:'#ff5f1f',weight:ok_==='on'?3:2.5,dashArray:ok_==='on'?null:'7 6',fillColor:'#ff5f1f',fillOpacity:ok_==='on'?.2:.08,interactive:false}).addTo(RV.L)}}
@@ -826,7 +832,7 @@ const RVC={catch:'#e5484d',knapp:'#ff8a1f',task:'#7c6cff',bonus:'#4fb3f0'};
 function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle('tall',RV.tab==='stat');
   const tabs=`<div class=rvtab><button class="${RV.tab==='map'?'on':''}" onclick="RV.tab='map';panel(1)">Karte</button><button class="${RV.tab==='stat'?'on':''}" onclick="RV.tab='stat';panel(1)">Statistik</button></div>`;
   const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet',X=t=>(t-RV.T0)/(RV.T1-RV.T0)*100;
-  if(RV.tab==='map'){let pg='';for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)pg+=`<span class=pg style="left:${X(t)}%"></span>`;
+  if(RV.tab==='map'){let pg='';for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)pg+=`<span class=pg style="left:${X(t)}%"></span>`;zsTimes(g.s,g.R0,g.end).forEach(([t])=>pg+=`<span class=zs style="left:${X(t)}%"></span>`);
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
      <div class=tl id=rvT onpointerdown="rvScrub(event)"><span class=bar></span>${pg}<span class=fill id=rvF></span>${RV.ev.filter(e=>RVC[e.k]).map(e=>`<span class=ev style="left:${X(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=kn id=rvK></span></div>
      <div class=lg2><span><i style="background:#e5484d"></i>Fang</span><span><i style="background:#ff8a1f"></i>Knapp!</span><span><i style="background:#7c6cff"></i>Aufgabe</span><span><i style="background:#4fb3f0"></i>Bonus</span></div>
@@ -1622,7 +1628,7 @@ function onData(){
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
-  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;lastTV='';lastHT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
+  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
   panel();draw();chatSync();mkSync()}
@@ -1692,6 +1698,8 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
     lastLv=Math.max(lastLv,lv);
     const xs=Object.values(g.xp||{}).map(e=>e.t),mx=xs.length?Math.max(...xs):0;
     if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die Hunter orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
+  if(m.role&&t>=R0){const zk=zsStep(g.s,t-R0);if(zsK===null)zsK=zk;else if(zk>zsK){const r0_=RadS(g.s,(zk-1)*g.s.shrink*6e4),r1_=RadS(g.s,zk*g.s.shrink*6e4);zsK=zk;
+    if(r1_<r0_&&t-(R0+zk*g.s.shrink*6e4)<10000){note('Zone schrumpft: jetzt '+Math.round(r1_)+' m'+(r1_<=g.s.rMin?' (Endgröße)':''));draw()}}}
   h+=hkTick(g,m,t);
   if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t),ks=Object.keys(up);
     if(ks.length){ddLock=t+2500;ks.forEach(i=>db.ref(`games/${code}/tasks/${i}`).update(up[i]).catch(()=>{}))}}
