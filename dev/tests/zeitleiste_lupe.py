@@ -23,6 +23,13 @@ with app() as (pg,ev,errs):
         # Tippen ganz rechts in der Detailspur
         t1=ev("RV.t");a=ev("rvWA(RV.t)");pg.mouse.click(box[0]+box[2]-2,y);pg.wait_for_timeout(100)
         print('  Tippen rechts: Zeit im Fenster',round((ev("RV.t")-a)/60000,2),'von',w)
+    # Am Anfang: Wischen nach links muss die Spur nach links schieben, der Abspielkopf bleibt in der Mitte
+    ev("RV.play=false;RV.t=RV.T0;rvDraw()");box=ev("(()=>{const r=$('rvD').getBoundingClientRect();return[r.left,r.top,r.width,r.height]})()")
+    s0=ev("new DOMMatrix(getComputedStyle($('rvS')).transform).m41");p0=ev("$('rvP').style.left")
+    x,y=box[0]+box[2]/2,box[1]+box[3]/2;pg.mouse.move(x,y);pg.mouse.down();pg.mouse.move(x-60,y,steps=4);pg.mouse.up();pg.wait_for_timeout(100)
+    print('Anfang: Spur',round(s0),'->',round(ev("new DOMMatrix(getComputedStyle($('rvS')).transform).m41")),'· Kopf',p0,'->',ev("$('rvP').style.left"),'· Fenster',ev("$('rvW').style.left+' / '+$('rvW').style.width"))
+    ev("RV.t=RV.T1;rvDraw()");print('Ende: Kopf',ev("$('rvP').style.left"),'· Fenster',ev("$('rvW').style.left+' / '+$('rvW').style.width"))
+    pg.locator('#panel').screenshot(path=OUT+'/zeitleiste_lupe_ende.png')
     # Filter-Chips (nur Fang, Knapp!, Aufgabe, Bonus)
     ev("RV.play=false");print('Chips:',ev("[...document.querySelectorAll('.rvch .chip')].map(c=>c.innerText).join(' | ')"))
     n0=ev("document.querySelectorAll('#rvS .ev').length")

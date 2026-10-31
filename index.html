@@ -822,7 +822,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const el=t-g.R0;
   $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`;
   const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,fl=$('rvF'),Wn=$('rvW'),St=$('rvS'),Ph=$('rvP'),c=$('rvC');if(fl)fl.style.width=fr+'%';
-  if(Wn||St){const w=rvWin(),a=rvWA(t);if(Wn)Wn.style.left=(a-RV.T0)/(RV.T1-RV.T0)*100+'%';if(St)St.style.transform=`translateX(${-(a-RV.T0)/w*St.parentNode.clientWidth}px)`;if(Ph)Ph.style.left=(t-a)/w*100+'%'}
+  if(Wn||St){const w=rvWin(),a=rvWA(t);if(Wn){const T=RV.T1-RV.T0,l=Math.max(RV.T0,a),r=Math.min(RV.T1,a+w);Wn.style.left=(l-RV.T0)/T*100+'%';Wn.style.width=(r-l)/T*100+'%'}if(St)St.style.transform=`translateX(${-(a-RV.T0)/w*St.parentNode.clientWidth}px)`;if(Ph)Ph.style.left=(t-a)/w*100+'%'}
   if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<30000&&rvVis(e)).pop();
     const h=e?`<small class=mut>${rvTm(e.t,g.R0)}</small><b style="color:var(--fg)">${e.x}</b>`:`<small class=mut>${rvTm(t,g.R0)}</small><span class=mut>Keine Ereignisse gerade</span>`;if(c._h!==h){c._h=h;c.innerHTML=h}}}
 function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;const t0=RV.t;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
@@ -835,7 +835,7 @@ function rvJump(t,k){RV.t=Math.max(RV.T0,Math.min(RV.T1,t-8000));RV.tab='map';RV
 const RVF=[['catch','Fang'],['knapp','Knapp!'],['task','Aufgabe'],['bonus','Bonus']];
 const rvVis=e=>!(RV.hide&&RV.hide[e.k]);                                   // Filter-Chips
 const rvWin=()=>Math.min(RV.T1-RV.T0,((RV.T1-RV.T0)>3.6e6?20:10)*60000);    // Lupe: 10 Min, ab 60 Min Spieldauer 20 Min
-const rvWA=t=>{const w=rvWin();return Math.max(RV.T0,Math.min(RV.T1-w,t-w/2))}; // Beginn des Lupen-Ausschnitts
+const rvWA=t=>t-rvWin()/2; // Beginn des Lupen-Ausschnitts: Abspielkopf immer in der Mitte, vor Start/nach Ende bleibt die Spur leer
 function rvHide(k){RV.hide=RV.hide||{};RV.hide[k]=!RV.hide[k];panel(1)}
 // Detailspur: Wischen spult fein (ganze Breite = Lupenfenster), Tippen springt zur angetippten Stelle
 function rvDrag(e){const b=$('rvD');if(!b)return;const r=b.getBoundingClientRect(),x0=e.clientX,t0=RV.t,w=rvWin(),a0=rvWA(RV.t),cl=v=>Math.max(RV.T0,Math.min(RV.T1,v));let mv=0;
