@@ -23,10 +23,11 @@ with app() as (pg,ev,errs):
         # Tippen ganz rechts in der Detailspur
         t1=ev("RV.t");a=ev("rvWA(RV.t)");pg.mouse.click(box[0]+box[2]-2,y);pg.wait_for_timeout(100)
         print('  Tippen rechts: Zeit im Fenster',round((ev("RV.t")-a)/60000,2),'von',w)
-    # Filter-Chips
-    ev("RV.play=false");n0=ev("document.querySelectorAll('#rvS .pg').length")
-    pg.locator('.rvch .chip',has_text='Ping').click();pg.wait_for_timeout(200)
-    print('Ping-Chip aus: pg',n0,'->',ev("document.querySelectorAll('#rvS .pg').length"),'chip off:',ev("document.querySelector('.rvch .chip.off')&&document.querySelector('.rvch .chip.off').innerText"))
-    pg.locator('.rvch .chip',has_text='Ping').click();pg.wait_for_timeout(200)
-    print('wieder an:',ev("document.querySelectorAll('#rvS .pg').length"))
+    # Filter-Chips (nur Fang, Knapp!, Aufgabe, Bonus)
+    ev("RV.play=false");print('Chips:',ev("[...document.querySelectorAll('.rvch .chip')].map(c=>c.innerText).join(' | ')"))
+    n0=ev("document.querySelectorAll('#rvS .ev').length")
+    pg.locator('.rvch .chip',has_text='Aufgabe').click();pg.wait_for_timeout(200)
+    print('Aufgabe aus: ev',n0,'->',ev("document.querySelectorAll('#rvS .ev').length"),'off:',ev("document.querySelector('.rvch .chip.off').innerText"))
+    pg.locator('.rvch .chip',has_text='Aufgabe').click();pg.wait_for_timeout(200)
+    print('wieder an:',ev("document.querySelectorAll('#rvS .ev').length"))
     print('errors:',errs[:8])

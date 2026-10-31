@@ -133,7 +133,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .tld .pg{position:absolute;top:20px;width:2px;height:14px;margin-left:-1px;border-radius:1px;background:#5b6776}.tld .zs{position:absolute;top:14px;width:3px;height:26px;margin-left:-1.5px;border-radius:1.5px;background:#5b6776}
 .tld .mt{position:absolute;bottom:17px;width:1px;height:4px;background:#3a4552}.tld .mt.b{height:7px;background:#5b6776}.tld .lb{position:absolute;bottom:3px;transform:translateX(-50%);font:500 10px var(--f-m);color:var(--mut);white-space:nowrap}
 .tld .ph{position:absolute;top:5px;bottom:18px;width:2px;margin-left:-1px;background:var(--fg);border-radius:1px;pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
-.rvch{display:flex;gap:6px;flex-wrap:wrap}.rvch .chip{cursor:pointer;user-select:none;-webkit-user-select:none}.rvch .chip i{width:8px;height:8px;border-radius:50%;display:inline-block}.rvch .chip i.pg{width:2px;height:10px;border-radius:1px;background:#5b6776}.rvch .chip i.zs{width:3px;height:12px;border-radius:1.5px;background:#5b6776}.rvch .chip b{color:var(--fg);font-weight:600}.rvch .chip.off{opacity:.4}
+.rvch{display:flex;gap:6px;flex-wrap:wrap}.rvch .chip{cursor:pointer;user-select:none;-webkit-user-select:none}.rvch .chip i{width:8px;height:8px;border-radius:50%;display:inline-block}.rvch .chip b{color:var(--fg);font-weight:600}.rvch .chip.off{opacity:.4}
 .ctl{display:flex;gap:8px;align-items:center}.ctl .pp{width:44px!important;height:44px;min-height:0!important;border-radius:50%!important;padding:0!important;display:grid;place-items:center;flex:none!important;background:var(--fg);color:var(--bg);border:0;font-size:15px}
 .rvtab{display:flex;gap:6px}.rvtab button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:10px;min-height:42px}.rvtab button.on{color:var(--fg);border-color:var(--fg)}
 .aw2{border-bottom:1px solid #222b34}.aw{display:grid;grid-template-columns:34px 1fr auto 16px;gap:10px;align-items:center;padding:9px 0;cursor:pointer}.aw .e{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--panel2);color:var(--fg)}.aw .e svg{width:19px;height:19px}
@@ -832,7 +832,7 @@ function rvPlay(){if(!RV)return;if(RV.t>=RV.T1)RV.t=RV.T0;RV.play=!RV.play;RV.la
 function rvSpeed(v){RV.speed=v;panel(1)}
 function rvJump(t,k){RV.t=Math.max(RV.T0,Math.min(RV.T1,t-8000));RV.tab='map';RV.play=true;RV.last=0;cancelAnimationFrame(RV.raf);RV.raf=requestAnimationFrame(rvLoop);panel(1);
   const a=k&&rvAt(RV.sm[k],t);if(a)rvFocus(a[0],a[1],Math.max(map.getZoom(),17));rvDraw()}
-const RVF=[['catch','Fang'],['knapp','Knapp!'],['task','Aufgabe'],['bonus','Bonus'],['ping','Ping'],['zone','Zone']];
+const RVF=[['catch','Fang'],['knapp','Knapp!'],['task','Aufgabe'],['bonus','Bonus']];
 const rvVis=e=>!(RV.hide&&RV.hide[e.k]);                                   // Filter-Chips
 const rvWin=()=>Math.min(RV.T1-RV.T0,((RV.T1-RV.T0)>3.6e6?20:10)*60000);    // Lupe: 10 Min, ab 60 Min Spieldauer 20 Min
 const rvWA=t=>{const w=rvWin();return Math.max(RV.T0,Math.min(RV.T1-w,t-w/2))}; // Beginn des Lupen-Ausschnitts
@@ -853,7 +853,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class=t style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:RVC[e.k]?`<span class=ev style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`:'').join('')}</div><span class=ph id=rvP></span></div>
-     <div class=rvch>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')">${RVC[k]?`<i style="background:${RVC[k]}"></i>`:`<i class=${k==='ping'?'pg':'zs'}></i>`}${l} <b>${n(k)}</b></span>`).join('')}</div>
+     <div class=rvch>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><i style="background:${RVC[k]}"></i>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`+tabs}
   else{const st=RV.st,nm=k=>esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
