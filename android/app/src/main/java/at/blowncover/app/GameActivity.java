@@ -257,9 +257,9 @@ public class GameActivity extends Activity {
         web.loadUrl(loadedUrl);
         h.postDelayed(probeLoop, 30000);
 
-        // Start direkt ins Spiel; nur wenn etwas fehlt, vorher „Bereit machen“.
-        if (Checks.all(this) && !getIntent().getBooleanExtra(EXTRA_READY, false)) startPlaying();
-        else showReady();
+        // Standort und Berechtigungen erst, wenn die Seite ein Spiel erstellt oder beitritt (BlownNative.ready()).
+        // Für die Startseite und „Replay abspielen“ braucht es nichts. Aus der Diagnose („Bereit machen“) direkt zeigen.
+        if (getIntent().getBooleanExtra(EXTRA_READY, false)) showReady();
     }
 
     private void showReady() {
@@ -302,7 +302,14 @@ public class GameActivity extends Activity {
         }
         playing = true;
         ensureService();
+        if (pendingReady) {
+            pendingReady = false;
+            web.evaluateJavascript("window.bcReady&&bcReady()", null);
+        }
     }
+
+    /** Die Seite wartet auf „bereit“ (Spiel erstellen/beitreten). */
+    private boolean pendingReady;
 
     @Override
     protected void onNewIntent(Intent i) {
@@ -332,7 +339,7 @@ public class GameActivity extends Activity {
     private void afterChecksChanged() {
         if (ready == null || !ready.showing()) {
             // Pflicht verloren (z. B. GPS ausgeschaltet)? Dann Dialog wieder zeigen.
-            if (!Checks.required(this)) {
+            if (playing && !Checks.required(this)) {
                 playing = false;
                 showReady();
             }
@@ -492,6 +499,16 @@ public class GameActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        // „Bereit machen“ offen, aber noch kein Spiel: zurück zur Startseite der Seite statt App in den Hintergrund
+        if (ready != null && ready.showing() && !playing) {
+            hideReady();
+            if (pendingReady) {
+                pendingReady = false;
+                web.evaluateJavascript("window.bcReadyCancel&&bcReadyCancel()", null);
+            }
+            Diag.log(this, "Bereit machen abgebrochen");
+            return;
+        }
         moveTaskToBack(true);
     }
 
@@ -654,6 +671,23 @@ public class GameActivity extends Activity {
         @JavascriptInterface
         public void log(String s) {
             Diag.log(GameActivity.this, "Web: " + s);
+        }
+
+        /** Seite will ein Spiel erstellen/beitreten: true = alles bereit (Dienst läuft), false = „Bereit machen“ wird gezeigt, danach ruft die App bcReady(). */
+        @JavascriptInterface
+        public boolean ready() {
+            final boolean ok = Checks.all(GameActivity.this);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (ok) startPlaying();
+                    else {
+                        pendingReady = true;
+                        showReady();
+                    }
+                }
+            });
+            return ok;
         }
 
         @JavascriptInterface
