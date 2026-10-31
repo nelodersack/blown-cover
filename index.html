@@ -704,7 +704,8 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV.st=rvStats(f,pl,catches);const nm=k=>esc((pl[k]||{}).name||'?');
   RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
   const g=f.game;sc.ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
-  RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);
+  for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)sc.ev.push({t,k:'ping',x:'Ping: Die Hunter sehen die Hider-Positionen'});
+  RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);RV.aT=null;
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
   f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
@@ -756,9 +757,10 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const el=t-g.R0;
   $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`;
   const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,kn=$('rvK'),fl=$('rvF'),c=$('rvC');if(kn)kn.style.left=fr+'%';if(fl)fl.style.width=fr+'%';
-  if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<45000&&e.k!=='out').pop()||RV.ev.filter(e=>e.t<=t&&t-e.t<20000).pop();
+  if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<30000).pop();
     const h=e?`<small class=mut>${rvTm(e.t,g.R0)}</small><b style="color:var(--fg)">${e.x}</b>`:`<small class=mut>${rvTm(t,g.R0)}</small><span class=mut>Keine Ereignisse gerade</span>`;if(c._h!==h){c._h=h;c.innerHTML=h}}}
-function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
+function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;const t0=RV.t;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
+  if(dt){const a=RV.ev.filter(e=>e.t>t0&&e.t<=RV.t);if(a.length)toast(a.map(e=>e.x).join(' · '))}
   if(RV.t>=RV.T1){RV.play=false;panel(1)}rvDraw();if(RV&&RV.play)RV.raf=requestAnimationFrame(rvLoop)}
 function rvPlay(){if(!RV)return;if(RV.t>=RV.T1)RV.t=RV.T0;RV.play=!RV.play;RV.last=0;cancelAnimationFrame(RV.raf);if(RV.play)RV.raf=requestAnimationFrame(rvLoop);panel(1)}
 function rvSpeed(v){RV.speed=v;panel(1)}
