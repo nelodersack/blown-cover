@@ -311,7 +311,8 @@ const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos
 let RV=null;// laufendes Replay (Abspielen)
 const P=()=>(G&&G.players)||(RV&&RV.pl)||{};
 const lbl=p=>(p.role==='hunter'?'Hunter ':'Hider ')+p.name;
-const gwv=g=>g.s.gw||20,gdv=g=>Math.max(g.s.gd||60,gwv(g)+5);
+const gwE=g=>Math.max((g.s.gw||20)*1000,fixEma*1.5+3000), // Warnschwelle: mindestens die Einstellung, bei gleichmäßig langsamer Ortung (z. B. Netz-Ortung alle 20 s) etwas darüber
+  gwv=g=>g.s.gw||20,gdv=g=>Math.max(g.s.gd||60,gwv(g)+5);
 const dqOn=g=>!!(g.s&&g.s.dq===true),hpOn=g=>!(g.s&&g.s.hp===false); // Signal-DQ: Standard aus · Hider-Pings der anderen: Standard an
 function evW(key,x,u){if(!code||evSeen.has(key))return;evSeen.add(key);db.ref(`games/${code}/ev/${key}`).set({t:now(),x,u:u||uid}).catch(()=>{})}
 function note(m){nq.push(m);if(!nB)nxt()}
@@ -830,14 +831,14 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
   $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;rvDraw()}
 
 // GPS
-let gpsErr=null,gpsWid=null,gpsTt=0;
+let gpsErr=null,gpsWid=null,gpsTt=0,fixEma=0; // fixEma: typischer Abstand der Standort-Meldungen (ms)
 function startGPS(){if(startGPS.on)return;startGPS.on=1;
   if(TEST){const put=(la,ln)=>{pos={lat:la,lng:ln};lastFix=Date.now();write(1)};
     navigator.geolocation.getCurrentPosition(q=>put(q.coords.latitude,q.coords.longitude),()=>{const c=map.getCenter();put(c.lat,c.lng)},{timeout:4000});
     setInterval(()=>{if(pos)lastFix=Date.now()},5000);return}
   try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{r.onchange=()=>{if(r.state==='denied')gpsErr={code:1,message:'verweigert'}}})}catch(x){}
-  const onFix=p=>{if(gpsErr)lg('gps','ok');gpsErr=null;gAcc=p.coords.accuracy;AL.fx++;const pg=lastFix?Date.now()-lastFix:0;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
-    if(G&&G.status==='running'&&pg>gwv(G)*1000){const mm=P()[uid];rcn()}
+  const onFix=p=>{if(gpsErr)lg('gps','ok');gpsErr=null;gAcc=p.coords.accuracy;AL.fx++;const pg=lastFix?Date.now()-lastFix:0;if(pg>0&&pg<60000)fixEma=fixEma?fixEma*.7+pg*.3:pg;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
+    if(G&&G.status==='running'&&pg>gwE(G)){const mm=P()[uid];rcn()}
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()};
   if(NB){ // App-Modus: Standort kommt vom Hintergrunddienst der Android-App
     window.bcNativePos=(la,ln,ac)=>onFix({coords:{latitude:la,longitude:ln,accuracy:ac}});
@@ -1626,7 +1627,7 @@ setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
   // GPS-Verlust (alle Rollen) & Zone (Hider)
   if(m.role&&m.state==='alive'&&t>=g.startAt){
     const gap=Date.now()-Math.max(lastFix,BOOT),GW=gwv(g),GD=gdv(g); // ab Seitenstart zählen: Neuladen ≠ „seit Ewigkeit kein GPS“
-    if(gap>GW*1000)h+=dqOn(g)?`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,GD-Math.floor(gap/1000))} s</span>`:`<span class=w>GPS-Signal weg!</span>`;
+    if(gap>gwE(g))h+=dqOn(g)?`<span class=w>GPS-Signal weg! DQ in ${Math.max(0,GD-Math.floor(gap/1000))} s</span>`:`<span class=w>GPS-Signal weg!</span>`;
     const ng=netGap();
     if(ng>GW*1000){h+=dqOn(g)?`<span class=w>Keine Internetverbindung! DQ in ${Math.max(0,GD-Math.floor(ng/1000))} s</span>`:`<span class=w>Keine Internetverbindung!</span>`;if(!netW){netW=1;lg('netwarn',1);toast('Keine Internetverbindung');navigator.vibrate&&navigator.vibrate([200,100,200])}}
     else if(netW&&ng<5000){netW=0;lg('netwarn',0);toast('Internetverbindung wieder da');rcn()}
