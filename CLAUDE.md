@@ -36,6 +36,7 @@ JS in Dateireihenfolge:
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |
 | §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`) |
+| §BRIEFING | Missionsbriefing: `bfName(code,rn)` (Operationsname), `bfData(g,code)` (beide Fassungen, Texte deterministisch aus code+rn über `bfRng`), `bfShow`/`bfClose`/`bfAuto` (Dialog `#bfd`, Merker `LS[bfKey()]`), `bfRes` (Zeile im Endscreen), Knopf `.bfb` im Panel |
 | §HACKING | `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |
 | §ZEICHNEN | `draw()` (alle Karten-Layer), `mkr` (Marker mit Popup), `tkInfo` (Aufgaben-Popup: Name + Belohnung, auch im Replay), Legende `LG` |
 | §ONDATA | `onData()` nach jeder DB-Änderung |

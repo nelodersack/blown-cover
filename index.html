@@ -120,6 +120,28 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #dlg{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
 .dbx{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;width:min(380px,100%);box-shadow:0 12px 40px #0009}
 .dbx h3{margin:0 0 8px;font:700 22px var(--f-d);letter-spacing:.02em}.dbx p{color:var(--mut);margin:0 0 14px;font-size:14px;line-height:1.45}.dbx p b{color:var(--fg);font-weight:600}.dbx input{margin:0 0 14px}
+/* Briefing (§BRIEFING) */
+#bfd{position:fixed;inset:0;z-index:2400;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
+.bf{padding:0;overflow:hidden;max-height:calc(100% - 8px);display:flex;flex-direction:column}
+.bf .bh{padding:16px 18px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1b232c,var(--panel))}
+.bf .bst{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.bf .stamp{font:700 11px var(--f-m);letter-spacing:.18em;color:var(--danger);border:1.5px solid var(--danger);border-radius:5px;padding:2px 7px;transform:rotate(-2deg);text-transform:uppercase;flex:none}
+.bf .ref{font:500 11px var(--f-m);color:var(--mut);letter-spacing:.06em;text-align:right}
+.bf .op{font:700 30px/1 var(--f-d);text-transform:uppercase;letter-spacing:.02em;margin:0}
+.bf .rl{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font:600 12px var(--f-b);padding:3px 9px;border-radius:999px;border:1px solid}
+.bf .rl.hi{color:var(--ok);border-color:#3fb56a55}.bf .rl.hu{color:var(--danger);border-color:#e5484d55}.bf .rl .ic{width:14px;height:14px}
+.bf .bb{padding:14px 18px 4px;display:grid;gap:12px;overflow:auto}
+.bf .lb{font:600 11px var(--f-b);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin:0 0 3px}
+.bf .tx{margin:0;font-size:15px;line-height:1.45;color:var(--fg)}.bf .tx b{font-weight:600}
+.bf ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.bf li{display:flex;gap:10px;align-items:center;font-size:14px;line-height:1.3}
+.bf li .q{width:26px;height:26px;flex:none;border-radius:7px;background:var(--task);display:grid;place-items:center;color:#fff}.bf li .q .ic{width:15px;height:15px}
+.bf li .q.w{background:none;border:1.5px solid var(--task);color:var(--task)}
+.bf .ft{font-size:13px;color:var(--mut);font-style:italic;margin:2px 0 0}
+.bf .bt{padding:12px 18px 16px}
+.strip .bfb{margin-left:auto;display:inline-flex!important;gap:6px;align-items:center}.bfb .ic{width:16px;height:16px}
+.rsop{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 10px;font:600 14px var(--f-b);color:var(--mut);text-align:center}
+.rsop b{font-weight:700;color:var(--fg)}.rsop b.ok{color:var(--ok)}.rsop b.no{color:var(--danger)}.rsop .ic{width:16px;height:16px;flex:none}
 #res{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:#000b;padding:16px}
 #resb{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto;padding:16px;display:grid;gap:8px}
 #resb h2{text-align:center}#resb .rl small{display:block}
@@ -342,12 +364,12 @@ const resTm=x=>x.t==null?'':(x.t<0?' im Headstart':' nach '+fmt(x.t));
 function buildRes(g){const R0=rs(g),ct=g.catches||{},pl=g.players||{};
   const l=Object.entries(pl).filter(([k,p])=>p.role).map(([k,p])=>({n:p.name,r:p.role,s:p.state,t:p.sT?p.sT-R0:null,by:p.state==='caught'&&ct[k]&&ct[k].hunter?((pl[ct[k].hunter]||{}).name||null):null,lf:!!p.lf}));
   l.sort((a,b)=>(a.t==null?1e12:a.t)-(b.t==null?1e12:b.t));
-  return{w:g.winner||'host',l}}
+  return{w:g.winner||'host',l,rn:g.rn||0}}
 function resHTML(r,mode){
   const T=r.w==='hunter'?'Hunter gewinnen 🎯':r.w==='hider'?'Hider gewinnen 🏆':'Vom Host beendet';
   const txt=x=>x.s==='alive'?(x.r==='hider'?'überlebt, frei':'bis zum Ende dabei'):x.s==='caught'?'gefangen'+resTm(x)+(x.by?' von '+esc(x.by):''):x.s==='safe'?'in Sicherheit'+resTm(x):x.s==='quit'?'aufgegeben'+resTm(x):'disqualifiziert (Verbindung)'+resTm(x);
   const sec=(role,title)=>{const a=r.l.filter(x=>x.r===role);return a.length?`<small style="margin-top:8px">${title}</small>`+a.map(x=>`<div class=rl><b>${esc(x.n)}</b><small>${txt(x)}${x.lf?' · hat das Spiel verlassen':''}</small></div>`).join(''):''};
-  return `<h2>${T}</h2>`+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')+sec('hider','Hider')+sec('hunter','Hunter')+
+  return `<h2>${T}</h2>`+bfRes(r)+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')+sec('hider','Hider')+sec('hunter','Hunter')+
     rpCard()+`<div class=row style="margin-top:12px">`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row style="margin-top:6px"><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
 function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;
   if(g.status==='over'){r=buildRes(g)}
@@ -860,7 +882,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
   const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet',X=t=>(t-RV.T0)/(RV.T1-RV.T0)*100;
   if(RV.tab==='map'){const T=RV.T1-RV.T0,w=rvWin(),Y=t=>(t-RV.T0)/T*100,vis=RV.ev.filter(rvVis),n=k=>RV.ev.filter(e=>e.k===k).length,stp=w>6e5?5:2;
     let mt='';for(let m=Math.ceil((RV.T0-g.R0)/6e4);g.R0+m*6e4<=RV.T1;m++){const x=Y(g.R0+m*6e4),b=m%stp===0;mt+=`<span class="mt${b?' b':''}" style="left:${x}%"></span>`+(b?`<span class=lb style="left:${x}%">${m}′</span>`:'')}
-    el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>
+    el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${f.round||0}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class=t style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:RVC[e.k]?`<span class=ev style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`:'').join('')}</div><span class=ph id=rvP></span></div>
      <div class=rvch>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><i style="background:${RVC[k]}"></i>${l} <b>${n(k)}</b></span>`).join('')}</div>
@@ -1385,10 +1407,10 @@ function runUI(g,me_,t,host,run){
   const SPT={caught:'Du wurdest gefangen',dq:'Disqualifiziert (GPS-Signal verloren)',safe:'Du bist in Sicherheit',quit:'Du hast aufgegeben'};
   let h='',f='';
   if(isSpec(me_)){
-    h=`<h2>${SPT[me_.state]||'Ausgeschieden'}</h2><small>Du siehst alle live auf der Karte und kannst in allen Chats mitlesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</small>`+specView(g,t);
+    h=`<div class=strip><h2 style="flex:1">${SPT[me_.state]||'Ausgeschieden'}</h2><button class="s g bfb" onclick="bfShow(1)" aria-label="Briefing anzeigen">${AKTE}Briefing</button></div><small>Du siehst alle live auf der Karte und kannst in allen Chats mitlesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</small>`+specView(g,t);
     return[h,`<button class=g onclick="leaveGame()">Spiel verlassen</button>`]}
   const im=(me_.immUntil||0)>t,
-    strip=`<div class=strip><span class="chip big">${ic(me_.role==='hider'?'hider':'hunter')} ${me_.role==='hider'?'Hider':'Hunter'}</span><span class="chip ok">${me_.role==='hider'?'Frei':'Aktiv'}</span>${im?`<span class="chip or">Geschützt ${fmt(me_.immUntil-t)}</span>`:''}</div>`;
+    strip=`<div class=strip><span class="chip big">${ic(me_.role==='hider'?'hider':'hunter')} ${me_.role==='hider'?'Hider':'Hunter'}</span><span class="chip ok">${me_.role==='hider'?'Frei':'Aktiv'}</span>${im?`<span class="chip or">Geschützt ${fmt(me_.immUntil-t)}</span>`:''}<button class="s g bfb" onclick="bfShow(1)" aria-label="Briefing anzeigen">${AKTE}Briefing</button></div>`;
   if(me_.role==='hider'){h=strip+`<small>${hh}</small>`;
     if(c&&c.status==='pending'&&(P()[c.hunter]||{}).state==='alive')h+=`<div class=card><div class=hd>${ic('hunter')}Fangmeldung</div><p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`;
     h+=hTasks(g,t)+hkHCard(g,t,me_)+hInv(g,me_,t)}
@@ -1419,6 +1441,69 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   else [h,f]=runUI(g,me_,t,host,run);
   const sc=el.scrollTop;el.innerHTML=h;el.scrollTop=sc;$('pf').innerHTML=f;resSync(g)}
 
+// §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): Text deterministisch aus code+rn, nichts in der DB
+const bfRng=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h+=0x6D2B79F5;let x=h;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296}};
+const BFA=['Grau','Still','Gläsern','Schwarz','Kalt','Rot','Silbern','Leis','Blind','Bleich','Eisern','Fern','Fremd','Golden','Kühn','Lautlos','Müd','Nächtlich','Scharf','Stumm','Wild','Zerbrochen','Verborgen','Blau','Fahl'],
+  BFN=[['Falke','Fuchs','Rabe','Wolf','Schatten','Turm','Mond','Kurier','Spiegel','Nebel','Reiher','Komet','Schlüssel','Funke','Hafen','Kompass','Pfeil','Bote','Läufer','Wächter','Sturm','Fluss','Stern','Dolch','Anker'],
+    ['Brücke','Eule','Kobra','Viper','Lerche','Möwe','Spinne','Flamme','Linse','Münze','Stimme','Klinge','Feder','Glocke','Lampe','Maske','Rose','Welle','Elster','Katze','Mauer','Quelle','Krone','Wolke','Spur'],
+    ['Auge','Echo','Siegel','Pendel','Signal','Uhrwerk','Schloss','Netz','Tor','Licht','Phantom','Orakel','Prisma','Ufer','Rätsel','Fenster','Gewitter','Feuer','Rad','Horn','Messer','Archiv','Kabel','Visier','Gambit']];
+function bfName(cd,rn){const r=bfRng('op:'+cd+':'+(rn||0)),a=BFA[r()*BFA.length|0],gi=r()*3|0,n=BFN[gi][r()*BFN[gi].length|0];return a+['er','e','es'][gi]+' '+n}
+const bfPick=(r,a)=>a[r()*a.length|0];
+const bfMin=(t,R0)=>{const m=Math.round((t-R0)/6e4);return m<=0?'von Beginn an':'ab Minute '+m};
+const bfEvery=s=>s%60===0?(s===60?'jede Minute':'alle '+s/60+' Minuten'):s<120?'alle '+s+' Sekunden':'alle '+String(Math.round(s/30)/2).replace('.',',')+' Minuten';
+// Liefert {name, hider:{...}, hunter:{...}} – gleiche Eingaben ergeben auf allen Geräten denselben Text
+function bfData(g,cd){const s=g.s,rn=g.rn||0,r=bfRng('bf:'+cd+':'+rn),S='Sektor '+cd,R0=rs(g),pl=Object.values(g.players||{}).filter(p=>p.role&&!p.w),
+    H=pl.filter(p=>p.role==='hunter').length,X=pl.filter(p=>p.role==='hider').length,T=g.tasks||{},ms=md(g)==='mission',D=s.dur,P=bfEvery(s.ping||120),nm=bfName(cd,rn);
+  const SB=`<b>${S}</b>`,J=H===1?['einen Jäger','ein Jäger','ist','hat']:[H+' Jäger',H+' Jäger','sind','haben'];
+  const lageH=bfPick(r,[`Unsere Tarnung in ${SB} ist aufgeflogen. Die Spionageabwehr hat <b>${J[0]}</b> auf euch angesetzt.`,
+    `In ${SB} wird es eng: <b>${J[1]}</b> der Spionageabwehr ${J[2]} euch auf den Fersen.`,
+    `${SB} ist kompromittiert. <b>${J[1]}</b> ${H===1?'durchkämmt':'durchkämmen'} das Gebiet nach euch.`,
+    `Eure Deckung in ${SB} hält nicht mehr. <b>${J[1]}</b> ${J[3]} eure Spur aufgenommen.`,
+    `Die Gegenseite hat ${SB} abgeriegelt und <b>${J[0]}</b> losgeschickt.`]);
+  const A=X===1?['ein feindlicher Agent','wurde','Seine Position wird','ein Agent','ist','hat sich']:[X+' feindliche Agenten','wurden','Ihre Positionen werden',X+' Agenten','sind','haben sich'];
+  const lageU=bfPick(r,[`<b>${A[0][0].toUpperCase()+A[0].slice(1)}</b> ${A[1]} in ${SB} gesichtet. ${A[2]} <b>${P}</b> übermittelt.`,
+    `In ${SB} ${X===1?'operiert':'operieren'} <b>${A[0]}</b>. Ortungsdaten kommen <b>${P}</b>.`,
+    `Die Aufklärung meldet <b>${A[3]}</b> in ${SB}. ${A[2]} <b>${P}</b> übermittelt.`,
+    `${SB}: <b>${A[3][0].toUpperCase()+A[3].slice(1)}</b> ${A[4]} untergetaucht. Die Ortung meldet sich <b>${P}</b>.`,
+    `<b>${A[3][0].toUpperCase()+A[3].slice(1)}</b> ${A[5]} in ${SB} eingenistet. ${A[2]} <b>${P}</b> übermittelt.`]);
+  const aufH=ms?bfPick(r,['Erreicht den Extraktionspunkt, sobald er freigegeben wird.','Erledigt eure Aufträge und schlagt euch zum Extraktionspunkt durch.','Haltet euch bereit: Sobald der Extraktionspunkt frei ist, müsst ihr ihn erreichen.','Der Weg nach Hause führt über den Extraktionspunkt. Lasst euch bis dahin nicht fassen.'])
+    :bfPick(r,[`Bleibt bis zum Ende der Operation <b>(${D} Min)</b> unentdeckt.`,`Haltet <b>${D} Minuten</b> durch, ohne gefasst zu werden.`,`Taucht unter und übersteht die nächsten <b>${D} Minuten</b>.`,`Euer Auftrag: <b>${D} Minuten</b> lang unsichtbar bleiben.`]);
+  const aufU=ms?bfPick(r,['Fasst alle Agenten, bevor sie den Extraktionspunkt erreichen.','Verhindert die Extraktion: Fasst die Agenten, bevor sie entkommen.','Kein Agent erreicht den Extraktionspunkt.','Fangt sie ab, bevor sie sich absetzen.'])
+    :bfPick(r,['Fasst alle Agenten, bevor die Operation endet.','Spürt die Agenten auf und setzt sie fest, bevor die Zeit abläuft.','Kein Agent verlässt diesen Sektor in Freiheit.',`Ihr habt <b>${D} Minuten</b>. Fasst sie alle.`]);
+  const fH=bfPick(r,['Diese Nachricht zerstört sich nicht selbst. Viel Glück.','Vertraut niemandem. Außer euch selbst. Vielleicht.','Wer gefasst wird, hat diese Nachricht nie gelesen.','Unauffällig bleiben. Das heißt: kein Sprint über den Hauptplatz.','Viel Erfolg. Die Zentrale glaubt an euch. Größtenteils.']);
+  const fU=bfPick(r,['Kaffee gibt es nach Dienstschluss.','Die Zentrale erwartet Ergebnisse, keine Ausreden.','Bleibt wachsam. Sie sind näher, als ihr denkt.','Überstunden werden nicht vergütet.','Niemand entkommt der Spionageabwehr. Theoretisch.']);
+  // Ziele: [Zeitpunkt, Symbol, Hider-Text, Hunter-Text|null, Hunter-Zeile genau?]; nach Zeit sortiert, frühere oben
+  const ids=Object.keys(T),dd=ids.filter(isDd),mt=ids.filter(isMt),t0=a=>Math.min(...a.map(i=>T[i].t0||0)),zi=[],zu=[];
+  if(dd.length){const t=t0(dd);zi.push([t,'box',(dd.length>1?dd.length+' Dossier-Übergaben ':'Dossier-Übergabe ')+bfMin(t,R0)])}
+  if(mt.length){const t=t0(mt);zi.push([t,'meet',(mt.length>1?mt.length+' Treffen zwischen Agenten ':'Treffen zweier Agenten ')+bfMin(t,R0)])}
+  if(T.sh){zi.push([T.sh.t0,'home','Ein Safehouse wird '+bfMin(T.sh.t0,R0)+' freigegeben']);zu.push([T.sh.t0,'home',bfPick(r,['Der Gegner richtet ein Safehouse ein.','Es gibt Hinweise auf ein Safehouse.','Der Gegner bereitet einen sicheren Unterschlupf vor.','Irgendwo wartet ein Safehouse auf sie.']),1])}
+  if(T.ev){zi.push([T.ev.t0,'exit','Der Extraktionspunkt wird '+bfMin(T.ev.t0,R0)+' freigegeben']);zu.push([T.ev.t0,'exit',bfPick(r,['Der Gegner plant eine Extraktion.','Es wird ein Extraktionspunkt vorbereitet.','Sie wollen sich absetzen. Rechnet mit einer Extraktion.','Ein Abholpunkt für die Agenten ist in Vorbereitung.']),1])}
+  if(T.hk){zi.push([T.hk.t0,'hack','Ein Terminal der Gegenseite ist '+bfMin(T.hk.t0,R0)+' angreifbar. Achtung: Die Gegenseite kennt seinen Standort.']);zu.push([T.hk.t0,'hack',bfPick(r,['Unser Terminal ist Ziel eines Angriffs. Sichert es.','Ein Terminal in eurem Sektor wird angegriffen. Verteidigt es.','Der Gegner hat es auf unser Terminal abgesehen. Bewacht es.','Unser Terminal steht im Visier. Lasst niemanden ran.']),0])}
+  if(dd.length||mt.length){const W=dd.length&&mt.length?'Übergaben und Treffen':dd.length?'Übergaben':'Treffen';
+    zu.push([t0(dd.concat(mt)),dd.length?'box':'meet',bfPick(r,[`Der Gegner plant ${W}.`,`Abgefangener Funkverkehr deutet auf ${W} hin.`,`Haltet Ausschau nach ${W}.`,`Die Agenten bereiten ${W} vor.`]),1])}
+  const so=a=>a.sort((x,y)=>x[0]-y[0]);
+  return{name:nm,cd,rn,hider:{op:'Operation '+nm,role:'Agenten im Feld',lage:lageH,auf:aufH,zl:'Missionsziele',z:so(zi).map(x=>[x[1],x[2],0]),ft:fH},
+    hunter:{op:'Abwehrmaßnahme '+nm,role:'Spionageabwehr',lage:lageU,auf:aufU,zl:'Erkenntnisse',z:so(zu).map(x=>[x[1],x[2],x[3]]),ft:fU}}}
+const AKTE='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 13h8M8 16h5"/></svg>';
+const bfKey=()=>'bf_'+code+'_'+((G&&G.rn)||0);
+function bfHTML(d,role,spec){const v=d[role],hi=role==='hider';
+  return `<div class="dbx bf" role=dialog aria-modal=true aria-label="${esc(v.op)}"><div class=bh><div class=bst><span class=stamp>Streng geheim</span><span class=ref>SEKTOR ${esc(d.cd)} · RUNDE ${d.rn+1}</span></div>
+    ${spec?`<div class=tabs2 style="margin:0 0 10px"><button class="${hi?'on':''}" onclick="ui.bfR='hider';bfShow(1)">Hider</button><button class="${hi?'':'on'}" onclick="ui.bfR='hunter';bfShow(1)">Hunter</button></div>`:''}
+    <h2 class=op>${v.op.replace(' ','<br>')}</h2><span class="rl ${hi?'hi':'hu'}">${ic(hi?'hider':'hunter')}${v.role}</span></div>
+    <div class=bb><div><p class=lb>Lage</p><p class=tx>${v.lage}</p></div><div><p class=lb>Auftrag</p><p class=tx>${v.auf}</p></div>
+    ${v.z.length?`<div><p class=lb>${v.zl}</p><ul>${v.z.map(([i,t,w])=>`<li><span class="q${w?' w':''}">${ic(i)}</span><span>${t}</span></li>`).join('')}</ul></div>`:''}
+    <p class=ft>${v.ft}</p></div><div class=bt><button onclick="bfClose()">Verstanden</button></div></div>`}
+function bfShow(force){if(!G||!code||G.status!=='running')return;const m=P()[uid]||{};if(!m.role)return;
+  const spec=isSpec(m),role=spec?(ui.bfR||'hider'):m.role;let el=$('bfd');
+  if(!el){if(!force)return;el=document.createElement('div');el.id='bfd';el.onclick=e=>{if(e.target===el)bfClose()};document.body.appendChild(el)}
+  el.innerHTML=bfHTML(bfData(G,code),role,spec)}
+function bfClose(){const el=$('bfd');if(el)el.remove();try{LS[bfKey()]='1'}catch(e){}}
+// Automatisch einmal pro Runde zeigen (nach Schließen auch nach Neuladen nicht wieder)
+function bfAuto(){if(!G||G.status!=='running'||!code||$('bfd'))return;const m=P()[uid]||{};if(!m.role||m.w)return;let seen=false;try{seen=!!LS[bfKey()]}catch(e){}if(!seen)bfShow(1)}
+// Auflösung im Endscreen (eigene Rolle; rn steht in r, ältere prev-Daten ohne rn: rn-1)
+function bfRes(r){if(!code)return'';const rn=r.rn!=null?r.rn:Math.max(0,((G&&G.rn)||1)-1),m=P()[uid]||{},hu=m.role==='hunter',nm=bfName(code,rn);
+  if(r.w!=='hider'&&r.w!=='hunter')return `<div class=rsop>${AKTE}<span>${hu?'Abwehrmaßnahme':'Operation'} ${nm}: <b>abgebrochen</b></span></div>`;
+  const ok=(r.w==='hunter')===hu;return `<div class=rsop>${AKTE}<span>${hu?'Abwehrmaßnahme':'Operation'} ${nm}: <b class=${ok?'ok':'no'}>${ok?'erfolgreich':'gescheitert'}</b></span></div>`}
 // §HACKING
 // ===== Hacking-Challenge + Sperrgebiet (Konzept: claude/KONZEPT_Hacking.md) =====
 const hk5=v=>Math.round(v/5)*5,hk10=v=>Math.round(v/10)*10;
@@ -1667,7 +1752,8 @@ function onData(){
   if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
-  panel();draw();chatSync();mkSync()}
+  panel();draw();chatSync();mkSync();
+  if(G.status==='running')bfAuto();else{const b=$('bfd');if(b)b.remove()}}
 
 // §TICK Sekundentakt: HUD, GPS/Netz-Warnung, Zone, Pings, Fänge, Spielende
 setInterval(()=>{if(!G){return}const g=G,t=now(),m=P()[uid]||{};let h='';
