@@ -786,7 +786,7 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
   f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
     L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
-    RV.ln[p.id]=L.polyline([],{color:c,weight:3,opacity:.85,interactive:false}).addTo(RV.L)});
+    RV.ln[p.id]={c:[],s:[],k:-1,o:{color:c,weight:3,opacity:.85,interactive:false}}});
   map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
   $('res').style.display='none';rotMode(true);panel(1);$('panel').classList.add('m');pMidSet();setTimeout(()=>{if(RV){pMidSet();rvFit()}},260);rvFit();rvDraw()}
 // Während eines Zooms keine Linien/Kreise neu berechnen, sonst passen sie nicht zur gerade skalierten Ebene
@@ -796,7 +796,7 @@ function rvFocus(lat,lng,z){const ph=Math.min(pVis(),innerHeight*.6);map.setView
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
 function rvFit(){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
-function rvClose(){if(!RV)return;$('panel').classList.remove('m');cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
+function rvClose(){if(!RV)return;$('panel').classList.remove('m');cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(false);panel(1)}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
   const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
@@ -814,6 +814,14 @@ function rvTaskShow(id,k,t,S){if(!k||!k.loc||k.loc.lat==null||isMt(id))return fa
   if(!k.t0||t<k.t0)return false;if(q.ex||(q.fin&&q.fin<=t)||(q.pick&&q.pick.t&&q.pick.t<=t)||(q.sol&&q.fin))return false;
   if(id==='sh'&&Object.values(q.in||{}).filter(o=>o&&o.t<=t).length>=2)return false;   // Safehouse: Belohnung gibt es nur für die ersten zwei
   return true}
+// Gefahrener Weg in Stücken zu RVK Punkten: pro Bild ändert sich nur das aktuelle kurze Stück. Ein einziger langer Pfad
+// musste bei jedem Bild komplett neu gerastert werden (je näher gezoomt, desto größer) → Ruckeln v. a. in der Android-WebView.
+const RVK=16;
+function rvLn(L_,a,lo,hd){const c=lo>0?Math.floor((lo-1)/RVK):0,ll=(i,j)=>a.slice(i,j).map(x=>[x[1],x[2]]),
+    set=(i,st,pts)=>{let pl=L_.c[i];if(!pl){if(!pts.length)return;pl=L_.c[i]=L.polyline(pts,L_.o).addTo(RV.L);L_.s[i]=st;return}
+      if(st!=='c'&&L_.s[i]===st)return;L_.s[i]=st;pl.setLatLngs(pts)};
+  if(c!==L_.k){const n=Math.max(L_.c.length,c+1);for(let i=0;i<n;i++)if(i!==c)set(i,i<c?'f':'e',i<c?ll(i*RVK,(i+1)*RVK+1):[]);L_.k=c}
+  const pts=ll(c*RVK,lo);if(hd)pts.push([hd[0],hd[1]]);set(c,'c',pts)}
 function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const zr=Math.round(RadS(g.s,t-g.R0));if(!RV.zm&&zr!==RV.zr){RV.zone.setRadius(zr);RV.zr=zr}
   // Aufgaben: erst ab ihrem Start sichtbar, Meeting hat keinen festen Ort
@@ -832,7 +840,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       lv=!out&&p.role==='hider'&&(Object.values((S.live||{})[p.id]||{}).some(u=>u>t)||q.out===true||(q.revealUntil||0)>t||(()=>{const hk=(S.tasks||{}).hk,oz=hk&&hk.oz,op=oz?ozPhase(g.s,oz,t):null;return !!(op&&op.p==='on'&&!im&&pos_&&!pos_[2]&&rvD(pos_,[oz.lat,oz.lng])<=(g.s.ozR||75))})());
     if(!RV.zm){let lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}
       const key=lo+(pos_&&!pos_[2]?':'+Math.round(pos_[0]*1e5)+','+Math.round(pos_[1]*1e5):'');
-      if(RV.lnI[p.id]!==key){RV.lnI[p.id]=key;const pts=a.slice(0,lo).map(x=>[x[1],x[2]]);if(pos_&&!pos_[2])pts.push([pos_[0],pos_[1]]);RV.ln[p.id].setLatLngs(pts)}}
+      if(RV.lnI[p.id]!==key){RV.lnI[p.id]=key;rvLn(RV.ln[p.id],a,lo,pos_&&!pos_[2]?pos_:null)}}
     const k=out||!pos_||pos_[2]?'stale':p.role==='hunter'?'hunter':'hider',key=k+(im?'i':'')+(lv?'l':'');
     if(!pos_){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
     let m=RV.m[p.id];if(!m||m._k!==key){const op=m&&m.isPopupOpen();if(m)RV.L.removeLayer(m);
@@ -842,7 +850,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
     else m.setLatLng([pos_[0],pos_[1]]);
     if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
   const el=t-g.R0;
-  $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`;
+  {const hh=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`,hu=$('hud');if(hu._h!==hh){hu._h=hh;hu.innerHTML=hh}}
   const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,fl=$('rvF'),Wn=$('rvW'),St=$('rvS'),Ph=$('rvP'),c=$('rvC');if(fl)fl.style.width=fr+'%';
   if(Wn||St){const w=rvWin(),a=rvWA(t);if(Wn){const T=RV.T1-RV.T0,l=Math.max(RV.T0,a),r=Math.min(RV.T1,a+w);Wn.style.left=(l-RV.T0)/T*100+'%';Wn.style.width=(r-l)/T*100+'%'}if(St){if(!RV.cw)RV.cw=St.parentNode.clientWidth;St.style.transform=`translateX(${-(a-RV.T0)/w*RV.cw}px)`}if(Ph){const v=(t-a)/w*100+'%';if(Ph._v!==v){Ph._v=v;Ph.style.left=v}}}
   if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<30000&&rvVis(e)).pop();
