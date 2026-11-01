@@ -9,6 +9,11 @@ with app(width=412,height=915) as (pg,ev,errs):
     pg.wait_for_timeout(800)
     st=lambda:ev("(()=>{const P=$('panel'),r=P.getBoundingClientRect(),k=document.querySelector('#pb .ctl').getBoundingClientRect();return (P.classList.contains('c')?'c':P.classList.contains('m')?'m':'voll')+' · sichtbar '+Math.round(innerHeight-r.top)+' px · Abspieltasten unten bei '+Math.round(k.bottom)+' / Bild '+innerHeight})()")
     print('Start:',st());shot(pg,'replay_panel_mitte.png')
+    # Nachträgliche Höhenänderung (wie in der App: Schriften/Fenster später): Zwischenstufe muss nachziehen
+    ev("document.querySelector('#pb h2').style.fontSize='40px'");pg.wait_for_timeout(400);print('nach größerer Überschrift:',st())
+    ev("document.querySelector('#pb h2').style.fontSize=''");pg.wait_for_timeout(400);print('zurück:',st())
+    pg.set_viewport_size({'width':412,'height':780});pg.wait_for_timeout(600);print('kleineres Fenster:',st())
+    pg.set_viewport_size({'width':412,'height':915});pg.wait_for_timeout(600);print('wieder groß:',st())
     ph=ev("(()=>{const r=$('ph').getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]})()")
     pg.mouse.click(*ph);pg.wait_for_timeout(400);print('Tipp:',st())
     pg.mouse.click(*ev("(()=>{const r=$('ph').getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]})()"));pg.wait_for_timeout(400);print('Tipp:',st())

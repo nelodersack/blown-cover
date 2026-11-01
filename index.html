@@ -799,7 +799,7 @@ function rvFocus(lat,lng,z){const ph=Math.min(pVis(),innerHeight*.6);map.setView
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
 function rvFit(){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
-function rvClose(){if(!RV)return;$('panel').classList.remove('m');cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(false);panel(1)}
+function rvClose(){if(!RV)return;$('panel').classList.remove('m');if(pRO)pRO.disconnect();cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(false);panel(1)}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
   const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
@@ -916,7 +916,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
       st.hunt.flatMap(([k,a])=>a.length?a.map(c=>[nm(k),nm(c.hider),c.t,c.hider]):[[nm(k),'0',null]]));
     if(e0)h+=A('gr',I.gr,'Grenzgänger',`${nm(e0[0])} · am nächsten am Zonenrand`,Math.round(e0[1])+' m',e0[2],st.edge.map(x=>[nm(x[0]),Math.round(x[1])+' m',x[2],x[0]]),e0[0]);
     el.innerHTML=h+tabs}
-  $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;pMidSet();rvDraw()}
+  $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;pMidSet();pObs();rvDraw()}
 
 // §GPS startGPS, write
 let gpsErr=null,gpsWid=null,gpsTt=0,fixEma=0; // fixEma: typischer Abstand der Standort-Meldungen (ms)
@@ -1333,6 +1333,11 @@ const pVis=()=>{const P_=$('panel'),H=P_.offsetHeight;return P_.classList.contai
    if(RV)setTimeout(()=>{if(RV)RV.cw=0},250)};
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
 addEventListener('resize',()=>{if(RV){RV.cw=0;pMidSet()}});
+// Zwischenstufe neu vermessen, wenn sich die Panelhöhe später noch ändert (Schriften nachgeladen, Fenstergröße in der App)
+let pRO=null;if(window.ResizeObserver){let rq=0;pRO=new ResizeObserver(()=>{if(rq||!RV||!$('panel').classList.contains('m'))return;rq=requestAnimationFrame(()=>{rq=0;if(RV&&$('panel').classList.contains('m')){RV.cw=0;pMidSet()}})})}
+// beobachtet Panel und die Inhaltsblöcke des Replay-Menüs (bei Maximalhöhe ändert sich nur der Inhalt)
+const pObs=()=>{if(!pRO)return;pRO.disconnect();pRO.observe($('panel'));[...$('pb').children].forEach(c=>pRO.observe(c))};
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(RV&&$('panel').classList.contains('m'))pMidSet()});
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0};
