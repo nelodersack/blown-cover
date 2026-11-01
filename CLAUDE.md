@@ -31,7 +31,7 @@ JS in Dateireihenfolge:
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | `cc`, `rq`, `ok`, `no`, `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*`, Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView`, Radar, `hInv` |
-| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (nur Replay-Karte, `pMid`/`pMidSet`, CSS-Variable `--mid`) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
+| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (nur Replay-Karte, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand in `#pb`, damit das Menü in der Mitte scrollbar bleibt) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
 | §EINSTELLUNGEN | `ui`, `DEF`, **`FD`** (Feld-Definitionen), `PRE` (Dauer-Presets), `setPre`, `setHk` |
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |

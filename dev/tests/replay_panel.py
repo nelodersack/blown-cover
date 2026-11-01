@@ -18,6 +18,13 @@ with app(width=412,height=915) as (pg,ev,errs):
     drag(600);print('ganz runter:',st())
     drag(-150);print('etwas hoch:',st())
     drag(-400);print('ganz hoch:',st())
+    drag(150);print('zurück in die Mitte:',st())
+    # Scrollen in der Mitte: Karte „Statistik“-Tab muss erreichbar werden
+    vis=lambda:ev("(()=>{const b=[...document.querySelectorAll('#pb .rvtab button')].pop().getBoundingClientRect();return Math.round(b.bottom)+' / '+innerHeight})()")
+    print('Tabs vor dem Scrollen unten bei',vis())
+    ev("$('pb').scrollTop=9999");pg.wait_for_timeout(200);print('nach dem Scrollen unten bei',vis(),'· scrollbar:',ev("$('pb').scrollHeight>$('pb').clientHeight"))
+    shot(pg,'replay_panel_gescrollt.png')
+    ev("$('pb').scrollTop=0")
     ev("RV.tab='stat';panel(1)");pg.wait_for_timeout(300);print('Statistik:',ev("$('panel').classList.contains('m')"))
     ev("rvClose()");pg.wait_for_timeout(300);print('nach Schließen m:',ev("$('panel').classList.contains('m')"))
     print('errors:',errs[:5])
