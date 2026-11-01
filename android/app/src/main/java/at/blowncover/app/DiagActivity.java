@@ -60,6 +60,35 @@ public class DiagActivity extends Activity {
         root.addView(svc.row, Ui.lp(this, 12));
         root.addView(rdy.row, Ui.lp(this, 6));
 
+        // Darstellung zum Vergleichen (wirkt beim Zurückkehren ins Spiel)
+        root.addView(Ui.label(this, "Darstellung (zum Testen)"), Ui.lp(this, 14));
+        LinearLayout rr = new LinearLayout(this);
+        rr.setOrientation(LinearLayout.HORIZONTAL);
+        final Button pre = Ui.button(this, "", false, true, null), hz = Ui.button(this, "", false, true, null);
+        pre.setText("Vorzeichnen: " + (Prefs.preRaster(this) ? "an" : "aus"));
+        hz.setText("120 Hz: " + (Prefs.maxHz(this) ? "an" : "aus"));
+        pre.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean n = !Prefs.preRaster(DiagActivity.this);
+                Prefs.set(DiagActivity.this, "preRaster", n);
+                pre.setText("Vorzeichnen: " + (n ? "an" : "aus"));
+            }
+        });
+        hz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean n = !Prefs.maxHz(DiagActivity.this);
+                Prefs.set(DiagActivity.this, "maxHz", n);
+                hz.setText("120 Hz: " + (n ? "an" : "aus"));
+            }
+        });
+        LinearLayout.LayoutParams hl = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        hl.rightMargin = Ui.dp(this, 8);
+        rr.addView(pre, hl);
+        rr.addView(hz, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        root.addView(rr, Ui.lp(this, 6));
+
         root.addView(Ui.label(this, "Protokoll"), Ui.lp(this, 14));
         logScroll = new ScrollView(this);
         logScroll.setBackground(Ui.box(this, Ui.PANEL, Ui.LINE, 12));

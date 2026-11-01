@@ -111,7 +111,6 @@ public class GameActivity extends Activity {
         super.onCreate(b);
         alive = true;
         current = new WeakReference<>(this);
-        maxRefreshRate();
         web = new AwakeWebView(this);
         frame = new FrameLayout(this);
         frame.setBackgroundColor(Ui.BG);
@@ -126,8 +125,9 @@ public class GameActivity extends Activity {
         s.setGeolocationEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setUserAgentString(s.getUserAgentString() + " BlownCoverApp/1");
-        // Flüssigere Darstellung: Inhalt auch außerhalb des sichtbaren Bereichs vorzeichnen.
-        s.setOffscreenPreRaster(true);
+        // Vorzeichnen und Bildrate: siehe applyRender() (seit v0.3.0 standardmäßig aus, wie im Chrome-Browser;
+        // mit beidem an ruckelte das Replay und das Verschieben der Karte auf dem S20+).
+        applyRender();
         // Darstellungsprozess der Seite auch im Hintergrund als wichtig markieren (wird seltener beendet).
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
         WebView.setWebContentsDebuggingEnabled(true);
@@ -401,6 +401,24 @@ public class GameActivity extends Activity {
         });
     }
 
+    private String lastRender = "";
+
+    /** Darstellungs-Schalter aus der Diagnose anwenden (beim Start und nach Rückkehr aus der Diagnose). */
+    private void applyRender() {
+        boolean pr = Prefs.preRaster(this), hz = Prefs.maxHz(this);
+        String k = pr + "/" + hz;
+        if (k.equals(lastRender)) return;
+        lastRender = k;
+        web.getSettings().setOffscreenPreRaster(pr);
+        if (hz) maxRefreshRate();
+        else {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.preferredDisplayModeId = 0;
+            getWindow().setAttributes(lp);
+        }
+        Diag.log(this, "Darstellung: Vorzeichnen " + (pr ? "an" : "aus") + ", Bildrate " + (hz ? "höchste" : "Systemvorgabe"));
+    }
+
     /** Höchste Bildwiederholrate bei gleicher Auflösung anfordern (z. B. 120 Hz statt 60 Hz bei Samsung). */
     private void maxRefreshRate() {
         try {
@@ -501,6 +519,7 @@ public class GameActivity extends Activity {
     protected void onResume() {
         super.onResume();
         web.onResume();
+        applyRender();
         web.resumeTimers();
         afterChecksChanged();
         // Seitenwahl im Diagnose-Bildschirm geändert? Dann die neue Seite laden.
