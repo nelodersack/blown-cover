@@ -21,7 +21,7 @@
 #hud .w{background:var(--danger);font-family:var(--f-b);font-weight:600}
 #hud .ic{width:15px;height:15px}
 #panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:56vh;display:flex;flex-direction:column;background:var(--panel);border-radius:20px 20px 0 0;border-top:1px solid var(--line);transition:transform .2s,max-height .2s;padding-bottom:env(safe-area-inset-bottom,0px)}
-#panel.tall{max-height:80vh}#panel.c{transform:translateY(calc(100% - 34px))}
+#panel.tall{max-height:80vh}#panel.c{transform:translateY(calc(100% - 34px))}#panel.m{transform:translateY(var(--mid,0px))}
 #ph{padding:10px 0 8px;cursor:grab;touch-action:none;flex:none}#ph i{display:block;width:44px;height:5px;border-radius:3px;background:#4a5563;margin:0 auto}
 #pb{overflow:auto;padding:0 14px 14px;display:grid;gap:10px;align-content:start;grid-auto-rows:max-content;flex:1;min-height:0;overscroll-behavior:contain}
 #pf{flex:none;padding:10px 14px 12px;border-top:1px solid var(--line);display:grid;gap:6px;background:var(--panel)}#pf:empty{display:none}
@@ -788,15 +788,15 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
     L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
     RV.ln[p.id]=L.polyline([],{color:c,weight:3,opacity:.85,interactive:false}).addTo(RV.L)});
   map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
-  $('res').style.display='none';rotMode(true);panel(1);rvFit();rvDraw()}
+  $('res').style.display='none';rotMode(true);panel(1);pMidSet();if(pMid())$('panel').classList.add('m');rvFit();rvDraw()}
 // Während eines Zooms keine Linien/Kreise neu berechnen, sonst passen sie nicht zur gerade skalierten Ebene
 function rvZs(){if(RV)RV.zm=1}
 function rvZe(){if(RV){RV.zm=0;RV.zr=-1;RV.lnI={};rvDraw()}}
-function rvFocus(lat,lng,z){const ph=Math.min($('panel').offsetHeight,innerHeight*.6);map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
+function rvFocus(lat,lng,z){const ph=Math.min(pVis(),innerHeight*.6);map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
-function rvFit(){const g=RV.f.game,ph=Math.min($('panel').offsetHeight,innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
+function rvFit(){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
-function rvClose(){if(!RV)return;cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
+function rvClose(){if(!RV)return;$('panel').classList.remove('m');cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';rotMode(false);panel(1)}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players};
   const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${p.role==='hunter'?'Hunter':'Hider'} · ${out?SL[p.state]||p.state:'aktiv'}</div>`;
@@ -844,7 +844,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
   const el=t-g.R0;
   $('hud').innerHTML=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`;
   const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,fl=$('rvF'),Wn=$('rvW'),St=$('rvS'),Ph=$('rvP'),c=$('rvC');if(fl)fl.style.width=fr+'%';
-  if(Wn||St){const w=rvWin(),a=rvWA(t);if(Wn){const T=RV.T1-RV.T0,l=Math.max(RV.T0,a),r=Math.min(RV.T1,a+w);Wn.style.left=(l-RV.T0)/T*100+'%';Wn.style.width=(r-l)/T*100+'%'}if(St)St.style.transform=`translateX(${-(a-RV.T0)/w*St.parentNode.clientWidth}px)`;if(Ph)Ph.style.left=(t-a)/w*100+'%'}
+  if(Wn||St){const w=rvWin(),a=rvWA(t);if(Wn){const T=RV.T1-RV.T0,l=Math.max(RV.T0,a),r=Math.min(RV.T1,a+w);Wn.style.left=(l-RV.T0)/T*100+'%';Wn.style.width=(r-l)/T*100+'%'}if(St){if(!RV.cw)RV.cw=St.parentNode.clientWidth;St.style.transform=`translateX(${-(a-RV.T0)/w*RV.cw}px)`}if(Ph){const v=(t-a)/w*100+'%';if(Ph._v!==v){Ph._v=v;Ph.style.left=v}}}
   if(c){const e=RV.ev.filter(e=>e.t<=t&&t-e.t<30000&&rvVis(e)).pop();
     const h=e?`<small class=mut>${rvTm(e.t,g.R0)}</small><b style="color:var(--fg)">${e.x}</b>`:`<small class=mut>${rvTm(t,g.R0)}</small><span class=mut>Keine Ereignisse gerade</span>`;if(c._h!==h){c._h=h;c.innerHTML=h}}}
 function rvLoop(ts){if(!RV||!RV.play)return;const dt=RV.last?Math.min(250,ts-RV.last):0;RV.last=ts;const t0=RV.t;RV.t=Math.min(RV.T1,RV.t+dt*RV.speed);
@@ -877,7 +877,7 @@ function rvDrag(e){const b=$('rvD');if(!b)return;const r=b.getBoundingClientRect
 function rvScrub(e){const b=$('rvT');if(!b)return;const r=b.getBoundingClientRect(),go=x=>{RV.t=RV.T0+Math.max(0,Math.min(1,(x-r.left)/r.width))*(RV.T1-RV.T0);rvDraw()};
   go(e.clientX);const mv=ev=>go(ev.clientX),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
 const RVC={catch:'#e5484d',knapp:'#ff8a1f',task:'#7c6cff',bonus:'#4fb3f0'};
-function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle('tall',RV.tab==='stat');
+function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle('tall',RV.tab==='stat');RV.cw=0;if(RV.tab!=='map')$('panel').classList.remove('m');
   const tabs=`<div class=rvtab><button class="${RV.tab==='map'?'on':''}" onclick="RV.tab='map';panel(1)">Karte</button><button class="${RV.tab==='stat'?'on':''}" onclick="RV.tab='stat';panel(1)">Statistik</button></div>`;
   const W=g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Beendet',X=t=>(t-RV.T0)/(RV.T1-RV.T0)*100;
   if(RV.tab==='map'){const T=RV.T1-RV.T0,w=rvWin(),Y=t=>(t-RV.T0)/T*100,vis=RV.ev.filter(rvVis),n=k=>RV.ev.filter(e=>e.k===k).length,stp=w>6e5?5:2;
@@ -905,7 +905,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
       st.hunt.flatMap(([k,a])=>a.length?a.map(c=>[nm(k),nm(c.hider),c.t,c.hider]):[[nm(k),'0',null]]));
     if(e0)h+=A('gr',I.gr,'Grenzgänger',`${nm(e0[0])} · am nächsten am Zonenrand`,Math.round(e0[1])+' m',e0[2],st.edge.map(x=>[nm(x[0]),Math.round(x[1])+' m',x[2],x[0]]),e0[0]);
     el.innerHTML=h+tabs}
-  $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;rvDraw()}
+  $('pf').innerHTML=`<button class=g onclick="rvClose()">Replay schließen</button>`;pMidSet();rvDraw()}
 
 // §GPS startGPS, write
 let gpsErr=null,gpsWid=null,gpsTt=0,fixEma=0; // fixEma: typischer Abstand der Standort-Meldungen (ms)
@@ -1300,16 +1300,25 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
       if((!chOpen||ch!==chCur)&&c.u!==uid&&c.t>chSince){chUnread++;if(isDm(ch)){const u=ch.slice(3);dmUn[u]=(dmUn[u]||0)+1}chBadge();chTabs()}},()=>{})});
   chShow(all.includes(chCur)?chCur:cs[0])}
 // §PANEL-ZIEHEN
-// Panel ziehen: folgt dem Finger, rastet beim Loslassen ein
-{const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0;
- const lim=()=>P_.offsetHeight-28;
- ph.addEventListener('pointerdown',e=>{on=1;y0=e.clientY;dy=0;P_.style.transition='none';ph.setPointerCapture(e.pointerId)});
- ph.addEventListener('pointermove',e=>{if(!on)return;dy=e.clientY-y0;const H=lim(),c=P_.classList.contains('c');
-   P_.style.transform=`translateY(${Math.min(H,Math.max(0,(c?H:0)+dy))}px)`});
- const end=()=>{if(!on)return;on=0;const H=lim(),c=P_.classList.contains('c'),p=Math.min(H,Math.max(0,(c?H:0)+dy));
+// Panel ziehen: folgt dem Finger, rastet beim Loslassen ein. Im Replay (Karte) gibt es eine Zwischenstufe „m“:
+// Panel nur bis unter die Abspieltasten sichtbar (Standard beim Öffnen). Antippen: eingeklappt → Mitte → ganz → Mitte.
+const pMid=()=>{const P_=$('panel');if(!RV||RV.tab!=='map')return 0;const k=$('pb')&&$('pb').querySelector('.ctl');if(!k)return 0;
+  const m=Math.round(P_.offsetHeight-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+12));return m>40?m:0};
+const pMidSet=()=>{const P_=$('panel'),m=pMid();P_.style.setProperty('--mid',m+'px');if(!m)P_.classList.remove('m')};
+const pVis=()=>{const P_=$('panel'),H=P_.offsetHeight;return P_.classList.contains('c')?34:P_.classList.contains('m')?H-(parseFloat(P_.style.getPropertyValue('--mid'))||0):H};
+{const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0,s0=0;
+ const lim=()=>P_.offsetHeight-28,pos=()=>P_.classList.contains('c')?lim():P_.classList.contains('m')?pMid():0;
+ const snap=k=>{P_.classList.toggle('c',k==='c');P_.classList.toggle('m',k==='m')};
+ ph.addEventListener('pointerdown',e=>{on=1;y0=e.clientY;dy=0;pMidSet();s0=pos();P_.style.transition='none';ph.setPointerCapture(e.pointerId)});
+ ph.addEventListener('pointermove',e=>{if(!on)return;dy=e.clientY-y0;P_.style.transform=`translateY(${Math.min(lim(),Math.max(0,s0+dy))}px)`});
+ const end=()=>{if(!on)return;on=0;const H=lim(),M=pMid(),p=Math.min(H,Math.max(0,s0+dy)),c=P_.classList.contains('c'),m=P_.classList.contains('m');
    P_.style.transition='';P_.style.transform='';
-   if(Math.abs(dy)<6)P_.classList.toggle('c');else P_.classList.toggle('c',p>H/3)};
+   if(Math.abs(dy)<6){if(!M)snap(c?'':'c');else snap(c?'m':m?'':'m')}
+   else if(!M)snap(p>H/3?'c':'');
+   else{const pts=[['',0],['m',M],['c',H]];snap(pts.reduce((a,b)=>Math.abs(b[1]-p)<Math.abs(a[1]-p)?b:a)[0])}
+   if(RV)setTimeout(()=>{if(RV)RV.cw=0},250)};
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
+addEventListener('resize',()=>{if(RV){RV.cw=0;pMidSet()}});
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0};

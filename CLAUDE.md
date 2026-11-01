@@ -23,7 +23,7 @@ JS in Dateireihenfolge:
 | §UI-BASIS | `toast`, Icons `SV`/`ic()`, Farben `PAL`/`colOf`, Markerformen `shape`/`shape0`, `TH`, Wake Lock |
 | §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*`, Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
-| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis` |
+| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis` |
 | §GPS | `startGPS`, `write` |
 | §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
@@ -31,7 +31,7 @@ JS in Dateireihenfolge:
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | `cc`, `rq`, `ok`, `no`, `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*`, Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView`, Radar, `hInv` |
-| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste |
+| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (nur Replay-Karte, `pMid`/`pMidSet`, CSS-Variable `--mid`) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
 | §EINSTELLUNGEN | `ui`, `DEF`, **`FD`** (Feld-Definitionen), `PRE` (Dauer-Presets), `setPre`, `setHk` |
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |
