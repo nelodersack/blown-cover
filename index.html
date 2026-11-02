@@ -437,6 +437,7 @@ const tkMsg=x=>x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreich
 const tv=(g,id,t)=>{const k=g.tasks&&g.tasks[id];return !!k&&t>=k.t0};
 const rankOf=(inn,u)=>{const a=Object.entries(inn||{}).sort((x,y)=>x[1].t-y[1].t||(x[0]<y[0]?-1:1));return a.findIndex(e=>e[0]===u)+1};
 // Radar (Konzept: claude/KONZEPT_Bewegungsmelder.md): Radius/Dauer (0 = auto), Dead-Drop-Verteilung per Hash aus code+rn+id (alle Geräte gleich, ohne DB)
+const sbV=s=>s.sbT>0?s.sbT:60; // Satellitenbild-Dauer in s
 const bmRv=s=>s.bmR>0?s.bmR:Math.max(40,Math.round(.2*(s.r0||500)/5)*5),bmTv=s=>s.bmT>0?s.bmT:(s.ping||120);
 const ddBm=(g,id)=>{const s=(g.code||code)+':'+(g.rn||0)+':'+id;let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return h%2===1};
 const ITN=i=>i.type==='radar'?'Satellitenbild':i.type==='bm'?'Hunter-Radar':'Immunität '+fmt((i.sec||0)*1000);
@@ -1282,10 +1283,10 @@ function specView(g,t){const T=g.tasks||{};
     h+=`<div class=tk><div class=hd>${esc(p.name)}<span class="chip ${p.state==='alive'?'ok':''}" style="margin-left:auto">${SL[p.state]||p.state}</span></div>`+(hbOn(g)&&p.state==='alive'?`<small>Boni: ${it.length?it.join(', '):'keine'}</small>`:'')+`</div>`});
   return h}
 function useRadar(id){const pts=Object.values(P()).filter(p=>p.role==='hunter'&&p.lat).map(p=>({lat:p.lat,lng:p.lng,name:p.name}));
-  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild: '+pts.length+' Hunter erfasst (60 s sichtbar)');draw();panel(1)})}
+  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild: '+pts.length+' Hunter erfasst ('+sbV(G.s)+' s sichtbar)');draw();panel(1)})}
 function hInv(g,me_,t){const it=myItems(g),act=(me_.immUntil||0)>t;let h='';
   it.forEach(i=>{const used=me_.used&&me_.used[i.id];
-    if(i.type==='radar')h+=`<div class=tk><b>Satellitenbild</b> <small>(alle Hunter 60 s)</small> `+(used?'<small>eingesetzt</small>':`<button class="s" onclick="useRadar('${i.id}')">Einsetzen</button>`)+`</div>`;
+    if(i.type==='radar')h+=`<div class=tk><b>Satellitenbild</b> <small>(alle Hunter ${sbV(g.s)} s)</small> `+(used?'<small>eingesetzt</small>':`<button class="s" onclick="useRadar('${i.id}')">Einsetzen</button>`)+`</div>`;
     else if(i.type==='bm'){const a=bmMine(g,t),on=a&&a.id===i.id;h+=`<div class=tk><b>Hunter-Radar</b> <small>(${bmRv(g.s)} m · ${fmt(bmTv(g.s)*1000)})</small> `+(on?`<small>läuft noch ${fmt(a.end-t)}</small>`:used?'<small>eingesetzt</small>':a?'<small>anderes Radar läuft</small>':`<button class="s" onclick="useBm('${i.id}')">Einsetzen</button>`)+`</div>`}
     else h+=`<div class=tk><b>Immunität</b> ${fmt(i.sec*1000)} `+(used?'<small>eingesetzt</small>':act?'<small>Schutz läuft noch</small>':`<button class="s" onclick="useImm('${i.id}',${i.sec})">Einsetzen</button>`)+`</div>`});
   return h?`<h3>Inventar</h3>`+h:''}
@@ -1397,8 +1398,8 @@ const pObs=()=>{if(!pRO)return;pRO.disconnect();pRO.observe($('panel'));[...$('p
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('panel').classList.contains('m'))pMidSet()});
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
-const DEF={gw:20,gd:60,step:50,ot:0,bmR:0,bmT:0};
-const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Hider-Radar nach (0 = aus)',0,120,5,'Min'],bmR:['Radar-Radius (0 = auto)',0,2000,5,'m'],bmT:['Radar-Dauer (0 = auto)',0,900,10,'s'],hkS:['Hacking ab',1,119,1,'Min'],hkZ:['Hacking-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
+const DEF={gw:20,gd:60,step:50,ot:0,bmR:0,bmT:0,sbT:60};
+const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Hider-Radar nach (0 = aus)',0,120,5,'Min'],bmR:['Radar-Radius (0 = auto)',0,2000,5,'m'],bmT:['Radar-Dauer (0 = auto)',0,900,10,'s'],sbT:['Satellitenbild-Dauer',10,600,10,'s'],hkS:['Hacking ab',1,119,1,'Min'],hkZ:['Hacking-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
 const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120,pen:1,shT:10,ddT:4,mtT:8,evT:5,imm:120,hbC:60,hbL:40,hbT:15,ot:3},
  60:{dur:60,r0:750,rMin:300,shrink:4,step:50,head:3,ping:180,pen:2,shT:20,ddT:8,mtT:15,evT:8,imm:240,hbC:90,hbL:60,hbT:30,ot:5},
  90:{dur:90,r0:1000,rMin:400,shrink:5,step:50,head:4,ping:240,pen:3,shT:30,ddT:12,mtT:22,evT:10,imm:300,hbC:120,hbL:90,hbT:45,ot:7},
@@ -1462,18 +1463,20 @@ function lobbyUI(g,host,me_){
         +(host&&k!==uid?`<button class="ghost s" onclick="toHost('${k}')" aria-label="Zum Host machen" title="Zum Host machen">${ic('crown')}</button>`:'')+`</div>`+(k===uid&&ui.pal&&!p.w?palUI():'')).join('');
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0),
-      immNeed=sv&&s.shOn,bmH=bonOn(g)&&((s.ddN||0)+(s.mtN||0))>0,bmF=nf('bmR',1)+nf('bmT',1)+`<small class=mut>Auto: ${bmRv(Object.assign({},s,{bmR:0}))} m · ${fmt(bmTv(Object.assign({},s,{bmT:0}))*1000)} (0,2 × Startradius · 1 Ping-Intervall)</small>`;
+      immNeed=sv&&s.shOn,bmH=bonOn(g)&&((s.ddN||0)+(s.mtN||0))>0,bmF=nf('bmR',1)+nf('bmT',1)+`<div class="fl sub"><small class=mut>Gilt für Hunter- und Hider-Radar. Auto: ${bmRv(Object.assign({},s,{bmR:0}))} m · ${fmt(bmTv(Object.assign({},s,{bmT:0}))*1000)} (0,2 × Startradius · 1 Ping-Intervall)</small></div>`;
     const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),
       tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`+(s.hk?' · Hacking':'');
     let t=nf('ddN')+((s.ddN||0)>0?nf('ddT',1):'')+nf('mtN')+((s.mtN||0)>0?nf('mtT',1):'');
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT',1):'');
-    else t+=nf('evT')+swt('bon',s.bon!==false,'Aufgaben-Boni','Belohnung für Dead Drop und Meeting');
+    else t+=nf('evT');
     t+=`<div class=fl><label>Hacking-Challenge<small>Riskante Hider-Aufgabe mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Hacking-Challenge" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
-    if(immNeed)t+=nf('imm');
     if(nT>0)t+=nf('taskR');
-    if(bmH)t+=bmF;
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
-    const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping oder Live-Standort nach einem Fang, Hider-Radar als Zeitbonus')+(hbOn(g)?nf('hbN',1)+nf('hbC',1)+nf('hbL',1)+nf('hbT',1)+(!bmH&&(s.hbT||0)>0?bmF:''):'');
+    // Boni der Hider: Immunität (Safehouse), Satellitenbild und Radar (Dead Drop/Meeting)
+    {const bo=[];if(!sv)bo.push(swt('bon',s.bon!==false,'Aufgaben-Boni','Belohnung für Dead Drop und Meeting',1));
+      if(immNeed)bo.push(nf('imm',1));if(bmH)bo.push(nf('sbT',1),bmF);
+      if(bo.length)t+=`<div class=fl><label>Boni<small>${[immNeed?'Immunität':'',bmH?'Satellitenbild, Hunter-Radar':'',!sv&&!bmH?'Belohnungen an/aus':''].filter(x=>x).join(' · ')}</small></label></div>`+bo.join('')}
+    const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping oder Live-Standort nach einem Fang, Hider-Radar als Zeitbonus')+(hbOn(g)?nf('hbN',1)+nf('hbC',1)+nf('hbL',1)+nf('hbT',1)+((s.hbT||0)>0?(bmH?'<div class="fl sub"><small class=mut>Radius und Dauer des Hider-Radars: Aufgaben → Boni</small></div>':bmF):''):'');
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
@@ -1813,7 +1816,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
-  if(radar&&t-radar.t<60000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Satellitenbild '+ago(radar.t)]));
+  if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Satellitenbild '+ago(radar.t)]));
   if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:(imMe()?shape('me',uid).replace('stroke="#1e7cf0"','stroke="#f2b705"'):shape('me',uid))+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
   if(imMe()){clearTimeout(imT);imT=setTimeout(()=>{if(G)draw()},Math.max(500,(P()[uid].immUntil||0)-now()+300))}
   hkDraw(g,t,m,spec);
@@ -1889,7 +1892,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(ids!==lastHT){const was=lastHT===null?[]:lastHT.split(','),ms=new Set();lastHT=ids;
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
-  if(radar&&t-radar.t>=60000){radar=null;draw()}
+  if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw()}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
     const lv=Math.max(0,...Object.values((g.live||{})[uid]||{}));
