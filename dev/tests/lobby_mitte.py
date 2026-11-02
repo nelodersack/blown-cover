@@ -30,6 +30,13 @@ with app() as (pg,ev,errs):
     # Spieler-Tab: kein Anker, Versatz 0
     ev("$('panel').classList.add('m');tabGo('lt','players')");pg.wait_for_timeout(300)
     print('Spieler-Tab mid',ev("$('panel').style.getPropertyValue('--mid')"));assert ev("$('panel').style.getPropertyValue('--mid')")=='0px'
+    # Regression 02.11.: gescrolltes Menü + Bereich öffnen (z. B. „Boni“) darf das Panel nicht aus dem Bild schieben
+    ev("tabGo('lt','set');$('panel').classList.remove('c');$('panel').classList.add('m');pMidSet()");pg.wait_for_timeout(300)
+    m0=ev("$('panel').style.getPropertyValue('--mid')")
+    ev("ui.adv=true;$('ps').scrollTop=600");pg.wait_for_timeout(200);ev("ui.open.bon=1;panel(1)");pg.wait_for_timeout(600)
+    r=ev("[Math.round($('panel').getBoundingClientRect().top),innerHeight,$('panel').style.getPropertyValue('--mid')]");print('gescrollt',r,m0)
+    assert r[0]<r[1]-100 and r[2]==m0,r
+    ev("ui.open.bon=0;$('ps').scrollTop=0;panel(1)")
     # Spielstart: keine Zwischenstufe
     ev("__T.games.K7QF.status='running';__T.games.K7QF.startAt=Date.now();notify()");pg.wait_for_timeout(500)
     assert not ev("$('panel').classList.contains('m')");print('Spiel läuft: ok')

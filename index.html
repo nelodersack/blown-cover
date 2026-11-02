@@ -1376,8 +1376,10 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
 // die Abspieltasten, Lobby-Einstellungen bis unter „Balancing“ (Anker data-mid). Ohne Anker (z. B. Spieler-Tab) ist der Versatz 0.
 // Antippen: eingeklappt → Mitte → ganz → Mitte.
 const pAnc=()=>{const pb=$('pb');if(!pb)return null;if(RV)return RV.tab==='map'?pb.querySelector('.ctl'):null;return G&&G.status==='lobby'?pb.querySelector('[data-mid]'):null};
-const pMid=()=>{const P_=$('panel'),k=pAnc();if(!k)return 0;
-  const m=Math.round(P_.offsetHeight-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+12));return m>40?m:0};
+// Anker-Lage im Inhalt unabhängig vom Scrollstand messen (sonst wird der Versatz bei gescrolltem Menü größer als das Panel und es verschwindet);
+// Versatz höchstens so groß, dass oben mindestens 120 px Panel sichtbar bleiben
+const pMid=()=>{const P_=$('panel'),k=pAnc();if(!k)return 0;const H=P_.offsetHeight,ps=$('ps');
+  const m=Math.round(H-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+(ps?ps.scrollTop:0)+12));return m>40?Math.min(m,Math.max(0,H-120)):0};
 // In der Mitte bekommt der Scrollbereich #ps unten so viel Abstand, dass sich der verdeckte Teil des Menüs in den sichtbaren Bereich scrollen lässt
 const pMidSet=()=>{const P_=$('panel'),pb=$('pb'),pf=$('pf');P_.style.setProperty('--pad','0px');const m0=pMid();
   let m=m0;if(m0){for(let i=0;i<2;i++){P_.style.setProperty('--pad',Math.max(0,m)+'px');m=pMid()}}
