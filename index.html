@@ -1312,14 +1312,16 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
       if((!chOpen||ch!==chCur)&&c.u!==uid&&c.t>chSince){chUnread++;if(isDm(ch)){const u=ch.slice(3);dmUn[u]=(dmUn[u]||0)+1}chBadge();chTabs()}},()=>{})});
   chShow(all.includes(chCur)?chCur:cs[0])}
 // §PANEL-ZIEHEN
-// Panel ziehen: folgt dem Finger, rastet beim Loslassen ein. Im Replay (Karte) gibt es eine Zwischenstufe „m“:
-// Panel nur bis unter die Abspieltasten sichtbar (Standard beim Öffnen). Antippen: eingeklappt → Mitte → ganz → Mitte.
-const pMid=()=>{const P_=$('panel');if(!RV||RV.tab!=='map')return 0;const k=$('pb')&&$('pb').querySelector('.ctl');if(!k)return 0;
+// Panel ziehen: folgt dem Finger, rastet beim Loslassen ein. Zwischenstufe „m“ (Standard beim Öffnen): Replay-Karte bis unter
+// die Abspieltasten, Lobby-Einstellungen bis unter „Balancing“ (Anker data-mid). Ohne Anker (z. B. Spieler-Tab) ist der Versatz 0.
+// Antippen: eingeklappt → Mitte → ganz → Mitte.
+const pAnc=()=>{const pb=$('pb');if(!pb)return null;if(RV)return RV.tab==='map'?pb.querySelector('.ctl'):null;return G&&G.status==='lobby'?pb.querySelector('[data-mid]'):null};
+const pMid=()=>{const P_=$('panel'),k=pAnc();if(!k)return 0;
   const m=Math.round(P_.offsetHeight-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+12));return m>40?m:0};
 // In der Mitte bekommt der Scrollbereich #ps unten so viel Abstand, dass sich der verdeckte Teil des Menüs in den sichtbaren Bereich scrollen lässt
 const pMidSet=()=>{const P_=$('panel'),pb=$('pb'),pf=$('pf');P_.style.setProperty('--pad','0px');const m0=pMid();
   let m=m0;if(m0){for(let i=0;i<2;i++){P_.style.setProperty('--pad',Math.max(0,m)+'px');m=pMid()}}
-  P_.style.setProperty('--mid',m+'px');if(!m)P_.classList.remove('m')};
+  P_.style.setProperty('--mid',m+'px')};
 const pVis=()=>{const P_=$('panel'),H=P_.offsetHeight;return P_.classList.contains('c')?34:P_.classList.contains('m')?H-(parseFloat(P_.style.getPropertyValue('--mid'))||0):H};
 {const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0,s0=0;
  const lim=()=>P_.offsetHeight-28,pos=()=>P_.classList.contains('c')?lim():P_.classList.contains('m')?pMid():0;
@@ -1333,12 +1335,12 @@ const pVis=()=>{const P_=$('panel'),H=P_.offsetHeight;return P_.classList.contai
    else{const pts=[['',0],['m',M],['c',H]];snap(pts.reduce((a,b)=>Math.abs(b[1]-p)<Math.abs(a[1]-p)?b:a)[0])}
    if(RV)setTimeout(()=>{if(RV)RV.cw=0},250)};
  ph.addEventListener('pointerup',end);ph.addEventListener('pointercancel',end)}
-addEventListener('resize',()=>{if(RV){RV.cw=0;pMidSet()}});
+addEventListener('resize',()=>{if(RV)RV.cw=0;if($('panel').classList.contains('m'))pMidSet()});
 // Zwischenstufe neu vermessen, wenn sich die Panelhöhe später noch ändert (Schriften nachgeladen, Fenstergröße in der App)
-let pRO=null;if(window.ResizeObserver){let rq=0;pRO=new ResizeObserver(()=>{if(rq||!RV||!$('panel').classList.contains('m'))return;rq=requestAnimationFrame(()=>{rq=0;if(RV&&$('panel').classList.contains('m')){RV.cw=0;pMidSet()}})})}
-// beobachtet Panel und die Inhaltsblöcke des Replay-Menüs (bei Maximalhöhe ändert sich nur der Inhalt)
+let pRO=null;if(window.ResizeObserver){let rq=0;pRO=new ResizeObserver(()=>{if(rq||!$('panel').classList.contains('m'))return;rq=requestAnimationFrame(()=>{rq=0;if($('panel').classList.contains('m')){if(RV)RV.cw=0;pMidSet()}})})}
+// beobachtet Panel und die Inhaltsblöcke des Menüs (Replay und Lobby) (bei Maximalhöhe ändert sich nur der Inhalt)
 const pObs=()=>{if(!pRO)return;pRO.disconnect();pRO.observe($('panel'));[...$('pb').children].forEach(c=>pRO.observe(c))};
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(RV&&$('panel').classList.contains('m'))pMidSet()});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('panel').classList.contains('m'))pMidSet()});
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0};
@@ -1420,7 +1422,7 @@ function lobbyUI(g,host,me_){
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
-    ${balAcc(g)}<div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
+    ${balAcc(g)}<div data-mid style="height:0;margin-top:-10px"></div><div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
     +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
@@ -1453,7 +1455,7 @@ function runUI(g,me_,t,host,run){
 
 // §PANEL panel() mit Signatur lastSig
 function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
-  if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('pf').innerHTML='';
+  if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';
     el.innerHTML=`<div class=logo>Blown<br><span>Cover</span></div><p class="mut sm">Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.</p><input id=nm placeholder="Dein Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
   <button id=mkb onclick="mk()">Neues Spiel erstellen</button><div class="mut sm" style="text-align:center">oder beitreten</div>
   <div class=row><input id=cd placeholder="Code" maxlength=6 aria-label="Code" style="text-transform:uppercase;text-align:center;letter-spacing:.3em"><button class=g onclick="jn()">Beitreten</button></div>
@@ -1468,7 +1470,10 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   if(g.status==='lobby')[h,f]=lobbyUI(g,host,me_);
   else if(g.status==='over')h='<h2>Spiel beendet</h2><small>Das Ergebnis siehst du im Fenster.</small>';
   else [h,f]=runUI(g,me_,t,host,run);
-  const ps=$('ps'),sc=ps.scrollTop;el.innerHTML=h;$('pf').innerHTML=f;ps.scrollTop=sc;resSync(g)}
+  const ps=$('ps'),sc=ps.scrollTop;el.innerHTML=h;$('pf').innerHTML=f;ps.scrollTop=sc;resSync(g);
+  // Lobby: beim Betreten Zwischenstufe (bis unter „Balancing“), danach bleibt die gewählte Stufe
+  const P_=$('panel');if(g.status==='lobby'){if(pSt!=='lobby'){P_.classList.remove('c');P_.classList.add('m')}pMidSet();pObs()}else P_.classList.remove('m');pSt=g.status}
+let pSt='';
 
 // §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): feste Texte, nur der Operationsname kommt deterministisch aus code+rn; nichts in der DB
 const bfRng=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h+=0x6D2B79F5;let x=h;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296}};
