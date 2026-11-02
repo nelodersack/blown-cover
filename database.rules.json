@@ -113,6 +113,9 @@
           "bmT": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 900"
           },
+          "sbT": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 600"
+          },
           "$o": {
             ".validate": false
           },
