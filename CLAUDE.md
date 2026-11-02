@@ -31,6 +31,7 @@ JS in Dateireihenfolge:
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | `cc`, `rq`, `ok`, `no`, `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*`, Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView`, Radar, `hInv` |
+| §RADAR | Bonus Radar (Konzept `KONZEPT_Bewegungsmelder.md`): Hider `type:'bm'` = Hunter-Radar, Hunter `k:'bm'` = Hider-Radar (Zeitbonus). `bmRv`/`bmTv` (Radius/Dauer, 0 = auto), `ddBm` (Dead-Drop-Verteilung per Hash), `ITN` (Item-Name), `bmMine` (eigenes laufendes Radar; Hider-Start in `LS[bmKey(id)]`), `bmCount` (Hysterese +15 m), `bmTick` (HUD/Meldungen), `bmOv` (Sonar-Kreis als `L.svgOverlay`, CSS `.bmr`), Zustand `BM`. Der alte Hider-Bonus heißt in Texten „Satellitenbild“ (intern weiter `radar`/`rad`/`useRadar`) |
 | §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (Replay-Karte und Lobby-Einstellungen, Anker `pAnc`, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand am Ende von `#ps`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
 | §EINSTELLUNGEN | `ui`, `DEF`, **`FD`** (Feld-Definitionen), `PRE` (Dauer-Presets), `setPre`, `setHk` |
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
@@ -54,7 +55,7 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 - **Regeln:** `database.rules.json` liegt im Zweig `db-rules` (`git show db-rules:database.rules.json`). Unter `s`, `players/$pid` usw. gilt `$o: false`: **jede neue Einstellung bzw. jedes neue Feld braucht eine Regel**, sonst schlägt das Schreiben fehl. Claude liefert Manuel immer die komplette Datei, Manuel lädt sie selbst hoch. Danach den Zweig `db-rules` aktualisieren.
 
 ## Einstellungen (`G.s`)
-Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
+Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
 Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`hkDef`), Zeile in `lobbyUI` (Unterpunkt mit `nf(k,1)`), DB-Regel `s/<key>`, ggf. `balCalc`.
 
 ## Konventionen
