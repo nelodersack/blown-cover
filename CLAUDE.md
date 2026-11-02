@@ -23,7 +23,7 @@ JS in Dateireihenfolge:
 | §UI-BASIS | `toast`, Icons `SV`/`ic()`, Farben `PAL`/`colOf`, Markerformen `shape`/`shape0`, `TH`, Wake Lock |
 | §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*`, Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
-| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis` |
+| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm` |
 | §GPS | `startGPS`, `write` |
 | §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
