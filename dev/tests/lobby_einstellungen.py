@@ -10,7 +10,7 @@ with app() as (pg,ev,errs):
     ev("window.__k=setInterval(()=>{const p=__T.games.K7QF.players;for(const u in p)p[u].ts=Date.now();lastFix=Date.now()},500)")
     ev("tabGo('lt','set')");ev("ui.adv=true;ui.open.tasks=1;ui.open.zone=1;ui.open.game=1;ui.open.hb=1;panel(1)")
     ev("setHk(1);G.s.ddN=1;__T.games.K7QF.s.ddN=1;__T.games.K7QF.s.mtN=1;notify()");pg.wait_for_timeout(500)
-    ev("document.getElementById('pb').scrollTop=0")
+    ev("document.getElementById('ps').scrollTop=0")
     pg.set_viewport_size({'width':420,'height':1900});pg.wait_for_timeout(300)
     pg.locator('#panel').screenshot(path=__import__('harness').OUT+'/lobby_einstellungen.png')
     print(ev("document.getElementById('pb').innerText.replace(/\\n/g,' | ').slice(0,1800)"))

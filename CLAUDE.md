@@ -31,11 +31,11 @@ JS in Dateireihenfolge:
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | `cc`, `rq`, `ok`, `no`, `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*`, Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView`, Radar, `hInv` |
-| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (nur Replay-Karte, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand in `#pb`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
+| §CHAT, §PANEL-ZIEHEN | Chat `ch*`; Panel-Geste mit Stufen voll / Mitte `m` (nur Replay-Karte, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand am Ende von `#ps`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
 | §EINSTELLUNGEN | `ui`, `DEF`, **`FD`** (Feld-Definitionen), `PRE` (Dauer-Presets), `setPre`, `setHk` |
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |
-| §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`) |
+| §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`). Aufbau: `#panel` > `#ph` (Griff) + `#ps` (Scrollbereich) > `#pb` (Inhalt) + `#pf` (Knöpfe, scrollen mit) |
 | §BRIEFING | Missionsbriefing: `bfName(code,rn)` (Operationsname), `bfData(g,code)` (beide Fassungen, feste Texte; nur der Name kommt deterministisch aus code+rn über `bfRng`), `bfShow`/`bfClose`/`bfAuto` (Dialog `#bfd`, Merker `LS[bfKey()]`), `bfRes` (Zeile im Endscreen), Knopf `.bfb` im Panel |
 | §HACKING | `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |
 | §ZEICHNEN | `draw()` (alle Karten-Layer), `mkr` (Marker mit Popup), `tkInfo` (Aufgaben-Popup: Name + Belohnung, auch im Replay), Legende `LG` |

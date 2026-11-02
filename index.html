@@ -21,10 +21,11 @@
 #hud .w{background:var(--danger);font-family:var(--f-b);font-weight:600}
 #hud .ic{width:15px;height:15px}
 #panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:56vh;display:flex;flex-direction:column;background:var(--panel);border-radius:20px 20px 0 0;border-top:1px solid var(--line);transition:transform .2s,max-height .2s;padding-bottom:env(safe-area-inset-bottom,0px)}
-#panel.tall{max-height:80vh}#panel.c{transform:translateY(calc(100% - 34px))}#panel.m{transform:translateY(var(--mid,0px))}#panel.m #pb{padding-bottom:var(--pad,0px)}
+#panel.tall{max-height:80vh}#panel.c{transform:translateY(calc(100% - 34px))}#panel.m{transform:translateY(var(--mid,0px))}#panel.m #ps::after{content:'';display:block;height:var(--pad,0px)}
 #ph{padding:10px 0 8px;cursor:grab;touch-action:none;flex:none}#ph i{display:block;width:44px;height:5px;border-radius:3px;background:#4a5563;margin:0 auto}
-#pb{overflow:auto;padding:0 14px 14px;display:grid;gap:10px;align-content:start;grid-auto-rows:max-content;flex:1;min-height:0;overscroll-behavior:contain}
-#pf{flex:none;padding:10px 14px 12px;border-top:1px solid var(--line);display:grid;gap:6px;background:var(--panel)}#pf:empty{display:none}
+#ps{overflow:auto;flex:1;min-height:0;overscroll-behavior:contain}
+#pb{padding:0 14px 14px;display:grid;gap:10px;align-content:start;grid-auto-rows:max-content}
+#pf{padding:10px 14px 12px;border-top:1px solid var(--line);display:grid;gap:6px}#pf:empty{display:none}
 /* §CSS-ELEMENTE Überschriften, Buttons, Eingaben */
 h2{font:700 26px/1.05 var(--f-d);text-transform:uppercase;letter-spacing:.03em;margin:0}
 h3{font:700 12px var(--f-b);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin:4px 0 0}
@@ -171,7 +172,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #nb{position:fixed;left:10px;top:152px;z-index:999;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:#0b0e12d9;place-items:center}#nb svg{width:26px;height:26px;display:block}#nb svg.l{width:22px;height:22px}#nbt{position:fixed;left:58px;top:159px;z-index:1300;display:none;background:#0b0e12e6;color:var(--fg);font:600 12px var(--f-b);padding:6px 10px;border-radius:999px;pointer-events:none}
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
-<div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="pb"></div><div id="pf"></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
+<div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="ps"><div id="pb"></div><div id="pf"></div></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
 <button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span id=cbn></span></button>
 <button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
@@ -1315,9 +1316,9 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
 // Panel nur bis unter die Abspieltasten sichtbar (Standard beim Öffnen). Antippen: eingeklappt → Mitte → ganz → Mitte.
 const pMid=()=>{const P_=$('panel');if(!RV||RV.tab!=='map')return 0;const k=$('pb')&&$('pb').querySelector('.ctl');if(!k)return 0;
   const m=Math.round(P_.offsetHeight-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+12));return m>40?m:0};
-// In der Mitte bekommt #pb unten so viel Abstand, dass sich der verdeckte Teil des Menüs in den sichtbaren Bereich scrollen lässt
+// In der Mitte bekommt der Scrollbereich #ps unten so viel Abstand, dass sich der verdeckte Teil des Menüs in den sichtbaren Bereich scrollen lässt
 const pMidSet=()=>{const P_=$('panel'),pb=$('pb'),pf=$('pf');P_.style.setProperty('--pad','0px');const m0=pMid();
-  let m=m0;if(m0){const f=pf?pf.offsetHeight:0;for(let i=0;i<2;i++){P_.style.setProperty('--pad',Math.max(0,m-f)+'px');m=pMid()}}
+  let m=m0;if(m0){for(let i=0;i<2;i++){P_.style.setProperty('--pad',Math.max(0,m)+'px');m=pMid()}}
   P_.style.setProperty('--mid',m+'px');if(!m)P_.classList.remove('m')};
 const pVis=()=>{const P_=$('panel'),H=P_.offsetHeight;return P_.classList.contains('c')?34:P_.classList.contains('m')?H-(parseFloat(P_.style.getPropertyValue('--mid'))||0):H};
 {const P_=$('panel'),ph=$('ph');let y0=0,dy=0,on=0,s0=0;
@@ -1391,7 +1392,7 @@ const nf=(k,sb)=>{const f=FD[k],v=G.s[k]??DEF[k]??hkDef(G.s)[k];return `<div cla
 const swt=(k,on,l,sub='',sb)=>`<div class="fl${sb?' sub':''}"><label>${l}${sub?`<small>${sub}</small>`:''}</label><button class="sw ${on?'on':''}" role=switch aria-checked="${on}" aria-label="${l}" onclick="setB('${k}','${on?0:1}')"></button></div>`;
 const acc=(id,icn,title,sum,body)=>`<div class=acc><button onclick="ui.open.${id}=!ui.open.${id};panel(1)" aria-expanded="${!!ui.open[id]}">${ic(icn)}<span>${title}<small>${sum}</small></span><span style="display:grid;transform:rotate(${ui.open[id]?90:0}deg)">${ic('chev')}</span></button>${ui.open[id]?`<div class=in>${body}</div>`:''}</div>`;
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
-const tabGo=(k,v)=>{ui[k]=v;$('pb').scrollTop=0;panel(1)};
+const tabGo=(k,v)=>{ui[k]=v;$('ps').scrollTop=0;panel(1)};
 
 const gpsBad=()=>!pos||!!gpsErr||Date.now()-lastFix>30000;
 const noGps=(p,k)=>p.w?false:(k===uid?gpsBad():(!p.lat||now()-(p.ts||0)>45000));
@@ -1467,7 +1468,7 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   if(g.status==='lobby')[h,f]=lobbyUI(g,host,me_);
   else if(g.status==='over')h='<h2>Spiel beendet</h2><small>Das Ergebnis siehst du im Fenster.</small>';
   else [h,f]=runUI(g,me_,t,host,run);
-  const sc=el.scrollTop;el.innerHTML=h;el.scrollTop=sc;$('pf').innerHTML=f;resSync(g)}
+  const ps=$('ps'),sc=ps.scrollTop;el.innerHTML=h;$('pf').innerHTML=f;ps.scrollTop=sc;resSync(g)}
 
 // §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): feste Texte, nur der Operationsname kommt deterministisch aus code+rn; nichts in der DB
 const bfRng=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h+=0x6D2B79F5;let x=h;x=Math.imul(x^x>>>15,x|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296}};

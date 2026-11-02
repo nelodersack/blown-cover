@@ -27,9 +27,10 @@ with app(width=412,height=915) as (pg,ev,errs):
     # Scrollen in der Mitte: Karte „Statistik“-Tab muss erreichbar werden
     vis=lambda:ev("(()=>{const b=[...document.querySelectorAll('#pb .rvtab button')].pop().getBoundingClientRect();return Math.round(b.bottom)+' / '+innerHeight})()")
     print('Tabs vor dem Scrollen unten bei',vis())
-    ev("$('pb').scrollTop=9999");pg.wait_for_timeout(200);print('nach dem Scrollen unten bei',vis(),'· scrollbar:',ev("$('pb').scrollHeight>$('pb').clientHeight"))
+    ev("$('ps').scrollTop=9999");pg.wait_for_timeout(200);print('nach dem Scrollen unten bei',vis(),'· scrollbar:',ev("$('ps').scrollHeight>$('ps').clientHeight"))
+    print('Replay schließen erreichbar:',ev("(()=>{const b=document.querySelector('#pf button').getBoundingClientRect();return b.bottom<=innerHeight&&b.top>=$('panel').getBoundingClientRect().top})()"),'· im Scrollbereich:',ev("!!document.querySelector('#ps #pf button')"))
     shot(pg,'replay_panel_gescrollt.png')
-    ev("$('pb').scrollTop=0")
+    ev("$('ps').scrollTop=0")
     ev("RV.tab='stat';panel(1)");pg.wait_for_timeout(300);print('Statistik:',ev("$('panel').classList.contains('m')"))
     ev("rvClose()");pg.wait_for_timeout(300);print('nach Schließen m:',ev("$('panel').classList.contains('m')"))
     print('errors:',errs[:5])
