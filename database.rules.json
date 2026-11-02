@@ -107,6 +107,12 @@
           "hbT": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000"
           },
+          "bmR": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2000"
+          },
+          "bmT": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 900"
+          },
           "$o": {
             ".validate": false
           },
@@ -365,7 +371,7 @@
                   ".validate": "newData.isBoolean()"
                 },
                 "c": {
-                  ".validate": "newData.val() === 'imm' || newData.val() === 'rad'"
+                  ".validate": "newData.val() === 'bm' || newData.val() === 'rad'"
                 },
                 "$o": {
                   ".validate": false
@@ -506,7 +512,7 @@
               ".write": "auth.uid === $hid && !data.exists() && newData.exists() && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive' && ((root.child('games').child($code).child('catches').child($bid).child('hunter').val() === auth.uid && root.child('games').child($code).child('catches').child($bid).child('status').val() === 'done') || ($bid === 'time' && root.child('games').child($code).child('s').child('hbT').val() > 0 && now >= root.child('games').child($code).child('startAt').val() + (root.child('games').child($code).child('s').child('head').val() + root.child('games').child($code).child('s').child('hbT').val()) * 60000))",
               ".validate": "newData.hasChildren(['k']) && ($bid !== 'time' || true)",
               "k": {
-                ".validate": "newData.val() === 'live' || newData.val() === 'ping' || newData.val() === 'x'"
+                ".validate": "($bid === 'time' && (newData.val() === 'bm' || newData.val() === 'x')) || ($bid !== 'time' && (newData.val() === 'live' || newData.val() === 'ping' || newData.val() === 'x'))"
               },
               "av": {
                 ".validate": "newData.isNumber()"
