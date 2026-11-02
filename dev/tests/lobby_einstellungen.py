@@ -8,7 +8,7 @@ with app() as (pg,ev,errs):
       uid='u1';pos={lat:47.069,lng:15.4385};lastFix=Date.now()})()""")
     ev("join('K7QF')");pg.wait_for_timeout(600)
     ev("window.__k=setInterval(()=>{const p=__T.games.K7QF.players;for(const u in p)p[u].ts=Date.now();lastFix=Date.now()},500)")
-    ev("tabGo('lt','set')");ev("ui.adv=true;ui.open.tasks=1;ui.open.zone=1;ui.open.game=1;ui.open.hb=1;panel(1)")
+    ev("tabGo('lt','set')");ev("ui.adv=true;ui.open.tasks=1;ui.open.zone=1;ui.open.game=1;ui.open.bon=1;panel(1)")
     ev("setHk(1);G.s.ddN=1;__T.games.K7QF.s.ddN=1;__T.games.K7QF.s.mtN=1;notify()");pg.wait_for_timeout(500)
     ev("document.getElementById('ps').scrollTop=0")
     pg.set_viewport_size({'width':420,'height':1900});pg.wait_for_timeout(300)

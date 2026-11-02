@@ -108,6 +108,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 .bmr .bi{fill:none;stroke:var(--ok);stroke-opacity:.16;stroke-width:1px}.bmr .bs{fill:var(--ok);transform-origin:0 0;animation:bmsw 7s linear infinite;transition:opacity .5s}
 .bmr .bn{stroke:var(--ok);stroke-opacity:.8;stroke-width:1.5px}.bmr .bp{fill:none;stroke:var(--ok);stroke-width:2px;opacity:0;transform-origin:0 0}
 .bmr.hit .bs{opacity:0}.bmr.hit .bf{stroke-opacity:.85;stroke-width:2.5px;fill-opacity:.08}.bmr.hit .bp{animation:bmpl 2.5s ease-out infinite}
+#bnd .dbx{display:grid;gap:8px;max-height:calc(100vh - 32px);overflow:auto}#bnd .dbx p{margin:0}#bnd .bnf{display:grid}#bnd .dbx>button{margin-top:6px}
+.bnr{display:flex;align-items:center;gap:8px;justify-content:space-between}.bnr>.ic{width:20px;height:20px;flex:none}.bnx .bnr h3{margin:0;flex:1;color:var(--fg)}.bns{display:flex;gap:5px;flex:none}
+.chip.hu{color:#ff8a8d;border-color:#e5484d55}.rw{color:#a99cff}
+.bnt{gap:5px}.bnt b{font-size:17px}.bnt.off{opacity:.5}.bnt.wide{grid-column:1/-1}.bnv{font:500 12px var(--f-m);color:var(--fg)!important}
+button.rl.bnhb{background:none;border:0;border-top:1px solid #222b34;border-radius:0;color:var(--fg);font:inherit;min-height:44px;margin:4px 0 0;padding:8px 0;align-items:center}button.rl.bnhb small{display:flex;align-items:center;gap:4px;color:var(--mut)}button.rl.bnhb .ic{width:14px;height:14px}
 @keyframes bmsw{to{transform:rotate(360deg)}}@keyframes bmpl{from{transform:scale(.15);opacity:.75}to{transform:scale(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bmr .bs{animation:none;opacity:0}.bmr.hit .bp{animation:none}.bmr.hit .bf{fill-opacity:.14}}
 #hud .bmh b{font-weight:700}#hud .bmh.on{background:var(--ok);color:#04150a;font-family:var(--f-b);font-weight:600}
@@ -125,7 +130,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--xping);outline-
 #chm .m.r-hunter{border-left:3px solid var(--danger)}#chm .m.r-hider{border-left:3px solid var(--ok)}
 #chr{display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid var(--line)}#chr input{margin:0;flex:1;width:auto}#chr button{margin:0;width:auto}
 /* §CSS-DIALOG Dialog (dlg/dbx), Ergebnis (res) */
-#dlg{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
+#dlg,#bnd{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
 .dbx{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;width:min(380px,100%);box-shadow:0 12px 40px #0009}
 .dbx h3{margin:0 0 8px;font:700 22px var(--f-d);letter-spacing:.02em}.dbx p{color:var(--mut);margin:0 0 14px;font-size:14px;line-height:1.45}.dbx p b{color:var(--fg);font-weight:600}.dbx input{margin:0 0 14px}
 /* Briefing (§BRIEFING) */
@@ -490,7 +495,7 @@ async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
 function toast(m){lg('toast',String(m).slice(0,120));if(NB&&(document.hidden||window.bcHidden)){try{NB.notify('Blown Cover',String(m))}catch(e){}}const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',3500)}
 
-const SV={radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/>',home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>',hack:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l3 2-3 2M12 13h4"/>',block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
+const SV={shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',sat:'<rect x="9.5" y="9.5" width="5" height="5" transform="rotate(45 12 12)"/><path d="M5 5l3.5 3.5M15.5 15.5L19 19M2.5 7.5l5-5M16.5 21.5l5-5"/>',gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13M12 8C10 4 6 4 6 6.5S12 8 12 8zm0 0c2-4 6-4 6-1.5S12 8 12 8z"/>',radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/>',home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>',hack:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l3 2-3 2M12 13h4"/>',block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
 const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0','#8a5a2b','#8e2a3a','#e02fb5','#f28c00','#7b3fe4'],PALN=['Blau','Gelb','Dunkelgrün','Türkis','Schiefer','Grün','Himmelblau','Braun','Bordeaux','Magenta','Orange','Violett'],PALK=PAL.map(h=>{const v=[1,3,5].map(k=>{const c=parseInt(h.substr(k,2),16)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]>.3?'#1a1a1a':'#fff'});
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
@@ -1397,7 +1402,7 @@ let pRO=null;if(window.ResizeObserver){let rq=0;pRO=new ResizeObserver(()=>{if(r
 const pObs=()=>{if(!pRO)return;pRO.disconnect();pRO.observe($('panel'));[...$('pb').children].forEach(c=>pRO.observe(c))};
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('panel').classList.contains('m'))pMidSet()});
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
-const ui={pal:false,lt:'players',adv:true,open:{zone:0,game:0,tasks:0,hb:0},spec:'hider'};
+const ui={pal:false,lt:'players',adv:true,bn:null,open:{zone:0,game:0,tasks:0,bon:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0,bmR:0,bmT:0,sbT:60};
 const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Hider-Radar nach (0 = aus)',0,120,5,'Min'],bmR:['Radar-Radius (0 = auto)',0,2000,5,'m'],bmT:['Radar-Dauer (0 = auto)',0,900,10,'s'],sbT:['Satellitenbild-Dauer',10,600,10,'s'],hkS:['Hacking ab',1,119,1,'Min'],hkZ:['Hacking-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
 const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120,pen:1,shT:10,ddT:4,mtT:8,evT:5,imm:120,hbC:60,hbL:40,hbT:15,ot:3},
@@ -1462,26 +1467,22 @@ function lobbyUI(g,host,me_){
         +(p.w?'<span class=spin role=img aria-label="lädt"></span>':(k===uid?`<div class=seg><button class="${p.role==='hunter'?'on':''}" onclick="setRole('hunter')">Hunter</button><button class="${p.role==='hider'?'on':''}" onclick="setRole('hider')">Hider</button></div>`:`<span class=chip>${p.role==='hunter'?'Hunter':'Hider'}</span>`))
         +(host&&k!==uid?`<button class="ghost s" onclick="toHost('${k}')" aria-label="Zum Host machen" title="Zum Host machen">${ic('crown')}</button>`:'')+`</div>`+(k===uid&&ui.pal&&!p.w?palUI():'')).join('');
   }else if(host){
-    const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0),
-      immNeed=sv&&s.shOn,bmH=bonOn(g)&&((s.ddN||0)+(s.mtN||0))>0,bmF=nf('bmR',1)+nf('bmT',1)+`<div class="fl sub"><small class=mut>Gilt für Hunter- und Hider-Radar. Auto: ${bmRv(Object.assign({},s,{bmR:0}))} m · ${fmt(bmTv(Object.assign({},s,{bmT:0}))*1000)} (0,2 × Startradius · 1 Ping-Intervall)</small></div>`;
+    const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0);
     const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),
       tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`+(s.hk?' · Hacking':'');
-    let t=nf('ddN')+((s.ddN||0)>0?nf('ddT',1):'')+nf('mtN')+((s.mtN||0)>0?nf('mtT',1):'');
-    if(sv)t+=swt('shOn',!!s.shOn,'Safehouse','Wettlauf um Immunität')+(s.shOn?nf('shT',1):'');
+    const bo=bonOn(g),rw=x=>`<span class=rw>Belohnung: ${x}</span>`;
+    let t=nfl('ddN','Dead Drops',bo?rw('Satellitenbild und Hunter-Radar, per Zufall verteilt'):'')+((s.ddN||0)>0?nf('ddT',1):'')+nfl('mtN','Meetings',bo?rw('jeder wählt Hunter-Radar oder Satellitenbild'):'')+((s.mtN||0)>0?nf('mtT',1):'');
+    if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
     else t+=nf('evT');
     t+=`<div class=fl><label>Hacking-Challenge<small>Riskante Hider-Aufgabe mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Hacking-Challenge" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
-    // Boni der Hider: Immunität (Safehouse), Satellitenbild und Radar (Dead Drop/Meeting)
-    {const bo=[];if(!sv)bo.push(swt('bon',s.bon!==false,'Aufgaben-Boni','Belohnung für Dead Drop und Meeting',1));
-      if(immNeed)bo.push(nf('imm',1));if(bmH)bo.push(nf('sbT',1),bmF);
-      if(bo.length)t+=`<div class=fl><label>Boni<small>${[immNeed?'Immunität':'',bmH?'Satellitenbild, Hunter-Radar':'',!sv&&!bmH?'Belohnungen an/aus':''].filter(x=>x).join(' · ')}</small></label></div>`+bo.join('')}
-    const hb=swt('hbOn',hbOn(g),'Hunter-Boni','Extra-Ping oder Live-Standort nach einem Fang, Hider-Radar als Zeitbonus')+(hbOn(g)?nf('hbN',1)+nf('hbC',1)+nf('hbL',1)+nf('hbT',1)+((s.hbT||0)>0?(bmH?'<div class="fl sub"><small class=mut>Radius und Dauer des Hider-Radars: Aufgaben → Boni</small></div>':bmF):''):'');
+    if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     ${balAcc(g)}<div data-mid style="height:0;margin-top:-10px"></div><div class=acc><button onclick="ui.adv=!ui.adv;panel(1)" aria-expanded="${ui.adv}">${ic('gear')}<span>Erweitert<small>Alle Einstellungen einzeln, nach Bereichen</small></span><span style="display:grid;transform:rotate(${ui.adv?90:0}deg)">${ic('chev')}</span></button></div>`
-    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''))+acc('tasks','home','Aufgaben',tS,t)+acc('hb','live','Hunter-Boni',hbOn(g)?`${s.hbN} Boni max. · Wartezeit ${s.hbC} s`:'Aus',hb):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
+    +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''))+acc('tasks','home','Aufgaben',tS,t)+bnAcc(g):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hacking-Challenge',s.hk?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
@@ -1490,6 +1491,41 @@ function lobbyUI(g,host,me_){
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
   return[b,f]}
 
+// §BONI Lobby-Bereich „Boni“ (Variante B): Kacheln mit Seite, Herkunft und Wert; Antippen öffnet das Fenster #bnd zum Einstellen
+const nfl=(k,l,u)=>nf(k).replace(/<label>[^<]*<\/label>/,`<label>${l}${u?`<small>${u}</small>`:''}</label>`);
+const BNS={hi:'<span class="chip ok">Hider</span>',hu:'<span class="chip hu">Hunter</span>'};
+function bnDefs(g){const s=g.s,sv=md(g)==='survive',bo=bonOn(g),tk=(s.ddN||0)+(s.mtN||0)>0,hb=hbOn(g),hz=hb&&(s.hbT||0)>0,au=!(s.bmR>0)&&!(s.bmT>0);
+  const aut=`<div class="fl sub"><small class=mut>Auto: ${bmRv(Object.assign({},s,{bmR:0}))} m · ${fmt(bmTv(Object.assign({},s,{bmT:0}))*1000)} (0,2 × Startradius · 1 Ping-Intervall)</small></div>`;
+  return{
+    imm:{i:'shield',n:'Immunität',sd:'hi',src:'Safehouse',on:sv&&!!s.shOn,why:sv?'Safehouse ist aus':'nur im Modus Untertauchen',val:fmt((s.imm||120)*1000),
+      d:'Bei keinem Ping sichtbar. Platz 1 im Safehouse bekommt die volle Dauer, Platz 2 die Hälfte.',f:()=>nfl('imm','Dauer','Platz 2 bekommt die Hälfte')},
+    sat:{i:'sat',n:'Satellitenbild',sd:'hi',src:'Meeting, Dead Drop',on:bo&&tk,why:!bo?'Aufgaben-Belohnungen sind aus':'keine Dead Drops oder Meetings',val:sbV(s)+' s',
+      d:'Zeigt einmal alle Hunter auf der Karte.',f:()=>nfl('sbT','Sichtbar für')},
+    live:{i:'live',n:'Live-Standort',sd:'hu',src:'nach Fang',on:hb,why:'Hunter-Boni sind aus',val:(s.hbL||60)+' s',
+      d:'Einen Hider eine Weile live verfolgen.',f:()=>nfl('hbL','Dauer')},
+    ping:{i:'extra',n:'Extra-Ping',sd:'hu',src:'nach Fang',on:hb,why:'Hunter-Boni sind aus',val:'sofort',d:'Ortet sofort einmal alle Hider.',f:null},
+    bm:{i:'radar',n:'Radar',sd:'both',wide:1,on:(bo&&tk)||hz,why:'weder Aufgaben-Belohnungen noch Zeitbonus aktiv',
+      src:`Hunter-Radar: ${bo&&tk?'Meeting, Dead Drop':'aus'} · Hider-Radar: ${hz?'Zeitbonus ab '+s.hbT+' Min':'aus'}`,val:`${bmRv(s)} m · ${fmt(bmTv(s)*1000)}${au?' (auto)':''}`,
+      d:'Zählt, wie viele Gegner im Umkreis sind. Hider bekommen das Hunter-Radar beim Meeting oder Dead Drop, Hunter das Hider-Radar als Zeitbonus.',
+      f:()=>nfl('bmR','Radius','0 = auto')+nfl('bmT','Dauer','0 = auto')+aut+(hb?nfl('hbT','Hider-Radar kommt nach','Zeitbonus der Hunter, 0 = aus'):'')},
+    hb:{i:'hunter',n:'Hunter-Boni',sd:'hu',on:true,src:'',val:'',d:'Nach jedem Fang wählt der Hunter Live-Standort oder Extra-Ping. Dazu kommt das Hider-Radar als Zeitbonus.',
+      f:()=>swt('hbOn',hb,'Hunter-Boni',hb?'an':'aus')+(hb?nfl('hbN','Vorrat','So viele Boni auf einmal')+nfl('hbC','Wartezeit','Bis ein neuer Bonus einsatzbereit ist'):'')}}}
+function bnAcc(g){const s=g.s,D_=bnDefs(g),sv=md(g)==='survive';
+  const tile=k=>{const d=D_[k];return `<button class="tile bnt${d.on?'':' off'}${d.wide?' wide':''}" onclick="bnShow('${k}')" aria-label="${d.n} einstellen"><span class=bnr>${ic(d.i)}<span class=bns>${d.sd==='both'?BNS.hi+BNS.hu:BNS[d.sd]}</span></span><b>${d.n}</b><span>${d.on?d.src:'Nicht im Spiel: '+d.why}</span>${d.on?`<span class=bnv>${d.val}</span>`:''}</button>`};
+  const n=['imm','sat','live','ping','bm'].filter(k=>D_[k].on).length,hb=hbOn(g);
+  const b=(sv?'':swt('bon',s.bon!==false,'Belohnungen für Dead Drop und Meeting','Aus: Aufgaben bringen nur den Missionserfolg'))
+    +`<h3>Hider</h3><div class=tiles>${tile('imm')+tile('sat')}</div><h3>Hunter</h3><div class=tiles>${tile('live')+tile('ping')}</div><h3>Beide Seiten</h3><div class=tiles>${tile('bm')}</div>`
+    +`<button class="rl bnhb" onclick="bnShow('hb')"><span>Hunter-Boni</span><small>${hb?`Vorrat ${s.hbN||2} · Wartezeit ${s.hbC||0} s`:'aus'} ${ic('chev')}</small></button>`;
+  return acc('bon','gift','Boni',`${n} von 5 im Spiel · Antippen zum Einstellen`,b)}
+function bnShow(k){ui.bn=k;bnSync()}
+function bnClose(){ui.bn=null;const e=$('bnd');if(e)e.remove()}
+function bnSync(){const k=ui.bn;let e=$('bnd');if(!k||!G||G.status!=='lobby'||G.host!==uid){if(e)e.remove();ui.bn=null;return}
+  if(e&&e.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')return;
+  const d=bnDefs(G)[k];if(!e){e=document.createElement('div');e.id='bnd';e.onclick=v=>{if(v.target===e)bnClose()};document.body.appendChild(e)}
+  e.innerHTML=`<div class="dbx bnx" role=dialog aria-modal=true aria-label="${d.n}"><div class=bnr>${ic(d.i)}<h3>${d.n}</h3><span class=bns>${d.sd==='both'?BNS.hi+BNS.hu:BNS[d.sd]}</span></div><p>${d.d}</p>`
+    +(d.src?`<div class=rl><span>${d.on?'Woher':'Nicht im Spiel'}</span><small>${d.on?d.src:d.why}</small></div>`:'')
+    +`<div class=bnf>${d.f?d.f():'<small class=mut>Dieser Bonus hat keine Einstellungen.</small>'}</div><button onclick="bnClose()">Fertig</button></div>`}
+addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.bn)bnClose()});
 // §RUN-UI Panel im Spiel (Hider/Hunter/Zuschauer)
 function runUI(g,me_,t,host,run){
   const c=g.catches&&g.catches[uid],hh=md(g)==='mission'?'Erreiche die Evakuierung, sobald sie erscheint, und lass dich nicht fangen.':'Bleib in der Zone und lass dich nicht fangen.';
@@ -1530,7 +1566,7 @@ function panel(force){const el=$('pb');if(!G&&RV)return rvPanel();
   else [h,f]=runUI(g,me_,t,host,run);
   const ps=$('ps'),sc=ps.scrollTop;el.innerHTML=h;$('pf').innerHTML=f;ps.scrollTop=sc;resSync(g);
   // Lobby: beim Betreten Zwischenstufe (bis unter „Balancing“), danach bleibt die gewählte Stufe
-  const P_=$('panel');if(g.status==='lobby'){if(pSt!=='lobby'){P_.classList.remove('c');P_.classList.add('m')}pMidSet();pObs()}else P_.classList.remove('m');pSt=g.status}
+  const P_=$('panel');if(g.status==='lobby'){if(pSt!=='lobby'){P_.classList.remove('c');P_.classList.add('m')}pMidSet();pObs()}else P_.classList.remove('m');pSt=g.status;bnSync()}
 let pSt='';
 
 // §BRIEFING Missionsbriefing (Konzept: claude/KONZEPT_Briefing.md): feste Texte, nur der Operationsname kommt deterministisch aus code+rn; nichts in der DB
