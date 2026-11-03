@@ -162,9 +162,9 @@ button.rl.bnhb{background:none;border:0;border-top:1px solid #222b34;border-radi
 /* §CSS-REPLAY Zeitleiste (tl), Statistik (aw/al) */
 /* Zeitleiste „Lupe“: oben Übersicht der ganzen Runde (tlo), darunter Detailspur mit 10/20 Min um die aktuelle Position (tld), Filter-Chips (rvch) */
 .tlo{position:relative;height:22px;margin:4px 0 0;touch-action:none;cursor:pointer}.tlo .bar,.tlo .fill{position:absolute;left:0;top:9px;height:4px;border-radius:2px;background:#2a343f}.tlo .bar{right:0}.tlo .fill{background:#5b6776}
-.tlo .t{position:absolute;top:7px;width:2px;height:8px;margin-left:-1px;border-radius:1px;pointer-events:none}.tlo .win{position:absolute;top:1px;height:20px;border:1.5px solid var(--fg);border-radius:6px;background:#e9eef31a;pointer-events:none;box-sizing:border-box}
+.tlo .t{position:absolute;top:7.5px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;pointer-events:none}.tlo .t.hu{border-radius:0;width:8px;height:7px;margin-left:-4px;clip-path:polygon(50% 0,100% 100%,0 100%)}.tlo .win{position:absolute;top:1px;height:20px;border:1.5px solid var(--fg);border-radius:6px;background:#e9eef31a;pointer-events:none;box-sizing:border-box}
 .tld{position:relative;height:64px;border:1px solid var(--line);border-radius:12px;background:var(--bg);overflow:hidden;touch-action:none;cursor:grab}.tld .st{position:absolute;top:0;bottom:0;left:0;will-change:transform;pointer-events:none}
-.tld .bar{position:absolute;left:0;right:0;top:25px;height:4px;background:#2a343f}.tld .ev{position:absolute;top:16px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--bg);border:2px solid var(--c);color:var(--c);display:grid;place-items:center;box-sizing:border-box}.tld .ev .ic{width:12px;height:12px;stroke-width:2.4}.rvch .ci{display:grid}
+.tld .bar{position:absolute;left:0;right:0;top:25px;height:4px;background:#2a343f}.tld .ev{position:absolute;top:16px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--bg);border:2px solid var(--c);color:var(--c);display:grid;place-items:center;box-sizing:border-box}.tld .ev .ic{width:12px;height:12px;stroke-width:2.4}.tld .ev.hu{border:0;background:none;width:28px;height:25px;margin-left:-14px;top:12px;align-content:end;padding-bottom:4px}.tld .ev.hu .tri{position:absolute;inset:0;width:100%;height:100%}.tld .ev.hu .ic{position:relative;width:11px;height:11px}.rvch .ci{display:grid}
 .tld .pg{position:absolute;top:20px;width:2px;height:14px;margin-left:-1px;border-radius:1px;background:#5b6776}.tld .zs{position:absolute;top:14px;width:3px;height:26px;margin-left:-1.5px;border-radius:1.5px;background:#5b6776}
 .tld .mt{position:absolute;bottom:17px;width:1px;height:4px;background:#3a4552}.tld .mt.b{height:7px;background:#5b6776}.tld .lb{position:absolute;bottom:3px;transform:translateX(-50%);font:500 10px var(--f-m);color:var(--mut);white-space:nowrap}
 .tld .ph{position:absolute;top:5px;bottom:18px;width:2px;margin-left:-1px;background:var(--fg);border-radius:1px;pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
@@ -761,12 +761,12 @@ function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={pl
       if(r.k==='ok'&&r.el){const f1=Object.entries(r.el).sort((a,b)=>a[1]-b[1])[0];if(f1)ex=`${nm(f1[0])} erhält die Gegenüberwachung`}
       if(ex){const l=ev.filter(e=>e.k==='task'&&e.t===r.t).pop();if(l)l.x+=' · '+ex;else ev.push({t:r.t,k:'task',i:'hack',x:ex})}}
     if(k.cm)ev.push({t:k.cm.t,k:'bonus',i:'sat',x:`${nm(k.cm.u)} setzt die Gegenüberwachung ein`});
-    if(k.oz){const ph=ozPhase(g.s,k.oz,k.oz.t);ev.push({t:k.oz.t,k:'bonus',i:'block',x:`${nm(k.oz.u)} setzt das Sperrgebiet (Vorwarnung)`},{t:ph.w,k:'bonus',i:'block',x:'Sperrgebiet aktiv'},{t:ph.e,k:'bonus',i:'block',x:'Sperrgebiet aufgehoben'})}}}
+    if(k.oz){const ph=ozPhase(g.s,k.oz,k.oz.t);ev.push({t:k.oz.t,k:'bonus',i:'block',hu:1,x:`${nm(k.oz.u)} setzt das Sperrgebiet (Vorwarnung)`},{t:ph.w,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aktiv'},{t:ph.e,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aufgehoben'})}}}
   Object.entries(st.hb||{}).forEach(([h,o])=>Object.values(o||{}).forEach(i=>{if(!i||!i.u)return;let tg='';
     if(i.k==='live'){const L_=st.live||{};for(const x in L_)if(L_[x]&&L_[x][h]&&Math.abs(L_[x][h]-(i.u+(g.s.hbL||60)*1000))<15000)tg=' auf '+nm(x)}
-    ev.push({t:i.u,k:'bonus',bm:i.k==='bm'?h:null,i:{live:'live',bm:'radar'}[i.k]||'extra',x:`${nm(h)} setzt ${i.k==='live'?'Live-Standort'+tg:i.k==='bm'?'Hider-Radar':'Extra-Ping'} ein`})}));
+    ev.push({t:i.u,k:'bonus',hu:1,bm:i.k==='bm'?h:null,i:{live:'live',bm:'radar'}[i.k]||'extra',x:`${nm(h)} setzt ${i.k==='live'?'Live-Standort'+tg:i.k==='bm'?'Hider-Radar':'Extra-Ping'} ein`})}));
   Object.values(P_).forEach(p=>{if(p._sT&&p.state&&p.state!=='alive')p.sT=p._sT;delete p._sT});
-  const ca=(st.catches)||{};Object.values(P_).forEach(p=>{if(p.state==='caught'&&p.sT){const h=(ca[p.id]||{}).hunter;ev.push({t:p.sT,k:'catch',i:'catch',x:`${h&&P_[h]?nm(h):'Ein Hunter'} fängt ${nm(p.id)}`,hider:p.id,hunter:h})}});
+  const ca=(st.catches)||{};Object.values(P_).forEach(p=>{if(p.state==='caught'&&p.sT){const h=(ca[p.id]||{}).hunter;ev.push({t:p.sT,k:'catch',hu:1,i:'catch',x:`${h&&P_[h]?nm(h):'Ein Hunter'} fängt ${nm(p.id)}`,hider:p.id,hunter:h})}});
   const SX={safe:'ist in Sicherheit',quit:'hat aufgegeben',dq:'wurde disqualifiziert'};
   Object.values(P_).forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`})});
   return{ev,final:st}}
@@ -799,7 +799,7 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},tkc:{},raf:0,last:0,zm:0};
   const sc=rvScan(f,pl);RV.fin=sc.final;RV.bms=sc.ev.filter(e=>e.bm).map(e=>({p:e.bm,t0:e.t,t1:e.t+bmTv(f.game.s)*1000}));RV.bmo={};const catches=sc.ev.filter(e=>e.k==='catch').map(e=>({t:e.t,hider:e.hider,hunter:e.hunter}));
   RV.st=rvStats(f,pl,catches);const nm=k=>esc((pl[k]||{}).name||'?');
-  RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',i:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
+  RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',hu:1,i:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
   const g=f.game;sc.ev.push({t:g.end,k:'end',x:g.winner==='hunter'?'Hunter gewinnen':g.winner==='hider'?'Hider gewinnen':'Spielende'});
   for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)sc.ev.push({t,k:'ping',x:'Ping: Die Hunter sehen die Hider-Positionen'});
   zsTimes(g.s,g.R0,g.end).forEach(([t,r])=>sc.ev.push({t,k:'zone',x:'Zone schrumpft: jetzt '+r+' m'+(r<=g.s.rMin?' (Endgröße)':'')}));
@@ -916,6 +916,8 @@ function rvDrag(e){const b=$('rvD');if(!b)return;const r=b.getBoundingClientRect
   addEventListener('pointermove',m);addEventListener('pointerup',up)}
 function rvScrub(e){const b=$('rvT');if(!b)return;const r=b.getBoundingClientRect(),go=x=>{RV.t=RV.T0+Math.max(0,Math.min(1,(x-r.left)/r.width))*(RV.T1-RV.T0);rvDraw()};
   go(e.clientX);const mv=ev=>go(ev.clientX),up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+// Dreieck um Symbole von Hunter-Ereignissen (Fang, Knapp!, Hunter-Boni, Sperrgebiet); Hider-Ereignisse und Aufgaben bleiben Kreise
+const RVTRI='<svg class=tri viewBox="0 0 28 25" aria-hidden=true><path d="M14 2L26.5 23H1.5Z" fill="#0b0e12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
 const RVC={catch:'#e5484d',knapp:'#ff8a1f',task:'#7c6cff',bonus:'#4fb3f0'},RVI={catch:'catch',knapp:'knapp',task:'box',bonus:'gift'};
 // Symbol einer Aufgabe auf der Zeitleiste
 const rvTI=id=>id==='sh'?'home':id==='ev'?'exit':isDd(id)?'box':isMt(id)?'meet':id==='hk'?'hack':'box';
@@ -925,8 +927,8 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
   if(RV.tab==='map'){const T=RV.T1-RV.T0,w=rvWin(),Y=t=>(t-RV.T0)/T*100,vis=RV.ev.filter(rvVis),n=k=>RV.ev.filter(e=>e.k===k).length,stp=w>6e5?5:2;
     let mt='';for(let m=Math.ceil((RV.T0-g.R0)/6e4);g.R0+m*6e4<=RV.T1;m++){const x=Y(g.R0+m*6e4),b=m%stp===0;mt+=`<span class="mt${b?' b':''}" style="left:${x}%"></span>`+(b?`<span class=lb style="left:${x}%">${m}′</span>`:'')}
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${(f.round||0)+1}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}
-     <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class=t style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
-     <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class=ev style="left:${Y(e.t)}%;--c:${RVC[e.k]}">${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
+     <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class="t${e.hu?' hu':''}" style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
+     <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':''}" style="left:${Y(e.t)}%;--c:${RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
      <div class=rvch>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`+tabs}
