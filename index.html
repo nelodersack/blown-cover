@@ -1997,7 +1997,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')Object.entries(g.tasks||{}).filter(([id])=>isDd(id)||isMt(id)).forEach(([id,k])=>{
     if(t<k.t0||k.fin||k.pick||k.ex)return;
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
-  if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||t<k.t0||k.fin||k.ex||k.pick)return;
+  if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||(isMt(id)&&!k.sol)||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Satellitenbild '+ago(radar.t)]));
   if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:(imMe()?shape('me',uid).replace('stroke="#1e7cf0"','stroke="#f2b705"'):shape('me',uid))+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
