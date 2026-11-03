@@ -40,7 +40,7 @@ JS in Dateireihenfolge:
 | §SPIEL-PANEL | Panel im Spiel: Hider `gBonH` (Bonus-Knöpfe aus `gItems`) + `gTaskH` (Auftragszeilen aus `gTasks`, `gRow`), Hunter `gBonHu`; Fenster `#gd` mit `gdShow(k)`/`gdSync()` (aus `panel()`)/`gdClose`, Schlüssel `bi:<item>`, `t:<task>`, `hk:<token>`, `hi:<hb-id>`, `hr`; Meeting-Wahl `gdMeet` (`mtSel`) |
 | §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`). Aufbau: `#panel` > `#ph` (Griff) + `#ps` (Scrollbereich) > `#pb` (Inhalt) + `#pf` (Knöpfe, scrollen mit) |
 | §BRIEFING | Missionsbriefing: `bfName(code,rn)` (Operationsname), `bfData(g,code)` (beide Fassungen, feste Texte; nur der Name kommt deterministisch aus code+rn über `bfRng`), `bfShow`/`bfClose`/`bfAuto` (Dialog `#bfd`, Merker `LS[bfKey()]`), `bfRes` (Zeile im Endscreen), Knopf `.bfb` im Panel |
-| §HACKING | `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |
+| §HACKING | (in Texten „Terminal“) `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |
 | §ZEICHNEN | `draw()` (alle Karten-Layer), `mkr` (Marker mit Popup), `tkInfo` (Aufgaben-Popup: Name + Belohnung, auch im Replay), Legende `LG` |
 | §ONDATA | `onData()` nach jeder DB-Änderung |
 | §TICK | `setInterval` 1 s: HUD, GPS-/Netz-Warnung, Zone, Pings, Fänge, Spielende |

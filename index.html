@@ -319,16 +319,16 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
       else if(q[0]==='players'&&q[2]==='out')H(x.t,q[1]+(n?' außerhalb der Zone':' wieder in der Zone'));
       else if(q[0]==='players'&&q[2]==='used')H(x.t,q[1]+': Bonus genutzt ('+q[3]+')');
       else if(q[0]==='tasks'&&q[1]==='hk'){
-        if(q[2]==='at'&&q[4]==='s'&&n)H(x.t,'Hacking: Versuch '+q[3]+' gestartet');
-        else if(q[2]==='at'&&q[4]==='u'&&n)H(x.t,'Hacking: Versuch '+q[3]+' von '+nm(n));
-        else if(q[2]==='at'&&q[4]==='p'&&q[6]==='t'&&n)H(x.t,'Hacking: '+nm(q[5])+' steigt in Versuch '+q[3]+' ein');
-        else if(q[2]==='at'&&q[4]==='x'&&n)H(x.t,'Hacking: '+nm(q[5])+' scheidet aus Versuch '+q[3]+' aus (Zone verlassen)');
-        else if(q[2]==='at'&&q[4]==='e'&&q[5]==='k'&&n)H(x.t,'Hacking: Versuch '+q[3]+' beendet ('+n+')');
-        else if(q[2]==='res'&&q[3]==='k'&&n)H(x.t,'Hacking: Ergebnis '+n);
-        else if(q[2]==='res'&&q[3]==='h'&&n)H(x.t,'Hacking: Sperrgebiet an '+nm(n));
+        if(q[2]==='at'&&q[4]==='s'&&n)H(x.t,'Terminal: Versuch '+q[3]+' gestartet');
+        else if(q[2]==='at'&&q[4]==='u'&&n)H(x.t,'Terminal: Versuch '+q[3]+' von '+nm(n));
+        else if(q[2]==='at'&&q[4]==='p'&&q[6]==='t'&&n)H(x.t,'Terminal: '+nm(q[5])+' steigt in Versuch '+q[3]+' ein');
+        else if(q[2]==='at'&&q[4]==='x'&&n)H(x.t,'Terminal: '+nm(q[5])+' scheidet aus Versuch '+q[3]+' aus (Zone verlassen)');
+        else if(q[2]==='at'&&q[4]==='e'&&q[5]==='k'&&n)H(x.t,'Terminal: Versuch '+q[3]+' beendet ('+n+')');
+        else if(q[2]==='res'&&q[3]==='k'&&n)H(x.t,'Terminal: Ergebnis '+n);
+        else if(q[2]==='res'&&q[3]==='h'&&n)H(x.t,'Terminal: Sperrgebiet an '+nm(n));
         else if(q[2]==='cm'&&q[3]==='u'&&n)H(x.t,'Gegenüberwachung eingesetzt von '+nm(n));
         else if(q[2]==='oz'&&q[3]==='u'&&n)H(x.t,'Sperrgebiet gesetzt von '+nm(n));
-        else if(q[2]==='t0'&&n)H(n,'Hacking-Challenge startet (geplant)')}
+        else if(q[2]==='t0'&&n)H(n,'Terminal wird aktiv (geplant)')}
       else if(q[0]==='tasks'&&q[2]==='t0'&&n)H(n,'Aufgabe '+q[1]+' startet (geplant)');
       else if(q[0]==='tasks'&&(q[2]==='dep'||q[2]==='pick')&&q[3]==='u')H(x.t,'Aufgabe '+q[1]+': '+(q[2]==='dep'?'deponiert':'abgeholt')+' von '+nm(n));
       else if(q[0]==='tasks'&&q[2]==='in'&&q[4]==='t')H(x.t,'Safehouse: '+q[3]+' eingecheckt');
@@ -757,7 +757,7 @@ function rvAt(a,t,gap){if(!a||!a.length||t<a[0][0])return null;let lo=0,hi=a.len
 const rvOut=(p,t)=>p.state&&p.state!=='alive'&&p.sT&&t>=p.sT;
 const rvTm=(t,R0)=>{const s=Math.round((t-R0)/1000),a=Math.abs(s);return(s<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')};
 const rvDur=ms=>ms>=60000?Math.round(ms/60000)+' Min':Math.round(ms/1000)+' s';
-const rvTN=id=>id==='hk'?'Hacking-Challenge':id==='sh'?'Safehouse':id==='ev'?'Evakuierung':isDd(id)?'Dead Drop':isMt(id)?'Meeting':'Aufgabe';
+const rvTN=id=>id==='hk'?'Terminal':id==='sh'?'Safehouse':id==='ev'?'Evakuierung':isDd(id)?'Dead Drop':isMt(id)?'Meeting':'Aufgabe';
 // Ereignisse und Endzustand aus dem Protokoll: nur echte Wechsel zählen (Wiederholungen nach Neuladen werden ignoriert)
 function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={players:{}},g=f.game;
   f.log.forEach(([t,p,v])=>{if(cur[p]===v)return;const old=cur[p];cur[p]=v;rvSetP(st,p,v);let m;
@@ -770,12 +770,12 @@ function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={pl
     else if((m=/^players\/([^/]+)\/used\/([^/]+)$/.exec(p))&&v){const u=m[1],it=myItems({s:g.s,tasks:st.tasks||{},code:f.code,rn:f.round},u).find(i=>i.id===m[2]);ev.push({t,k:'bonus',bm:it&&it.type==='bm'?u:null,i:it?{imm:'shield',radar:'sat',bm:'radar'}[it.type]:'shield',x:`${nm(u)} setzt ${it?ITN(it).replace(/ [0-9:]+$/,''):'Immunität'} ein`})}});
   Object.entries(st.tasks||{}).forEach(([id,k])=>{if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',i:'box',x:`${nm(k.dep.u)} legt den Dead Drop ab`});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',i:'box',x:`${nm(k.pick.u)} holt den Dead Drop ab`})});
   {const k=(st.tasks||{}).hk;if(k){const A=k.at||{};Object.keys(A).sort((a,b)=>a-b).forEach(n=>{const a=A[n];
-      ev.push({t:a.s,k:'task',i:'hack',x:`${nm(a.u)} hackt das System (Versuch ${n})`});
+      ev.push({t:a.s,k:'task',i:'hack',x:`${nm(a.u)} hackt das Terminal (Versuch ${n})`});
       Object.entries(a.p||{}).forEach(([u,o])=>{if(u!==a.u&&o&&o.t)ev.push({t:o.t,k:'task',i:'hack',x:`${nm(u)} hilft beim Hack`})});
-      Object.entries(a.x||{}).forEach(([u,tt])=>ev.push({t:tt,k:'task',i:'hack',x:`${nm(u)} verlässt die Hacking-Zone und scheidet aus`}));
-      if(a.e)ev.push({t:a.e.t,k:'task',i:'hack',x:a.e.k==='ok'?'System gehackt!':a.e.k==='df'?'Hack gestoppt: alle Hacker gefangen':`Hack abgebrochen (Versuch ${n})`})});
+      Object.entries(a.x||{}).forEach(([u,tt])=>ev.push({t:tt,k:'task',i:'hack',x:`${nm(u)} verlässt die Terminal-Zone und scheidet aus`}));
+      if(a.e)ev.push({t:a.e.t,k:'task',i:'hack',x:a.e.k==='ok'?'Terminal gehackt!':a.e.k==='df'?'Hack gestoppt: alle Hacker gefangen':`Hack abgebrochen (Versuch ${n})`})});
     const r=k.res;if(r){let ex='';
-      if(r.k==='d3')ev.push({t:r.t,k:'task',i:'hack',x:'System gesichert: Hacking-Zone verteidigt'});
+      if(r.k==='d3')ev.push({t:r.t,k:'task',i:'hack',x:'Terminal gesichert: Zone verteidigt'});
       if(r.k!=='ok'&&r.h)ex=`${nm(r.h)} erhält das Sperrgebiet`;
       if(r.k==='ok'&&r.el){const f1=Object.entries(r.el).sort((a,b)=>a[1]-b[1])[0];if(f1)ex=`${nm(f1[0])} erhält die Gegenüberwachung`}
       if(ex){const l=ev.filter(e=>e.k==='task'&&e.t===r.t).pop();if(l)l.x+=' · '+ex;else ev.push({t:r.t,k:'task',i:'hack',x:ex})}}
@@ -1311,7 +1311,7 @@ function specView(g,t){const T=g.tasks||{};
         tk.push('Dead Drop ('+(A?'deponieren':'abholen')+'): '+(k.ex?'verfallen':done?'erledigt ✓':t<k.t0?'noch nicht gestartet':'offen'))}
       if(isMt(id)&&(k.a===u||k.b===u)){const q=P()[k.a===u?k.b:k.a]||{};tk.push('Meeting mit '+esc(q.name||'?')+': '+(k.ex?'verfallen':k.fin?'erledigt ✓':t<k.t0?'noch nicht gestartet':'offen'))}
       if(id==='sh'){const r=rankOf(k.in,u);tk.push('Safehouse: '+(r?'Platz '+r:t<k.t0?'noch nicht gestartet':Object.keys(k.in||{}).length>=2?'nicht erreicht':'offen'))}
-      if(id==='hk'){const a=Object.values(k.at||{}).find(x=>x.p&&x.p[u]);if(a)tk.push('Hacking: '+(a.e?(a.e.k==='ok'?'erfolgreich ✓':'beendet'):'hackt gerade'));else if(t>=k.t0&&!k.res)tk.push('Hacking: möglich')}
+      if(id==='hk'){const a=Object.values(k.at||{}).find(x=>x.p&&x.p[u]);if(a)tk.push('Terminal: '+(a.e?(a.e.k==='ok'?'erfolgreich ✓':'beendet'):'hackt gerade'));else if(t>=k.t0&&!k.res)tk.push('Terminal: möglich')}
       if(id==='ev')tk.push('Evakuierung: '+(p.state==='safe'?'erreicht ✓':t<k.t0?'noch nicht gestartet':'offen'))});
     const it=myItems(g,u).map(i=>ITN(i)+(p.used&&p.used[i.id]?' (eingesetzt)':'')),
       im=(p.immUntil||0)>t?' · Schutz '+fmt(p.immUntil-t):'';
@@ -1439,7 +1439,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if($('pan
 // §EINSTELLUNGEN ui, DEF, FD (Feld-Definitionen), PRE (Dauer-Presets), setPre, setHk
 const ui={pal:false,lt:'players',adv:true,bn:null,open:{zone:0,game:0,tasks:0,bon:0},spec:'hider'};
 const DEF={gw:20,gd:60,step:50,ot:0,bmR:0,bmT:0,sbT:60};
-const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Hider-Radar nach (0 = aus)',0,120,5,'Min'],bmR:['Radar-Radius (0 = auto)',0,2000,5,'m'],bmT:['Radar-Dauer (0 = auto)',0,900,10,'s'],sbT:['Satellitenbild-Dauer',10,600,10,'s'],hkS:['Hacking ab',1,119,1,'Min'],hkZ:['Hacking-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
+const FD={r0:['Startradius',50,100000,50,'m'],rMin:['Mindestradius',50,100000,50,'m'],shrink:['Schrumpfen alle',1,60,1,'Min'],step:['Schrumpfen um',5,1000,5,'m'],ot:['Max. Zeit außerhalb (0 = aus)',0,120,1,'Min'],head:['Headstart',0,30,1,'Min'],dur:['Dauer',5,240,5,'Min'],ping:['Ping alle',10,900,10,'s'],pen:['Strafzeit außerhalb',1,60,1,'Min'],gw:['GPS-Warnung nach',5,600,5,'s'],gd:['GPS-Ausschluss nach',15,1800,5,'s'],shT:['Safehouse ab',0,120,1,'Min'],imm:['Immunität',10,600,10,'s'],ddN:['Dead Drops',0,9,1,''],ddT:['Dead Drop ab',0,120,1,'Min'],mtN:['Meetings',0,9,1,''],mtT:['Meeting ab',0,120,1,'Min'],taskR:['Aufgabenradius (0 = auto)',0,5000,50,'m'],evT:['Evakuierung letzte',1,60,1,'Min'],hbN:['Max. Vorrat',1,20,1,''],hbC:['Wartezeit nach Fang',0,600,10,'s'],hbL:['Live-Dauer',10,600,10,'s'],hbT:['Hider-Radar nach (0 = aus)',0,120,5,'Min'],bmR:['Radar-Radius (0 = auto)',0,2000,5,'m'],bmT:['Radar-Dauer (0 = auto)',0,900,10,'s'],sbT:['Satellitenbild-Dauer',10,600,10,'s'],hkS:['Terminal ab',1,119,1,'Min'],hkZ:['Terminal-Zone Radius',20,1000,5,'m'],hkT:['Hackdauer (allein)',10,900,10,'s'],hkR:['Gegenüberwachung',10,600,10,'s'],hkN:['Versuche',1,5,1,''],ozR:['Sperrgebiet Radius',20,1000,5,'m']};
 const PRE={30:{dur:30,r0:500,rMin:200,shrink:3,step:50,head:2,ping:120,pen:1,shT:10,ddT:4,mtT:8,evT:5,imm:120,hbC:60,hbL:40,hbT:15,ot:3},
  60:{dur:60,r0:750,rMin:300,shrink:4,step:50,head:3,ping:180,pen:2,shT:20,ddT:8,mtT:15,evT:8,imm:240,hbC:90,hbL:60,hbT:30,ot:5},
  90:{dur:90,r0:1000,rMin:400,shrink:5,step:50,head:4,ping:240,pen:3,shT:30,ddT:12,mtT:22,evT:10,imm:300,hbC:120,hbL:90,hbT:45,ot:7},
@@ -1504,12 +1504,12 @@ function lobbyUI(g,host,me_){
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0);
     const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),
-      tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`+(s.hk?' · Hacking':'');
+      tS=`${sv?(s.shOn?'Safehouse':'ohne Safehouse'):'Evakuierung'} · ${s.ddN||0} Dead Drops · ${s.mtN||0} Meetings`+(s.hk?' · Terminal':'');
     const bo=bonOn(g),rw=x=>`<span class=rw>Belohnung: ${x}</span>`;
     let t=nfl('ddN','Dead Drops',bo?rw('Satellitenbild und Hunter-Radar, per Zufall verteilt'):'')+((s.ddN||0)>0?nf('ddT',1):'')+nfl('mtN','Meetings',bo?rw('jeder wählt Hunter-Radar oder Satellitenbild'):'')+((s.mtN||0)>0?nf('mtT',1):'');
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
     else t+=nf('evT');
-    t+=`<div class=fl><label>Hacking-Challenge<small>Riskante Hider-Aufgabe mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Hacking-Challenge" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
+    t+=`<div class=fl><label>Terminal<small>Riskante Hider-Aufgabe: ein Terminal hacken, mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
     if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;
@@ -1520,7 +1520,7 @@ function lobbyUI(g,host,me_){
     +(ui.adv?acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'))+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''))+acc('tasks','home','Aufgaben',tS,t)+bnAcc(g):'')+acc('rp','play','Replay aufzeichnen',s.rp?'An · alle bekommen am Ende dieselbe Datei':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder „Replay herunterladen“. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`)+acc('an','gear','Analyse-Modus',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
-    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Hacking-Challenge',s.hk?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
+    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',sv?'Untertauchen':'Mission')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
   }
   const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
@@ -1611,10 +1611,10 @@ const MTC=g=>({bm:'Hunter-Radar',rad:'Satellitenbild',imm:'Immunität '+fmt((g.s
 function gTaskH(g,t,me_){const o=gTasks(g,t),H=hkSt(g,t);let x='';
   if(H&&H.seen){const k=H.k,Z=hkZv(g),d=pos?Math.max(0,Math.round(D(pos,k.loc))-Z):null,inv=H.run&&H.run.p&&H.run.p[uid]&&!(H.run.x&&H.run.x[uid]);
     if(inv)x=hkHCard(g,t,me_);
-    else if(H.run)o.push({id:'hk',i:'hack',n:'Hacking läuft',sub:`${hkNames(H.run)||'Ein Hider'} hackt · ${Math.round(hkProg(g,H.run,t)*100)} % · Mithelfen macht es schneller`,d:d||0,r:d===0?gGo('Mithelfen','hkJoin()'):gDst(d)});
-    else if(H.open)o.push({id:'hk',i:'hack',n:'Hacking-Challenge',sub:'Belohnung: Immunität + Gegenüberwachung',d:d||0,r:d===0?gGo('Hacken','hkJoin()'):gDst(d)});
-    else if(H.res)o.push({id:'hk',i:'hack',n:'Hacking-Challenge',sub:H.res.k==='ok'?'System gehackt':'Verteidigt von den Huntern',done:1,r:H.res.k==='ok'?gOk:''});
-    else if(H.dead)o.push({id:'hk',i:'hack',n:'Hacking-Challenge',sub:'Nicht mehr möglich',done:1})}
+    else if(H.run)o.push({id:'hk',i:'hack',n:'Terminal wird gehackt',sub:`${hkNames(H.run)||'Ein Hider'} hackt · ${Math.round(hkProg(g,H.run,t)*100)} % · Mithelfen macht es schneller`,d:d||0,r:d===0?gGo('Mithelfen','hkJoin()'):gDst(d)});
+    else if(H.open)o.push({id:'hk',i:'hack',n:'Terminal',sub:'Belohnung: Immunität + Gegenüberwachung',d:d||0,r:d===0?gGo('Hacken','hkJoin()'):gDst(d)});
+    else if(H.res)o.push({id:'hk',i:'hack',n:'Terminal',sub:H.res.k==='ok'?'Terminal gehackt':'Verteidigt von den Huntern',done:1,r:H.res.k==='ok'?gOk:''});
+    else if(H.dead)o.push({id:'hk',i:'hack',n:'Terminal',sub:'Nicht mehr möglich',done:1})}
   if(!o.length&&!x)return'';
   o.sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.d??1e7)-(b.d??1e7));
   return x+`<div class=gsec><h3>Aufträge</h3><small class=mut>Antippen für Details</small></div>`+o.map(r=>gRow(Object.assign({dk:'t:'+r.id},r))).join('')}
@@ -1767,7 +1767,7 @@ function bfRes(r){if(!code)return'';const rn=r.rn!=null?r.rn:Math.max(0,((G&&G.r
   if(r.w!=='hider'&&r.w!=='hunter')return `<div class=rsop>${AKTE}<span>${hu?'Abwehrmaßnahme':'Operation'} ${nm}: <b>abgebrochen</b></span></div>`;
   const ok=(r.w==='hunter')===hu;return `<div class=rsop>${AKTE}<span>${hu?'Abwehrmaßnahme':'Operation'} ${nm}: <b class=${ok?'ok':'no'}>${ok?'erfolgreich':'gescheitert'}</b></span></div>`}
 // §HACKING
-// ===== Hacking-Challenge + Sperrgebiet (Konzept: claude/KONZEPT_Hacking.md) =====
+// ===== Terminal + Sperrgebiet (Konzept: claude/KONZEPT_Hacking.md) =====
 const hk5=v=>Math.round(v/5)*5,hk10=v=>Math.round(v/10)*10;
 function hkDef(s){const p=s.ping||120,r=s.r0||500,T=s.dur||30;
   return{hkZ:Math.max(40,hk5(.15*r)),hkT:Math.max(30,hk10(1.5*p)),hkR:Math.max(10,hk10(.5*p)),hkS:Math.max(1,Math.min(T-1,Math.round(.29*T))),hkN:3,ozR:Math.max(40,hk5(.15*r))}}
@@ -1803,15 +1803,15 @@ const hkRef=()=>db.ref(`games/${code}/tasks/hk`);
 const hkInZone=g=>{const k=hkK(g);return !!(pos&&k&&D(pos,k.loc)<=hkZv(g))};
 let hkSP,hkOutMs=0,hkLT=0,hkWr=0,hkLock=0,lastCm=null,cmWas=false,ozPrev,ozIn=false,ozBusy=0,ozTmp=null;
 function hkJoin(){const g=G,t=now(),m=P()[uid]||{},H=hkSt(g,t);if(!H||m.role!=='hider'||m.state!=='alive'||H.res)return;
-  if(!hkInZone(g))return toast('Du bist nicht in der Hacking-Zone');
+  if(!hkInZone(g))return toast('Du bist nicht in der Terminal-Zone');
   const fx=()=>{wasOut=false;hkOutMs=0;hkLT=0;db.ref(`games/${code}/players/${uid}`).update({immUntil:0,out:false,revealUntil:0}).catch(()=>{});panel(1);draw()};
   if(H.run){const a=H.run;if(a.p&&a.p[uid])return toast(a.x&&a.x[uid]?'Du bist aus diesem Versuch ausgeschieden':'Du hackst bereits');
     return hkRef().child('at/'+H.ln+'/p/'+uid).set({t}).then(()=>{evW('hk_h'+H.ln+'_'+uid,'Hider '+m.name+' hilft beim Hack','hk');toast('Du hilfst beim Hack');fx()}).catch(()=>toast('Das hat nicht geklappt'))}
   if(!H.open)return;const n=H.n+1;
-  hkRef().child('at/'+n).set({s:t,u:uid,p:{[uid]:{t}}}).then(()=>{evW('hk_s'+n,'Hider '+m.name+' hackt das System','hk');toast('Du hackst das System. Bleib in der Zone!');fx()}).catch(()=>toast('Der Hack wurde gerade von jemand anderem gestartet'))}
+  hkRef().child('at/'+n).set({s:t,u:uid,p:{[uid]:{t}}}).then(()=>{evW('hk_s'+n,'Hider '+m.name+' hackt das Terminal','hk');toast('Du hackst das Terminal. Bleib in der Zone!');fx()}).catch(()=>toast('Der Hack wurde gerade von jemand anderem gestartet'))}
 function hkLeave(H){const g=G,t=now();
   hkRef().child('at/'+H.ln+'/x/'+uid).set(t).then(()=>{db.ref(`games/${code}/players/${uid}`).update({revealUntil:t+(g.s.hbL||60)*1000}).catch(()=>{});
-    toast('Du hast die Hacking-Zone verlassen: Dein Standort ist '+(g.s.hbL||60)+' s sichtbar');navigator.vibrate&&navigator.vibrate([200,100,200]);panel(1)}).catch(()=>{})}
+    toast('Du hast die Terminal-Zone verlassen: Dein Standort ist '+(g.s.hbL||60)+' s sichtbar');navigator.vibrate&&navigator.vibrate([200,100,200]);panel(1)}).catch(()=>{})}
 function hkCmUse(){const g=G;if(hkHolder(g)!==uid)return;
   hkRef().child('cm').set({u:uid,t:now()}).then(()=>{toast('Gegenüberwachung aktiv');panel(1)}).catch(()=>toast('Das hat nicht geklappt'))}
 // Sperrgebiet setzen: Kreis auf die Karte legen und bestätigen
@@ -1829,20 +1829,20 @@ function ozGo(){if(!mkTmp||!mkTmp.oz||ozHolder(G)!==uid)return mkCancel();const 
 // Sekundentakt: Fortschritt schreiben, Zone verlassen, Versuch beenden, Meldungen. Liefert HUD-Text.
 function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.now(),tg=hkTv(g)*1000,k=H.k;
   const act=hkAct(g,uid);
-  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.state==='alive'&&(m.role==='hider'||m.role==='hunter')){toast(m.role==='hider'?'Hacking-Challenge verfügbar!':'Hacking-Challenge gestartet: Die Hider können jetzt hacken');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
+  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.state==='alive'&&(m.role==='hider'||m.role==='hunter')){toast(m.role==='hider'?'Terminal verfügbar: Ihr könnt es jetzt hacken!':'Terminal aktiv: Die Hider können es jetzt hacken');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
   if(act&&H.run){const a=H.run,fresh=!!pos&&nw-lastFix<10000,dt=hkLT?Math.min(3000,nw-hkLT):0;hkLT=nw;
     if(fresh){const outs=D(pos,k.loc)-(typeof gAcc==='number'?gAcc:0)>hkZv(g);hkOutMs=outs?hkOutMs+dt:0}
     if(hkOutMs>=10000){hkOutMs=0;hkLeave(H)}
     else{
       if(fresh&&nw-hkWr>=2500){const pg=a.pg||{v:0,t:a.s},v=Math.min(tg,Math.round(pg.v+Math.max(0,Math.min(t-pg.t,6000))*hkRate(a,t)));
         if(v>(a.pg?a.pg.v:-1)){hkWr=nw;hkRef().child('at/'+H.ln+'/pg').set({v,t}).catch(()=>{})}}
-      if(hkOutMs>0)h+=`<span class=w>Zurück in die Hacking-Zone! ${Math.max(0,Math.ceil((10000-hkOutMs)/1000))} s</span>`}}
+      if(hkOutMs>0)h+=`<span class=w>Zurück in die Terminal-Zone! ${Math.max(0,Math.ceil((10000-hkOutMs)/1000))} s</span>`}}
   else{hkOutMs=0;hkLT=0}
   if(H.run)h+=`<span>${ic('hack')}Hack ${Math.round(hkProg(g,H.run,t)*100)} %</span>`;
   // Versuch beenden (jeder prüft mit, das erste gültige Schreiben gewinnt)
   if(m.role&&H.run&&t>=hkLock){const a=H.run,n=H.ln,ps=hkPs(a),alive=ps.filter(([u])=>!hkGone(a,u));
     if(a.pg&&a.pg.v>=tg&&alive.length){hkLock=t+3000;const el={};alive.forEach(([u],i)=>{el[u]=i+1});
-      hkRef().update({['at/'+n+'/e']:{k:'ok',t},res:{k:'ok',t,a:String(n),el}}).then(()=>evW('hk_ok','System gehackt!','hk')).catch(()=>{})}
+      hkRef().update({['at/'+n+'/e']:{k:'ok',t},res:{k:'ok',t,a:String(n),el}}).then(()=>evW('hk_ok','Terminal gehackt!','hk')).catch(()=>{})}
     else if(ps.length&&!alive.length){hkLock=t+3000;let lu=null,lt=-1,how='x';
       ps.forEach(([u])=>{const p=P()[u]||{},xt=(a.x&&a.x[u])||0,st_=p.state!=='alive'?(p.sT||0):0,gt=xt&&(!st_||xt<=st_)?xt:(st_||xt),hw=xt&&(!st_||xt<=st_)?'x':p.state;if(gt>=lt){lt=gt;lu=u;how=hw}});
       const caught=how==='caught',up={['at/'+n+'/e']:{k:caught?'df':'ab',t}};
@@ -1850,12 +1850,12 @@ function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.n
       else if(n>=hkNv(g)){const hh=hkNear(g,lu,t);up.res={k:'d3',t,a:String(n)};if(hh)up.res.h=hh}
       if(up.res&&up.res.h===null)delete up.res.h;
       hkRef().update(up).then(()=>{
-        if(caught)evW('hk_df','Hacking-Zone verteidigt','hk');
-        else if(n>=hkNv(g))evW('hk_d3','System gesichert – Hacking-Zone verteidigt','hk');
+        if(caught)evW('hk_df','Terminal-Zone verteidigt','hk');
+        else if(n>=hkNv(g))evW('hk_d3','Terminal gesichert – Zone verteidigt','hk');
         else{const r=hkNv(g)-n;evW('hk_ab'+n,`Hack abgebrochen (noch ${r} Versuch${r>1?'e':''})`,'hk')}}).catch(()=>{})}}
   // Immunität nach erfolgreichem Hack (nur wer noch beteiligt war)
   if(H.res&&H.res.k==='ok'&&H.res.el&&H.res.el[uid]&&m.state==='alive'&&!evSeen.has('hk_imm')){evSeen.add('hk_imm');const hbc=(g.s.hbC||0)*1000;
-    if(hbc>0&&H.res.t+hbc>t)db.ref(`games/${code}/players/${uid}`).update({immUntil:H.res.t+hbc}).then(()=>toast('System gehackt! Du bist '+fmt(H.res.t+hbc-t)+' geschützt')).catch(()=>{})}
+    if(hbc>0&&H.res.t+hbc>t)db.ref(`games/${code}/players/${uid}`).update({immUntil:H.res.t+hbc}).then(()=>toast('Terminal gehackt! Du bist '+fmt(H.res.t+hbc-t)+' geschützt')).catch(()=>{})}
   // Gegenüberwachung
   const cmT=k.cm?k.cm.t:0,cmOn=hkCmOn(g,t);
   if(lastCm===null)lastCm=cmT;
@@ -1881,7 +1881,7 @@ const hkBar=p=>`<div class=hkb><i style="width:${Math.round(p*100)}%"></i></div>
 const hkNames=a=>hkPs(a).filter(([u])=>!hkGone(a,u)).map(([u])=>esc((P()[u]||{}).name||'?')).join(', ');
 function hkHCard(g,t,m){const H=hkSt(g,t);if(!H||!H.seen)return'';const k=H.k,Z=hkZv(g),d=pos?Math.round(D(pos,k.loc)):null,inz=d!==null&&d<=Z,
   btn=(txt,fn)=>`<button ${inz?'':'class=g disabled'} onclick="${fn}">${txt}${inz?'':(d===null?' (warte auf GPS)':' (noch '+Math.max(0,d-Z)+' m)')}</button>`,
-  C=x=>`<div class=tk>${TH('hack','Hacking-Challenge')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;let h='';
+  C=x=>`<div class=tk>${TH('hack','Terminal')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;let h='';
   if(H.res){
     if(H.res.k==='ok'){const ho=hkHolder(g),cm=k.cm;
       if(ho===uid&&0)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>Du hältst die Gegenüberwachung. Beim Einsetzen sehen alle Hider ${hkRv(g)} s lang die Standorte aller Hunter. Die Hunter bekommen sofort eine Meldung.</small><br><button class="s" onclick="hkCmUse()">Einsetzen</button></div>`;
@@ -1889,13 +1889,13 @@ function hkHCard(g,t,m){const H=hkSt(g,t);if(!H||!H.seen)return'';const k=H.k,Z=
       else if(ho)h+=`<div class=tk>${TH('live','Gegenüberwachung')}<small>${esc((P()[ho]||{}).name||'?')} hält die Gegenüberwachung.</small></div>`}
     return h}
   if(H.run){const a=H.run,me=a.p&&a.p[uid],gone=a.x&&a.x[uid],pr=hkProg(g,a,t),hs=hkNames(a);
-    if(me&&!gone)return C([`Du hackst das System. Bleib in der Hacking-Zone (Radius ${Z} m)! Wer sie länger als 10 s verlässt, scheidet aus und ist ${g.s.hbL||60} s sichtbar. Mit einem Helfer geht es schneller.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Hacker: ${hs||'–'}</small>`]);
+    if(me&&!gone)return C([`Du hackst das Terminal. Bleib in der Terminal-Zone (Radius ${Z} m)! Wer sie länger als 10 s verlässt, scheidet aus und ist ${g.s.hbL||60} s sichtbar. Mit einem Helfer geht es schneller.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Hacker: ${hs||'–'}</small>`]);
     if(me&&gone)return C([`Du bist aus diesem Versuch ausgeschieden.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Hacker: ${hs||'–'}</small>`]);
     return C([`${hs||'Ein Hider'} hackt gerade. Hilf mit, dann geht es 50 % schneller. Für dich gilt dasselbe: Immunität endet, keine Pings, Zone nicht verlassen.`,hkBar(pr)+`<small>${Math.round(pr*100)} %</small><br>`+btn('Mithelfen','hkJoin()')])}
-  if(H.open)return C([`Betrete die Hacking-Zone (Radius ${Z} m) und starte den Hack. Er dauert ${fmt(hkTv(g)*1000)}. Die Hunter kennen die Zone und sehen den Fortschritt. Belohnung: Immunität und die Gegenüberwachung. Versuch ${H.n+1} von ${hkNv(g)}, möglich noch ${fmt(hkLast(g)-t)}.`,btn('Hacken starten','hkJoin()')]);
+  if(H.open)return C([`Betrete die Terminal-Zone (Radius ${Z} m) und starte den Hack. Er dauert ${fmt(hkTv(g)*1000)}. Die Hunter kennen die Zone und sehen den Fortschritt. Belohnung: Immunität und die Gegenüberwachung. Versuch ${H.n+1} von ${hkNv(g)}, möglich noch ${fmt(hkLast(g)-t)}.`,btn('Hacken starten','hkJoin()')]);
   return ''}
 function hkHunterCard(g,t,m){const H=hkSt(g,t);if(!H)return'';const k=H.k,Z=hkZv(g);let h='';
-  const C=x=>`<div class=tk>${TH('hack','Hacking-Zone')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;
+  const C=x=>`<div class=tk>${TH('hack','Terminal-Zone')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;
   if(H.res){}
   else if(H.run){const pr=hkProg(g,H.run,t);h+=C([`Hack läuft: ${hkNames(H.run)||'–'} (Zone: Radius ${Z} m, siehe Karte). Fang alle Hacker, bevor der Balken voll ist.`,hkBar(pr)+`<small>${Math.round(pr*100)} % · Versuch ${H.ln} von ${hkNv(g)}</small>`])}
   else if(!H.seen)h+=C([`Die Hider können in ${fmt(k.t0-t)} hacken. Bewacht die Zone oder jagt. Bei Erfolg orten sie euch alle. Wer die Zone verteidigt, bekommt das Sperrgebiet.`]);
@@ -1905,11 +1905,11 @@ function hkHunterCard(g,t,m){const H=hkSt(g,t);if(!H)return'';const k=H.k,Z=hkZv
   else if(oz&&op){if(op.p!=='end')h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>${esc((P()[oz.u]||{}).name||'?')}: ${op.p==='warn'?'aktiv in '+fmt(op.w-t):'aktiv, noch '+fmt(op.e-t)}.</small></div>`}
   else if(oh)h+=`<div class=tk>${TH('block','Sperrgebiet')}<small>${esc((P()[oh]||{}).name||'?')} hält das Sperrgebiet.</small></div>`;
   return h}
-// Hacking-Zone, Gegenüberwachung und Sperrgebiet auf der Karte
+// Terminal-Zone, Gegenüberwachung und Sperrgebiet auf der Karte
 function hkDraw(g,t,m,spec){const k=hkK(g);if(!k||g.status!=='running')return;const H=hkSt(g,t);
   if(!H.res&&!H.dead&&(spec||m.role==='hunter'||(m.role==='hider'&&H.seen))){const Z=hkZv(g),run=!!H.run,pr=run?hkProg(g,H.run,t):0;
     L.circle([k.loc.lat,k.loc.lng],{radius:Z,color:'#7c6cff',weight:run?3:2,dashArray:run?null:'6 5',fillColor:'#7c6cff',fillOpacity:run?.22:.1}).addTo(lay);
-    mkr('t-hk',[k.loc.lat,k.loc.lng],'tkhk',()=>{const tt=now(),H2=hkSt(g,tt),r2=H2.run;return['Hacking-Challenge',(r2?'Hack läuft: '+Math.round(hkProg(g,r2,tt)*100)+' %':(H2.seen?'Hack möglich':'Hider können ab '+fmt(k.t0-tt)+' hacken'))+' · Versuch '+Math.min(H2.n+(r2?0:1),hkNv(g))+' von '+hkNv(g),tkInfo(g.s,'hk',k)[1]]})}
+    mkr('t-hk',[k.loc.lat,k.loc.lng],'tkhk',()=>{const tt=now(),H2=hkSt(g,tt),r2=H2.run;return['Terminal',(r2?'Hack läuft: '+Math.round(hkProg(g,r2,tt)*100)+' %':(H2.seen?'Hack möglich':'Hider können ab '+fmt(k.t0-tt)+' hacken'))+' · Versuch '+Math.min(H2.n+(r2?0:1),hkNv(g))+' von '+hkNv(g),tkInfo(g.s,'hk',k)[1]]})}
   if(m.role==='hider'&&!spec&&hkCmOn(g,t))Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hunter'||p.state!=='alive'||p.lf||!p.lat||t-(p.ts||0)>30000)return;
     mkr('hunter',[p.lat,p.lng],'cm'+u,()=>['Hunter '+p.name,'Gegenüberwachung'],u)});
   const op=ozPh(g,t);
@@ -1928,14 +1928,14 @@ function tkInfo(s,id,k){k=k||{};const bo=s.bon!==false,im=s.imm||120,L_=x=>`<spa
   if(id==='ev')return['Evakuierung',L_('Wer hier bestätigt, ist in Sicherheit.')];
   if(isDd(id))return['Dead Drop',L_('Ein Hider deponiert hier einen Datenträger, ein zweiter holt ihn ab.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: Satellitenbild und Hunter-Radar, per Zufall verteilt (versiegeltes Dossier).':'Ohne Belohnung (Aufgaben-Boni aus).')];
   if(isMt(id))return['Meeting',L_('Zwei Hider treffen sich hier.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: jeder wählt Hunter-Radar oder Satellitenbild.':'Ohne Belohnung (Aufgaben-Boni aus).')];
-  if(id==='hk')return['Hacking-Challenge',L_(`Hider hacken hier das System (allein ${fmt((s.hkT||180)*1000)}, zu zweit schneller).`)+L_(`Belohnung bei Erfolg: Immunität ${fmt((s.hbC||0)*1000)} für alle Beteiligten und die Gegenüberwachung (alle Hider sehen die Hunter ${fmt((s.hkR||60)*1000)} lang).`)+L_(`Verteidigen die Hunter, bekommen sie das Sperrgebiet (${s.ozR||75} m).`)];
+  if(id==='hk')return['Terminal',L_(`Hider hacken hier das Terminal (allein ${fmt((s.hkT||180)*1000)}, zu zweit schneller).`)+L_(`Belohnung bei Erfolg: Immunität ${fmt((s.hbC||0)*1000)} für alle Beteiligten und die Gegenüberwachung (alle Hider sehen die Hunter ${fmt((s.hkR||60)*1000)} lang).`)+L_(`Verteidigen die Hunter, bekommen sie das Sperrgebiet (${s.ozR||75} m).`)];
   return['Aufgabe','']}
 function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{zIndexOffset:/^t-/.test(kind)||kind==='oz'?-2000:0,icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
   m.bindPopup(()=>{const a=tip();return `<b>${esc(a[0])}</b>`+(a[1]?`<span>${esc(a[1])}</span>`:'')+(a[2]||'')},{closeButton:false,offset:[0,low?-26:-14],className:'bcp',autoPan:false,maxWidth:220});
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
 map.on('popupclose',()=>{if(!redrawing)popKey=null;if(typeof mkMode!=='undefined'&&mkMode==='excl-wait')mkMode='excl'});
 const STX={caught:'gefangen',dq:'Signal verloren',quit:'aufgegeben',safe:'in Sicherheit'};
-const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-hk':['Hacking-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
+const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-hk':['Terminal-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
