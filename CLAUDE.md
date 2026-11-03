@@ -37,6 +37,7 @@ JS in Dateireihenfolge:
 | §BALANCING | `balCalc`, `balAcc`, `balGo` |
 | §LOBBY-UI | `nf(k,sub)`, `swt(k,on,label,sub,sub?)`, `acc(...)`, `lobbyUI` |
 | §BONI | Lobby-Bereich „Boni“: `bnDefs(g)` (alle Boni mit Seite, Herkunft, Wert, aktiv, Feldern), `bnAcc` (Kacheln), Fenster `#bnd` über `bnShow(k)`/`bnSync()` (aus `panel()` aufgerufen)/`bnClose`, `nfl(k,label,sub)` = `nf` mit eigener Beschriftung |
+| §SPIEL-PANEL | Panel im Spiel: Hider `gBonH` (Bonus-Knöpfe aus `gItems`) + `gTaskH` (Auftragszeilen aus `gTasks`, `gRow`), Hunter `gBonHu`; Fenster `#gd` mit `gdShow(k)`/`gdSync()` (aus `panel()`)/`gdClose`, Schlüssel `bi:<item>`, `t:<task>`, `hk:<token>`, `hi:<hb-id>`, `hr`; Meeting-Wahl `gdMeet` (`mtSel`) |
 | §RUN-UI, §PANEL | `runUI`, `panel(force)` (rendert nur bei geänderter Signatur `lastSig`). Aufbau: `#panel` > `#ph` (Griff) + `#ps` (Scrollbereich) > `#pb` (Inhalt) + `#pf` (Knöpfe, scrollen mit) |
 | §BRIEFING | Missionsbriefing: `bfName(code,rn)` (Operationsname), `bfData(g,code)` (beide Fassungen, feste Texte; nur der Name kommt deterministisch aus code+rn über `bfRng`), `bfShow`/`bfClose`/`bfAuto` (Dialog `#bfd`, Merker `LS[bfKey()]`), `bfRes` (Zeile im Endscreen), Knopf `.bfb` im Panel |
 | §HACKING | `hkDef`, `hkSt`, `hkAct`, `hkProg`, `hkTick`, `hkJoin/Leave`, `hkCmUse`, `oz*`, `liveNow`, `hkHCard`, `hkHunterCard`, `hkDraw`, `hkSig` |

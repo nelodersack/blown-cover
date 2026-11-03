@@ -28,7 +28,12 @@ with app() as (pg,ev,errs):
     assert ev("ddBm({code:'K7QF',rn:2},'d1')")==ev("ddBm(G,'d1')")
     assert ev("myItems(G).find(i=>i.id==='m1m').type")=='bm'
     pb=ev("$('pb').innerText");print(pb.replace('\n',' | ')[:700])
-    assert 'Hunter-Radar' in pb and 'Dossier abgelegt' in pb
+    assert 'Hunter-Radar' in pb and 'Belohnung: Hunter-Radar' in pb and 'DEINE BONI' in pb.upper()
+    # Bonus-Knopf öffnet Erklärung + Bestätigung, ohne gleich einzusetzen
+    ev("document.querySelector('button.gb').click()");pg.wait_for_timeout(300)
+    gd=ev("$('gd').innerText");print('Fenster:',gd.replace('\n',' | '));assert 'Jetzt einsetzen' in gd and 'Später' in gd
+    assert not ev("(__T.games.K7QF.players.u2.used||{}).d1a"),'nicht ohne Bestätigung einsetzen'
+    ev("[...$('gd').querySelectorAll('button')].find(b=>b.innerText==='Später').click()");pg.wait_for_timeout(200);assert not ev("!!$('gd')")
     assert 'Satellitenbild und Hunter-Radar' in ev("tkInfo(G.s,'d1',G.tasks.d1)[1]")
     assert 'Hunter-Radar oder Satellitenbild' in ev("tkInfo(G.s,'m1',G.tasks.m1)[1]")
     print('R/T auto',ev("[bmRv(G.s),bmTv(G.s)]"));assert ev("[bmRv(G.s),bmTv(G.s)]")==[100,120]
@@ -57,15 +62,22 @@ with app() as (pg,ev,errs):
     ev("useRadar('d1a')");pg.wait_for_timeout(500);assert any(x.startswith('Satellitenbild: 2 Hunter erfasst') for x in ev("__ts")),ev("__ts")
     # Meeting-Wahl: Knöpfe
     ev("__T.games.K7QF.tasks.m1={t0:Date.now()-1000,a:'u2',b:'u3',loc:{lat:47.072,lng:15.442}};notify()");pg.wait_for_timeout(800)
-    btn=ev("[...$('pb').querySelectorAll('button')].map(b=>b.innerText).join('|')");print('Meeting',btn)
+    pb=ev("$('pb').innerText");assert 'Wähle deinen Bonus' in pb,pb
+    ev("[...$('pb').querySelectorAll('button.ggo')].find(b=>b.innerText==='Wählen').click()");pg.wait_for_timeout(300)
+    btn=ev("[...$('gd').querySelectorAll('button')].map(b=>b.innerText.replace(/\\n/g,' ')).join('|')");print('Meeting',btn)
     assert 'Hunter-Radar' in btn and 'Satellitenbild' in btn and 'Immunität' not in btn
+    ev("[...$('gd').querySelectorAll('button.gopt')][1].click()");pg.wait_for_timeout(200)
+    ev("[...$('gd').querySelectorAll('button')].find(b=>/Wahl einloggen/.test(b.innerText)).click()");pg.wait_for_timeout(600)
+    assert ev("__T.games.K7QF.tasks.m1.p.u2.c")=='rad' and 'Eingeloggt' in ev("$('gd').innerText")
+    shot(pg,'meeting_wahl.png')
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]
 # ---------- Hunter
 with app() as (pg,ev,errs):
     ev("window.__ts=[];const _t=toast;toast=(x,...r)=>{__ts.push(x);return _t(x,...r)}")
     setup(ev,'u1');pg.wait_for_timeout(1500)
-    pb=ev("$('pb').innerText");print(pb.replace('\n',' | ')[:500]);assert 'Zeitbonus): Hider-Radar' in pb
-    ev("bfClose()");ev("[...$('pb').querySelectorAll('button')].find(b=>b.innerText==='Übernehmen').click()");pg.wait_for_timeout(600)
+    pb=ev("$('pb').innerText");print(pb.replace('\n',' | ')[:500]);assert 'Hider-Radar' in pb and 'Zeitbonus' in pb
+    ev("bfClose()");ev("document.querySelector('button.gb').click()");pg.wait_for_timeout(300);print(ev("$('gd').innerText").replace('\n',' | '))
+    ev("[...$('gd').querySelectorAll('button')].find(b=>b.innerText==='Übernehmen').click()");pg.wait_for_timeout(600)
     assert ev("__T.games.K7QF.hb.u1.time.k")=='bm'
     # Lena 50 m, Max 80 m (immun), Tom weit weg
     ev("pos={lat:47.0705,lng:15.4405}");mv(ev,'u3',80);ev("__T.games.K7QF.players.u3.immUntil=Date.now()+60000;notify()")
