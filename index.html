@@ -132,6 +132,14 @@ button.guse{background:#4fb3f0;color:#04121c;border:0;flex:1}button.guse:disable
 button.gopt{display:grid;grid-template-columns:50px 1fr;gap:12px;align-items:center;text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--fg);margin:0;font:inherit}
 button.gopt b{display:block;font-size:15px}button.gopt small{display:block;color:var(--mut);font-size:12px}button.gopt.on{border-color:#4fb3f0;background:#4fb3f01a}button.gopt.taken{opacity:.55}.gtk{color:var(--ping)!important}.gok{color:var(--ok);font-weight:600}
 @media (prefers-reduced-motion:reduce){.gring{animation:none}}
+/* §CSS-TIPPEN Tipp-Rückmeldung (Variante B): kein blaues Browser-Aufleuchten, Knopf drückt sich kurz ein und wird heller */
+html{-webkit-tap-highlight-color:transparent}
+button,.grow,.tile,.acc>button,[onclick],[role=button]{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+button,.grow{transition:transform .16s cubic-bezier(.3,.7,.4,1),filter .16s}
+button:active:not(:disabled),.grow:active{transform:scale(.96);filter:brightness(1.15);transition-duration:.05s}
+button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform .16s cubic-bezier(.3,.7,.4,1)}button.gb:active .gci{transform:scale(.9);background:#4fb3f022}
+.acc>button:active:not(:disabled){transform:scale(.985)}
+@media (prefers-reduced-motion:reduce){button:active:not(:disabled),.grow:active,.acc>button:active,button.gb:active .gci{transform:none}}
 @keyframes bmsw{to{transform:rotate(360deg)}}@keyframes bmpl{from{transform:scale(.15);opacity:.75}to{transform:scale(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bmr .bs{animation:none;opacity:0}.bmr.hit .bp{animation:none}.bmr.hit .bf{fill-opacity:.14}}
 #hud .bmh b{font-weight:700}#hud .bmh.on{background:var(--ok);color:#04150a;font-family:var(--f-b);font-weight:600}
@@ -1328,6 +1336,12 @@ function hInv(g,me_,t){const it=myItems(g),act=(me_.immUntil||0)>t;let h='';
     else if(i.type==='bm'){const a=bmMine(g,t),on=a&&a.id===i.id;h+=`<div class=tk><b>Hunter-Radar</b> <small>(${bmRv(g.s)} m · ${fmt(bmTv(g.s)*1000)})</small> `+(on?`<small>läuft noch ${fmt(a.end-t)}</small>`:used?'<small>eingesetzt</small>':a?'<small>anderes Radar läuft</small>':`<button class="s" onclick="useBm('${i.id}')">Einsetzen</button>`)+`</div>`}
     else h+=`<div class=tk><b>Immunität</b> ${fmt(i.sec*1000)} `+(used?'<small>eingesetzt</small>':act?'<small>Schutz läuft noch</small>':`<button class="s" onclick="useImm('${i.id}',${i.sec})">Einsetzen</button>`)+`</div>`});
   return h?`<h3>Inventar</h3>`+h:''}
+// Ende eines eigenen Bonus melden (nur wenn er in dieser Sitzung lief): Schutz (Safehouse/Terminal), Live-Standort der Hunter
+const BE={imm:false,live:{}};
+function bnEnd(g,m,t){const al=m.state==='alive';
+  const on=al&&m.role==='hider'&&(m.immUntil||0)>t;if(BE.imm&&!on&&al)toast('Schutz abgelaufen: Du tauchst wieder bei Pings auf');BE.imm=on;
+  const L_={};if(al&&m.role==='hunter')Object.entries(g.live||{}).forEach(([h,o])=>{if(o&&o[uid]>t)L_[h]=1});
+  Object.keys(BE.live).forEach(h=>{const p=P()[h];if(!L_[h]&&p&&p.state==='alive')toast('Live-Standort von '+p.name+' abgelaufen')});BE.live=L_}
 // §RADAR Bonus Radar: Hunter-Radar (Hider, zählt Hunter) / Hider-Radar (Hunter, zählt Hider) im Umkreis; HUD-Zahl, Meldung bei jeder Änderung, Sonar-Kreis (bmOv)
 const bmKey=id=>'bm_'+code+'_'+((G&&G.rn)||0)+'_'+id;
 // eigenes laufendes Radar: Hunter über hb/<uid>/<id>/u, Hider über den Startzeitpunkt im LS (nach Neuladen ohne Eintrag = abgelaufen)
@@ -1345,9 +1359,9 @@ function bmCount(g,t,a){if(!pos)return null;const R=bmRv(g.s),o=new Set();
     const d=D(pos,p);if(d<=R||(BM.in.has(u)&&d<=R+15))o.add(u)});
   return o}
 function bmTick(g,t){const a=g.status==='running'?bmMine(g,t):null;
-  if(!a){if(BM.id){const exp=t>=BM.end-1500;BM.id=null;BM.in=new Set();BM.n=-1;bmOv(null);if(exp)toast('Radar abgelaufen');lg('bm',{off:1});lgSync();panel(1)}return ''}
+  if(!a){if(BM.id){const exp=t>=BM.end-1500;BM.id=null;BM.in=new Set();BM.n=-1;bmOv(null);if(exp)toast((BM.h?'Hider':'Hunter')+'-Radar abgelaufen');lg('bm',{off:1});lgSync();panel(1)}return ''}
   const nm=a.h?'Hider-Radar':'Hunter-Radar',gg=a.h?'Hider':'Hunter',first=BM.id!==a.id;
-  if(first){BM.id=a.id;BM.end=a.end;BM.in=new Set();BM.n=-1;lg('bm',{on:a.id,h:a.h,R:bmRv(g.s),T:bmTv(g.s)});setTimeout(lgSync,0)}
+  if(first){BM.id=a.id;BM.h=a.h;BM.end=a.end;BM.in=new Set();BM.n=-1;lg('bm',{on:a.id,h:a.h,R:bmRv(g.s),T:bmTv(g.s)});setTimeout(lgSync,0)}
   BM.end=a.end;const s=bmCount(g,t,a);
   if(!s){bmOv(null);if(BM.n!==-2){BM.n=-2;toast(nm+': kein GPS-Signal')}return `<span>${ic('radar')}Radar: kein Signal · ${fmt(a.end-t)}</span>`}
   BM.in=s;const n=s.size;
@@ -1860,7 +1874,7 @@ function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.n
   const cmT=k.cm?k.cm.t:0,cmOn=hkCmOn(g,t);
   if(lastCm===null)lastCm=cmT;
   else if(cmT&&cmT!==lastCm){lastCm=cmT;if(t-cmT<15000){if(m.role==='hunter'){toast('Eure Standorte sind enttarnt!');navigator.vibrate&&navigator.vibrate([300,100,300])}else if(m.role==='hider')toast('Gegenüberwachung aktiv: Du siehst die Hunter')}}
-  if(cmOn!==cmWas){cmWas=cmOn;draw()}
+  if(cmOn!==cmWas){if(cmWas&&!cmOn&&m.state==='alive'&&(m.role==='hider'||m.role==='hunter'))toast(m.role==='hunter'?'Gegenüberwachung abgelaufen: Ihr seid nicht mehr enttarnt':'Gegenüberwachung abgelaufen');cmWas=cmOn;draw()}
   if(cmOn){const rem=fmt(cmT+hkRv(g)*1000-t);h+=m.role==='hunter'?`<span class=w>${ic('live')}Enttarnt ${rem}</span>`:`<span>${ic('live')}Gegenüberwachung ${rem}</span>`}
   // Sperrgebiet
   const op=ozPh(g,t),pk=op?op.p:null;
@@ -2066,6 +2080,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||(p.oa||0)<=lm)return;dqLock=t+4000;
       db.ref(`games/${code}/players/${id}`).update({state:'dq',sT:now()}).catch(()=>{});evW(id+'_o',lbl(p)+' wurde disqualifiziert (zu lange außerhalb der Zone)',id)})}
   if(isSpec(m)&&(ping||radar||xping)){ping=radar=xping=null;draw()}
+  bnEnd(g,m,t);
   if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Schutz ${fmt(m.immUntil-t)}</span>`;
   if(m.role==='hider'&&m.state==='alive'){const vis=myTk(g,t).join();
     if(vis!==lastTV){const was=lastTV.split(',');lastTV=vis;
@@ -2075,7 +2090,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(ids!==lastHT){const was=lastHT===null?[]:lastHT.split(','),ms=new Set();lastHT=ids;
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
-  if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw()}
+  if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild abgelaufen')}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
     const lv=Math.max(0,...Object.values((g.live||{})[uid]||{}));

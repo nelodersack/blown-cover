@@ -57,9 +57,13 @@ with app() as (pg,ev,errs):
     ev("BM.id=null");pg.wait_for_timeout(1200);assert 'Radar 0' in hud(ev)
     # Ablauf
     ev("LS[bmKey('m1m')]=String(now()-119000)");pg.wait_for_timeout(2500)
-    print('nach Ablauf',hud(ev));assert 'Radar' not in hud(ev) and not ev("!!document.querySelector('.leaflet-overlay-pane svg.bmr')") and 'Radar abgelaufen' in ev("__ts")
+    print('nach Ablauf',hud(ev));assert 'Radar' not in hud(ev) and not ev("!!document.querySelector('.leaflet-overlay-pane svg.bmr')") and 'Hunter-Radar abgelaufen' in ev("__ts")
     # Satellitenbild
     ev("useRadar('d1a')");pg.wait_for_timeout(500);assert any(x.startswith('Satellitenbild: 2 Hunter erfasst') for x in ev("__ts")),ev("__ts")
+    # Ende-Meldungen: Satellitenbild und Schutz
+    ev("radar.t=now()-59000");pg.wait_for_timeout(2500);assert 'Satellitenbild abgelaufen' in ev("__ts"),ev("__ts")
+    ev("__T.games.K7QF.players.u2.immUntil=now()+1500;notify()");pg.wait_for_timeout(3500)
+    assert any(x.startswith('Schutz abgelaufen') for x in ev("__ts")),ev("__ts")
     # Meeting-Wahl: Knöpfe
     ev("__T.games.K7QF.tasks.m1={t0:Date.now()-1000,a:'u2',b:'u3',loc:{lat:47.072,lng:15.442}};notify()");pg.wait_for_timeout(800)
     pb=ev("$('pb').innerText");assert 'Wähle deinen Bonus' in pb,pb
@@ -88,4 +92,6 @@ with app() as (pg,ev,errs):
     print('Meldungen',ev("__ts.filter(x=>/Radar/.test(x))"))
     assert ev("__ts").count('Hider-Radar: 1 Hider in der Nähe')>=1
     shot(pg,'radar_hunter.png')
+    ev("__T.games.K7QF.live={u3:{u1:now()+1500}};notify()");pg.wait_for_timeout(3500)
+    assert 'Live-Standort von Max abgelaufen' in ev("__ts"),ev("__ts")
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]

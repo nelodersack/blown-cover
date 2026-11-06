@@ -10,7 +10,7 @@ Mit Manuel auf Deutsch sprechen, knapp und direkt.
 - Der Projektstand für andere Chats liegt im claude.ai-Projekt „Blown Cover“: `claude/UEBERGABE_App.md` (kurz). Konzepte: `claude/KONZEPT_Hacking.md`, `KONZEPT_Balancing.md`, `KONZEPT_Zombie.md`.
 
 ## Codekarte (`grep -n "§" index.html`)
-CSS: `§CSS-BASIS` (Tokens `--task` lila, `--danger`, `--ok`, `--xping`), `§CSS-ELEMENTE`, `§CSS-KOMPONENTEN` (card, chip, acc, `.fl`/`.fl.sub`, num, sw), `§CSS-OVERLAYS`, `§CSS-CHAT`, `§CSS-DIALOG`, `§CSS-REPLAY`, `§CSS-KNOEPFE`. `§HTML` Grundgerüst.
+CSS: `§CSS-BASIS` (Tokens `--task` lila, `--danger`, `--ok`, `--xping`), `§CSS-ELEMENTE`, `§CSS-KOMPONENTEN` (card, chip, acc, `.fl`/`.fl.sub`, num, sw), `§CSS-OVERLAYS`, `§CSS-CHAT`, `§CSS-DIALOG`, `§CSS-REPLAY`, `§CSS-KNOEPFE`, `§CSS-SPIEL-PANEL`, `§CSS-TIPPEN` (Tipp-Rückmeldung: kein Browser-Aufleuchten, Knöpfe drücken sich ein). `§HTML` Grundgerüst.
 JS in Dateireihenfolge:
 | Marke | Inhalt / wichtige Namen |
 |---|---|
