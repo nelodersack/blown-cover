@@ -352,13 +352,14 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     for(let i=0;i<sm.length;i++){const a=sm[i];if(a[3]!=null){aS+=a[3];aN++}if(a[4]!=null&&a[4]>10)nf++;
       if(R0!=null&&a[0]>=R0&&a[5]!=null&&a[6]!=null&&a[5]>a[6])out++;if(a[7])hid++;if(a[9]>20)nn++;
       if(i){const p=sm[i-1];mg=Math.max(mg,a[0]-p[0]);if(a[1]!=null&&p[1]!=null){const m=D({lat:p[1],lng:p[2]},{lat:a[1],lng:a[2]});if(m>120)jp++;else dist+=m}}}
-    const x={samples:sm.length,distM:Math.round(dist),secOutsideZone:out*5,secPageHidden:hid*5,secNoFix10s:nf*5,secNoNet20s:nn*5,maxSampleGapS:Math.round(mg/1000),gpsJumps120m:jp,avgAccM:aN?Math.round(aS/aN):null,
+    const x={samples:sm.length,distM:Math.round(dist),secOutsideZone:out*5,secPageHidden:hid*5,secNoFix10s:nf*5,secNoNet20s:nn*5,maxSampleGapS:Math.round(mg/1000),gpsJumps120m:jp,gpsJumpsFiltered:cnt(d,'gj'),avgAccM:aN?Math.round(aS/aN):null,
       hiddenPeriods:cnt(d,'vis',z=>z===0),freezes:cnt(d,'freeze'),dbDisconnects:cnt(d,'db',z=>z===0),netOffline:cnt(d,'net',z=>z===0),gpsErrors:cnt(d,'gps',z=>Array.isArray(z)),writeFails:cnt(d,'wf',z=>!wfHarmless(z)),jsErrors:cnt(d,'err')+cnt(d,'rej'),lagEvents:cnt(d,'lag'),boots:cnt(d,'boot')};
     st[al[k]]=x;const n=al[k];
     if(x.hiddenPeriods)an.push(n+': Seite '+x.hiddenPeriods+'× unsichtbar (zusammen ca. '+x.secPageHidden+' s, '+(testMode?'Testmodus: vermutlich Tab-Wechsel':'Display aus oder andere App')+')');
     if(x.secNoFix10s&&!testMode)an.push(n+': ca. '+x.secNoFix10s+' s ohne frischen GPS-Fix (>10 s alt)');
     if(x.secNoNet20s)an.push(n+': ca. '+x.secNoNet20s+' s ohne bestätigte Internetverbindung (>20 s, Warnung wurde angezeigt)');
     if(x.gpsJumps120m&&!testMode)an.push(n+': '+x.gpsJumps120m+' GPS-Sprünge über 120 m zwischen zwei Messungen');
+    if(x.gpsJumpsFiltered&&!testMode)an.push(n+': '+x.gpsJumpsFiltered+' GPS-Ausreißer vom Sprungfilter verworfen');
     if(x.dbDisconnects)an.push(n+': '+x.dbDisconnects+' Datenbank-Verbindungsabbrüche');
     if(x.netOffline)an.push(n+': '+x.netOffline+'× Gerät offline');
     if(x.writeFails)an.push(n+': '+x.writeFails+' fehlgeschlagene Datenbank-Schreibzugriffe');
@@ -411,7 +412,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
   const tracks={};Object.entries(L).forEach(([k,d])=>tracks[al[k]]=d.sm||[]);
   const gg=JSON.parse(JSON.stringify(g));delete gg.prev;
   const out={format:'blown-cover-analyse',v:1,generated:new Date().toISOString(),code,round:g.rn||0,
-    legend:{highlights:'Lesbare Zusammenfassung [sek_seit_Spielstart, Text] – Spielereignisse, Aufgaben, Meldungen, Chat, Marker, Fehler; Zone/Ping nur planmäßig berechnet.',timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
+    legend:{highlights:'Lesbare Zusammenfassung [sek_seit_Spielstart, Text] – Spielereignisse, Aufgaben, Meldungen, Chat, Marker, Fehler; Zone/Ping nur planmäßig berechnet.',timeline:'Einträge [t_ms_Serverzeit, sek_seit_Spielstart(Headstart-Ende), von, art, daten]. art g=Spielzustand geändert [pfad,alt,neu] (von=Geräte, die es sahen); gj=GPS-Ausreißer verworfen [sprung_m,genauigkeit_m,sek_seit_letzter_gültiger]; vis=Seite sichtbar (1)/unsichtbar (0); freeze/resume/pagehide/pageshow=Browser-Lebenszyklus; net=online(1)/offline(0); db=Datenbankverbindung(1/0); gps=GPS-Fehler [code,text] oder "ok"; perm=Standortberechtigung; wl=Wake Lock; bat=[Prozent,lädt]; lag=Timer-Verzögerung ms; err/rej=JS-Fehler; wf=fehlgeschlagener Schreibzugriff [methode,pfad,fehler]; toast=angezeigte Meldung; chat=[kanal,absender,rolle,text,t]; mk+/mk-=Hunter-Marker gesehen/entfernt; boot=Seitenstart',
       tracks:'Pro Spieler: [t_ms, lat, lng, genauigkeit_m, alter_letzter_fix_s, abstand_zonenmitte_m, zonenradius_m, seite_unsichtbar(1/0), fixes_seit_letzter_messung, sek_ohne_bestaetigte_verbindung]',
       note:'Spieler-IDs sind anonymisiert (S1…, nach Beitrittsreihenfolge). Positionen sind echte GPS-Werte des jeweiligen Geräts. Positionsänderungen (lat/lng/ts) stehen nur in tracks, nicht in timeline. Chat ist geräteübergreifend zusammengeführt (von = alle Geräte, die die Nachricht sahen). Abgelehnte Doppel-Meldungen (ev, PERMISSION_DENIED) sind harmlos und nicht als Fehler gezählt.'},
     game:{settings:g.s,center:g.c,startAt:g.startAt||null,headstartEnd:R0,winner:g.winner||null,status:g.status,host:al[g.host]||null,receivedLogs:Object.keys(L).length,expectedLogs:ids.filter(k=>!pl[k].lf).length},
@@ -1055,16 +1056,23 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
     navigator.geolocation.getCurrentPosition(q=>put(q.coords.latitude,q.coords.longitude),()=>{const c=map.getCenter();put(c.lat,c.lng)},{timeout:4000});
     setInterval(()=>{if(pos)lastFix=Date.now()},5000);return}
   try{navigator.permissions&&navigator.permissions.query({name:'geolocation'}).then(r=>{r.onchange=()=>{if(r.state==='denied')gpsErr={code:1,message:'verweigert'}}})}catch(x){}
+  // Sprungfilter: Eine Messung, die mehr als 10 m/s Tempo (mind. 50 m) zum letzten gültigen Standort bedeuten würde, gilt erst,
+  // wenn die nächste Messung sie bestätigt (< 40 m daneben). Nach 15 s ohne gültige Messung wird wieder alles übernommen.
+  const jf={a:null,p:null},onFix0=p=>{const q={lat:p.coords.latitude,lng:p.coords.longitude},t=Date.now(),a=jf.a;
+    if(a&&t-a.t<15000){const d=D(a,q),dt=Math.max(1,(t-a.t)/1000);
+      if(d>Math.max(50,10*dt)){const c=jf.p&&D(jf.p,q)<40;
+        if(!c){jf.p={lat:q.lat,lng:q.lng};lg('gj',[Math.round(d),Math.round(p.coords.accuracy||0),Math.round(dt)]);return}}}
+    jf.a={lat:q.lat,lng:q.lng,t};jf.p=null;onFix(p)};
   const onFix=p=>{if(gpsErr)lg('gps','ok');gpsErr=null;gAcc=p.coords.accuracy;AL.fx++;const pg=lastFix?Date.now()-lastFix:0;if(pg>0&&pg<60000)fixEma=fixEma?fixEma*.7+pg*.3:pg;pos={lat:p.coords.latitude,lng:p.coords.longitude};lastFix=Date.now();
     if(G&&G.status==='running'&&pg>gwE(G)){const mm=P()[uid];rcn()}
     const g=$('gs');if(g)g.textContent='GPS bereit ✓';if(!G&&!fitted)map.setView([pos.lat,pos.lng],16);write()};
   if(NB){ // App-Modus: Standort kommt vom Hintergrunddienst der Android-App
-    window.bcNativePos=(la,ln,ac)=>onFix({coords:{latitude:la,longitude:ln,accuracy:ac}});
+    window.bcNativePos=(la,ln,ac)=>onFix0({coords:{latitude:la,longitude:ln,accuracy:ac}});
     window.bcNativeErr=(code,msg)=>{gpsErr={code:code===1?1:2,message:msg};lg('gps',[code,String(msg||'').slice(0,60)])};
-    try{const q=NB.lastPos();if(q){const o=JSON.parse(q);if(o&&o.lat)onFix({coords:{latitude:o.lat,longitude:o.lng,accuracy:o.acc}})}}catch(x){}
+    try{const q=NB.lastPos();if(q){const o=JSON.parse(q);if(o&&o.lat)onFix0({coords:{latitude:o.lat,longitude:o.lng,accuracy:o.acc}})}}catch(x){}
     try{NB.log('Seite: App-Modus aktiv')}catch(x){}
     return}
-  gpsWid=navigator.geolocation.watchPosition(onFix,
+  gpsWid=navigator.geolocation.watchPosition(onFix0,
     e=>{gpsErr=e;lg('gps',[e.code,String(e.message||'').slice(0,60)]);const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
 function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;

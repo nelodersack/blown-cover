@@ -22,7 +22,7 @@ os.makedirs(OUT, exist_ok=True)
 
 
 @contextlib.contextmanager
-def app(width=400, height=800, page='index.html'):
+def app(width=400, height=800, page='index.html', hash='#test', init=None):
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_context(viewport={'width': width, 'height': height}).new_page()
@@ -41,7 +41,9 @@ def app(width=400, height=800, page='index.html'):
                 return r.continue_()
             return r.abort()
         pg.route('**/*', route)
-        pg.goto('file://' + os.path.join(ROOT, page) + '#test')
+        if init:
+            pg.add_init_script(init)
+        pg.goto('file://' + os.path.join(ROOT, page) + hash)
         pg.wait_for_timeout(500)
         try:
             yield pg, (lambda s: pg.evaluate(s)), errs

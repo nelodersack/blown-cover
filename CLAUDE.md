@@ -24,7 +24,7 @@ JS in Dateireihenfolge:
 | §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*`, Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
 | §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min) |
-| §GPS | `startGPS`, `write` |
+| §GPS | `startGPS` (Sprungfilter `onFix0`/`jf` vor `onFix`: > 10 m/s erst nach Bestätigung, Protokoll `gj`), `write` |
 | §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
