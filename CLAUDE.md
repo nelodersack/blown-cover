@@ -21,7 +21,7 @@ JS in Dateireihenfolge:
 | §ERGEBNIS | `CW`, `catchWhy`, `buildRes` (inkl. `tk` Aufgabenbilanz, Spielerfarben), `resHTML` (Kacheln, zwei Spalten), `rpView` (Replay direkt aus dem Endscreen; solange `RV` läuft, ruhen `panel`/`draw`/HUD/`resSync`), `resSync` |
 | §ZONE-AUFGABEN-RECHNUNG | `rs` (Ende Headstart), `Rad(g,t)`, `zoneSeq`, `md(g)` (Modus), `ddPlan`, Boni `hb*`, `myTk`, `myItems`, Orte `ovPts`/`randPts`/`mkPts` |
 | §UI-BASIS | `toast`, Icons `SV`/`ic()`, Farben `PAL`/`colOf`, Markerformen `shape`/`shape0`, `TH`, Wake Lock |
-| §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*`, Blickrichtung `HD`, `crs` |
+| §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*` (Finger in `tps`; Geisterfinger-Schutz `gReset`/`gTouch`, weil iOS pointerup verliert), Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
 | §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min) |
 | §GPS | `startGPS` (Sprungfilter `onFix0`/`jf` vor `onFix`: > 10 m/s erst nach Bestätigung, Protokoll `gj`), `write` |

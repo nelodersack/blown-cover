@@ -717,10 +717,18 @@ function gMove(){gRaf=0;if(!gz||tps.size<2)return;const p=gPts();let da=((p.a-gz
   const z=Math.max(map.getMinZoom(),Math.min(map.getMaxZoom(),gz.z0+Math.log2(p.d/gz.d0))),sz=map.getSize(),pc=gz.fix?sz.divideBy(2):toCP(p.c[0],p.c[1]);
   const c=map.unproject(map.project(gz.ll,z).subtract(pc.subtract(sz.divideBy(2))),z);map._move(c,z,{pinch:true,round:false})}
 function gEnd(){if(!gz)return;gz=null;map._moveEnd(true)}
-mapEl.addEventListener('pointerdown',e=>{if(!rotOn||e.pointerType!=='touch')return;tps.set(e.pointerId,[e.clientX,e.clientY]);if(tps.size===2)gStart()},true);
+// Verlorene Finger aufräumen: iOS liefert nicht immer pointerup/pointercancel. Ein „Geisterfinger“ in tps machte aus jedem
+// Ein-Finger-Wischen eine Zwei-Finger-Geste (Karte zoomt/dreht wild). Erster Finger einer neuen Berührung (isPrimary) = Neustart.
+const gReset=()=>{tps.clear();gEnd()};
+mapEl.addEventListener('pointerdown',e=>{if(!rotOn||e.pointerType!=='touch')return;if(e.isPrimary&&tps.size)gReset();tps.set(e.pointerId,[e.clientX,e.clientY]);if(tps.size===2)gStart()},true);
 mapEl.addEventListener('pointermove',e=>{if(!tps.has(e.pointerId))return;tps.set(e.pointerId,[e.clientX,e.clientY]);if(gz&&!gRaf)gRaf=requestAnimationFrame(gMove)},true);
 const gUp=e=>{if(!tps.delete(e.pointerId))return;if(tps.size<2)gEnd()};
 addEventListener('pointerup',gUp,true);addEventListener('pointercancel',gUp,true);
+// Abgleich mit den echten Berührungen: bleiben weniger Finger auf dem Glas, als tps kennt, werden die überzähligen verworfen
+const gTouch=e=>{const n=e.touches.length;if(tps.size<=n)return;if(!n){gReset();return}
+  const T=[...e.touches].map(x=>[x.clientX,x.clientY]),k=[...tps.entries()].map(([id,p])=>[id,Math.min(...T.map(q=>Math.hypot(q[0]-p[0],q[1]-p[1])))]).sort((a,b)=>a[1]-b[1]);
+  k.slice(n).forEach(([id])=>tps.delete(id));if(tps.size<2)gEnd()};
+addEventListener('touchend',gTouch,true);addEventListener('touchcancel',gTouch,true);addEventListener('visibilitychange',()=>{if(document.hidden)gReset()});
 
 // §KOMPASS Blickrichtung (HD, hdSet, crs)
 // Blickrichtung: Kompass des Handys, sonst Bewegungsrichtung aus GPS
