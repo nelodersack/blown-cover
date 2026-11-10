@@ -1259,7 +1259,6 @@ async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const
   for(let i=hs.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[hs[i],hs[j]]=[hs[j],hs[i]]}
   const nd=Math.min(s.ddN||0,Math.floor(hs.length/2)),nm=Math.min(s.mtN||0,Math.floor((hs.length-2*nd)/2)),notes=[];
   if((s.ddN||0)>nd||(s.mtN||0)>nm)notes.push('Zu wenige Hider: nur '+nd+' Dead Drop(s) und '+nm+' Meeting(s)');
-  else if(nd+nm>0&&2*(nd+nm)>=hs.length)notes.push('Hinweis: kein Reserve-Hider für Ersatz');
   const dd=Array.from({length:nd},(_,i)=>'d'+(i+1)),need=base.concat(dd);
   if(b){b.disabled=true;b.classList.add('busy');b.innerHTML='<span>Orte werden gesucht…</span>'}
   try{const rest=need.filter(i=>i!=='ev'),hasEv=need.includes('ev'),nO=4*rest.length+nm+(s.hk?1:0);let r=null,re=null;
@@ -1604,8 +1603,8 @@ function balCalc(s,H,X,k){const T=s.dur||30,r50=v=>Math.round(v/50)*50,r10=v=>Ma
     ping=Math.min(T*6,Math.max(30,r10(.45*r0/80*Math.sqrt(H/X)*60*BAL[k])));
   const o={r0,rMin,shrink,step,head,ping,imm:ping,hbC:Math.max(10,r10(ping/2)),hbL:Math.max(10,r10(r0/12.5)),hbN:Math.min(4,Math.max(1,Math.ceil(X/2)))};
   for(const q in o)if(FD[q])o[q]=Math.max(FD[q][1],Math.min(FD[q][2],o[q]));
-  // Aufgaben: Safehouse immer; je 3 Hider eine Aufgabe; ab 2 Aufgaben jede Art mindestens einmal, sonst Zufall
-  const n=Math.floor(X/3);
+  // Aufgaben: Safehouse immer; je 2 Hider eine Aufgabe (alle Hider beschäftigt, bei ungerader Zahl bleibt einer als Ersatz); ab 2 Aufgaben jede Art mindestens einmal, sonst Zufall
+  const n=Math.floor(X/2);
   if(!ui.balRoll||ui.balRoll.n!==n){let dd=0,mt=0;if(n===1){if(Math.random()<.5)dd=1;else mt=1}else if(n>=2){dd=mt=1;for(let i=2;i<n;i++)if(Math.random()<.5)dd++;else mt++}ui.balRoll={n,dd,mt}}
   return{o,n,dd:ui.balRoll.dd,mt:ui.balRoll.mt}}
 function balAcc(g){const s=g.s,{H,X}=balRoster(),k=ui.balK==null?2:ui.balK;
@@ -1665,7 +1664,7 @@ function lobbyUI(g,host,me_){
     else t+=nf('evT');
     t+=`<div class=fl><label>Terminal<small>Riskante Hider-Aufgabe: ein Terminal hacken, mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
     if(nT>0)t+=nf('taskR');
-    if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=w style="color:var(--ping)">Achtung: Bei ${nh} Hidern bleibt kein Reserve-Hider für Ersatz (Dead Drop und Meeting brauchen je 2 Hider).</small>`;
+    if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, verfällt die Aufgabe, weil kein Ersatz frei ist.</small>`;
     if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;
     b+=`<h3>Modus</h3><div class=tiles><button class="tile ${sv?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${sv?'':'on'}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button></div>
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
