@@ -98,6 +98,7 @@ button.lsw{background:none!important;border:1px dashed #475262!important;color:v
 /* §CSS-FANG Fang melden (Raster), Fang-Alarm beim Hider (#fa) */
 .cgr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 button.cgt{display:grid!important;justify-items:center;gap:6px;padding:12px 4px!important;margin:0!important;background:var(--panel2)!important;border:1px solid var(--line)!important;border-radius:14px!important;color:var(--fg)!important;min-width:0}
+.cwt{border-color:#e5484d88}.cwt .cwn{font:700 20px var(--f-m);color:var(--danger)}button.cgt.off{opacity:.45}button.cgt small{font-size:11px;color:var(--mut)}
 button.cgt .av{width:44px;height:44px;font-size:20px}button.cgt b{font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #fa{position:fixed;inset:0;z-index:2400;background:#0b0e12d6;display:none;place-items:center;padding:20px}#fa.on{display:grid}
 #fa .fb{width:100%;max-width:360px;background:var(--panel);border:1px solid #e5484d88;border-radius:22px;padding:22px 18px 16px;display:grid;gap:12px;justify-items:center;text-align:center;box-shadow:0 0 0 6px #e5484d22}
@@ -519,6 +520,9 @@ function ddPlan(T,pl,mission,t){const out={};if(!T)return out;
     if(Object.keys(u).length)out[i]=u});
   return out}
 const hbOn=g=>g.s.hbOn!==false,HBK={live:'Live-Standort',ping:'Extra-Ping',bm:'Hider-Radar'};
+// Warum ein Hider gerade nicht ortbar ist: 'imm' Schutz, 'hk' hackt, 'old' kein aktuelles Signal (> 30 s), sonst null
+const locWhy=(p,t,u)=>!p||p.state!=='alive'||!p.lat?'old':(p.immUntil||0)>t?'imm':(u&&hkAct(G,u))?'hk':t-p.ts>=30000?'old':null;
+const locMsg=(p,t,u)=>{const n=(p&&p.name)||'Dieser Hider',w=locWhy(p,t,u);return w==='imm'?n+' ist gerade geschützt':w==='hk'?n+' hackt gerade und ist geschützt':n+' hat gerade kein Signal'+(p&&p.ts?' (letzter Standort vor '+fmt(t-p.ts)+')':'')};
 const locatable=(p,t,u)=>!!p&&p.state==='alive'&&!!p.lat&&t-p.ts<30000&&!((p.immUntil||0)>t)&&!(u&&hkAct(G,u));
 const hbMine=(g,u=uid)=>(g.hb&&g.hb[u])||{};
 const hbItems=(g,u=uid)=>Object.entries(hbMine(g,u)).filter(([id,i])=>i.k!=='x'&&!i.u&&!i.d);
@@ -1275,8 +1279,9 @@ async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const
 function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;
   cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
   if(!cand.length)toast('Keine Hider mehr');panel(1)}
-function rq(h){cand=[];const q=P()[h]||{},c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
-  db.ref(`games/${code}/catches/${h}`).set(c);toast('Anfrage gesendet');panel(1)}
+function rq(h){cand=[];const q=P()[h]||{},o=(G.catches||{})[h],c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
+  if(o&&o.status==='pending'){toast(o.hunter===uid?'Deine Fangmeldung an '+(q.name||'?')+' läuft schon':'Für '+(q.name||'?')+' läuft schon eine Fangmeldung von '+((P()[o.hunter]||{}).name||'einem Hunter'));panel(1);return}
+  db.ref(`games/${code}/catches/${h}`).set(c).then(()=>toast('Fangmeldung an '+(q.name||'?')+' gesendet')).catch(()=>toast('Fangmeldung ging nicht durch (läuft schon oder keine Verbindung)'));panel(1)}
 function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')return;const hq=P()[c.hunter];
   if(!hq||hq.state!=='alive')return db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{});
   const why=catchWhy(hq,now());
@@ -1308,14 +1313,14 @@ function hbForfeit(id){hbRef(id).set({k:'x'}).then(()=>{hbPick=null;toast('Bonus
 function hbUse(id){const i=hbMine(G)[id];if(!i||i.u||i.d||now()<i.av)return;
   if(i.k==='live'){hbLive=id;return panel(1)}
   if(i.k==='bm'){if(bmMine(G,now()))return toast('Dein Radar läuft noch');return hbRef(id+'/u').set(now()).then(()=>panel(1))}
-  const t=now(),pts={},grey={},nm=[];
+  const t=now(),pts={},grey={},nm=[],ol=[];
   Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
-    if(locatable(p,t,u)){pts[u]={lat:p.lat,lng:p.lng,name:p.name};lk[u]=pts[u]}else{nm.push(p.name);if(lk[u])grey[u]=lk[u]}});
+    if(locatable(p,t,u)){pts[u]={lat:p.lat,lng:p.lng,name:p.name};lk[u]=pts[u]}else{(locWhy(p,t,u)==='old'?ol:nm).push(p.name);if(lk[u])grey[u]=lk[u]}});
   hbRef(id+'/u').set(t).then(()=>{xping={t,pts,grey};psave();db.ref(`games/${code}/xp`).push({t});
-    toast(nm.length?'Extra-Ping! Nicht ortbar: '+nm.join(', '):'Extra-Ping!');navigator.vibrate&&navigator.vibrate(300);draw();panel(1)})}
+    toast('Extra-Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(ol.length?' Kein Signal: '+ol.join(', '):''));navigator.vibrate&&navigator.vibrate(300);draw();panel(1)})}
 function hbLiveGo(h){const g=G,t=now(),id=hbLive,i=id&&hbMine(g)[id];if(!i||i.u||i.d)return;
   if(t<hbLock)return toast('Bitte kurz warten ('+Math.ceil((hbLock-t)/1000)+' s)');
-  if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast('Gerade nicht möglich: Dieser Hider ist nicht ortbar. Dein Bonus bleibt erhalten.')}
+  if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast(locMsg(P()[h],t,h)+'. Dein Bonus bleibt erhalten.')}
   const until=t+(g.s.hbL||60)*1000;
   hbRef(id+'/u').set(t).then(()=>{db.ref(`games/${code}/live/${h}/${uid}`).set(until);hbLive=null;toast('Live-Ortung läuft');draw();panel(1)})}
 function hbPanel(g,t){const tk=hbTokens(g,t),it=hbItems(g),N=g.s.hbN||2,full=it.length>=N;let h=`<h3>Boni (${it.length}/${N})</h3>`;
@@ -1513,7 +1518,7 @@ function chQR(){const g=G,m=P()[uid]||{};if(!g||g.status!=='running'||!chCur||is
       if(k.a===uid&&!k.dep)o.push('Bin auf dem Weg zum Dead Drop');else if(k.a===uid&&k.dep)o.push('Dead Drop liegt bereit');
       else if(k.b===uid&&!k.dep)o.push('Warte auf den Dead Drop');else if(k.b===uid&&!k.pick)o.push('Hole den Dead Drop ab')});
     Object.keys(T).filter(isMt).sort().forEach(id=>{const k=T[id];if(t<k.t0||k.fin||k.ex||(k.a!==uid&&k.b!==uid))return;
-      if(k.sol===uid)o.push('Mache das Meeting allein');else o.push('Komme zum Meeting mit '+pn(k.a===uid?k.b:k.a),'Bin am Treffpunkt')});
+      if(k.sol===uid)o.push('Mache das Meeting allein');else o.push('Wo treffen wir uns?','Komme zum Meeting mit '+pn(k.a===uid?k.b:k.a))});
     const sh=T.sh;if(sh&&t>=sh.t0&&!(sh.in&&sh.in[uid])&&(md(g)==='survive'))o.push('Gehe ins Safehouse');
     const ev=T.ev;if(ev&&t>=ev.t0)o.push('Auf dem Weg zur Evakuierung');
     if(st&&st.open)o.push('Gehe zum Terminal','Wer hilft beim Terminal?');
@@ -1840,7 +1845,9 @@ function runUI(g,me_,t,host,run){
     if(c&&c.status==='pending'&&(P()[c.hunter]||{}).state==='alive')h+=`<div class=card><div class=hd>${ic('hunter')}Fangmeldung</div><p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`;
     h+=gBonH(g,me_,t)+gTaskH(g,t,me_)}
   else{h=strip;
-    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>`<button class=cgt onclick="rq('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b></button>`).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`;
+    if(run)Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid||c.status!=='pending'||!P()[k])return;
+      h+=`<div class="card cwt"><div class=row style="align-items:center;gap:10px"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(P()[k].name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Warte auf ${esc(P()[k].name)}</b><small style="display:block">Ohne Antwort gilt der Fang automatisch.</small></div><b class=cwn>${cdT(c.t+30000,'')}</b></div></div>`});
+    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`;
     else h+=`<small>Warte auf das Ende des Headstarts.</small>`;
     if(run&&hbOn(g))h+=gBonHu(g,t);
     if(run){const L_=hkHunterCard(g,t,me_);if(L_)h+=`<div class=gsec><h3>Lage</h3></div>`+L_}}
@@ -2264,7 +2271,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
         if((p.immUntil||0)>t||hkAct(g,id)){nm.push(p.name);if(lk[id])ping.grey[id]=lk[id]}
         else if(p.lat){if(!TEST&&(offl||t-(p.ts||0)>30000)){old.push(p.name);ping.grey[id]={lat:p.lat,lng:p.lng,name:p.name,old:1,ts:p.ts||0}}
           else{ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name};lk[id]=ping.pts[id]}}});
-      navigator.vibrate&&navigator.vibrate(300);toast('📡 Ping!'+(nm.length?' Nicht ortbar: '+nm.join(', '):'')+(old.length?(offl?' Du bist offline – Standorte veraltet':' Nicht aktuell: '+old.join(', ')):''));psave();draw()}}}
+      navigator.vibrate&&navigator.vibrate(300);toast('📡 Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(old.length?(offl?' Du bist offline – Standorte veraltet':' Kein Signal: '+old.join(', ')):''));psave();draw()}}}
   // Fang-Anfragen
   {const c=(g.catches||{})[uid];if(c&&c.status==='pending'){const hq=P()[c.hunter];if(!hq||hq.state!=='alive')db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{})}}
   Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid||m.state!=='alive')return;

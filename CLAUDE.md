@@ -29,8 +29,8 @@ JS in Dateireihenfolge:
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
-| §FANG | `cc`, `rq`, `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
-| §AUFGABEN | Hunter-Boni `hb*`, Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView` (Zeilen, `ui.specX`), Radar, `hInv` |
+| §FANG | `cc`, `rq` (keine Doppelmeldung, Hunter-Karte „Warte auf …“ im Panel), `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
+| §AUFGABEN | Hunter-Boni `hb*` (Ortbarkeit `locatable`, Grund `locWhy`/`locMsg`), Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView` (Zeilen, `ui.specX`), Radar, `hInv` |
 | §RADAR | Bonus Radar (Konzept `KONZEPT_Bewegungsmelder.md`): Hider `type:'bm'` = Hunter-Radar, Hunter `k:'bm'` = Hider-Radar (Zeitbonus). `bmRv`/`bmTv` (Radius/Dauer, 0 = auto), `ddBm` (Dead-Drop-Verteilung per Hash), `ITN` (Item-Name), `bmMine` (eigenes laufendes Radar; Hider-Start in `LS[bmKey(id)]`), `bmCount` (Hysterese +15 m), `bmTick` (HUD/Meldungen), `bmOv` (Sonar-Kreis als `L.svgOverlay`, CSS `.bmr`), Zustand `BM`. Der alte Hider-Bonus heißt in Texten „Satellitenbild“ (intern weiter `radar`/`rad`/`useRadar`) |
 | §CHAT, §PANEL-ZIEHEN | Chat `ch*`, Schnellnachrichten `chQR` (passend zu laufenden Aufgaben, nur Team/Privat) + `chQSync`; Panel-Geste mit Stufen voll / Mitte `m` (Replay-Karte und Lobby-Einstellungen, Anker `pAnc`, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand am Ende von `#ps`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
 | §EINSTELLUNGEN | `ui`, `DEF`, **`FD`** (Feld-Definitionen), `PRE` (Dauer-Presets), `setPre`, `setHk` |
