@@ -57,7 +57,7 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 - **Regeln:** `database.rules.json` liegt im Zweig `db-rules` (`git show db-rules:database.rules.json`). Unter `s`, `players/$pid` usw. gilt `$o: false`: **jede neue Einstellung bzw. jedes neue Feld braucht eine Regel**, sonst schlägt das Schreiben fehl. Claude liefert Manuel immer die komplette Datei, Manuel lädt sie selbst hoch. Danach den Zweig `db-rules` aktualisieren.
 
 ## Einstellungen (`G.s`)
-Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
+Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, zT, zR, zC (Zombie, Menü `zAcc`), r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), zP, zB (Zombie), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
 Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`hkDef`), Zeile in `lobbyUI` (Unterpunkt mit `nf(k,1)`), DB-Regel `s/<key>`, ggf. `balCalc`.
 
 ## Konventionen

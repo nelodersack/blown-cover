@@ -21,6 +21,13 @@ with app(390,844) as (pg,ev,errs):
     assert 'werden ausgelost' in t and '1 Zombie' in t and 'Anzahl Zombies' in t and 'Patient Null' in t
     shot(pg,'lobby_spieler')
     ev("tabGo('lt','set')");ev("ui.open.tasks=1;panel(1)");pg.wait_for_timeout(300);shot(pg,'lobby_modus')
+    ev("ui.open.zmb=1;panel(1)");pg.wait_for_timeout(300)
+    z=ev("document.getElementById('pb').textContent");assert 'Verwandlungszeit' in z and 'Verwandlungsradius' in z and 'Ping-Deckel' in z,z[:500]
+    ev("setS('zC',2.5,1.5,5);setS('zR',40,20,100);setS('zT',30,10,600)");pg.wait_for_timeout(300)
+    assert ev("G.s.zC")==2.5 and ev("G.s.zR")==40 and ev("G.s.zT")==30
+    ev("stp('zC',-1)");pg.wait_for_timeout(300);assert ev("G.s.zC")==2.0,ev("G.s.zC")
+    shot(pg,'lobby_zombie_menue')
+    ev("setS('zC',3,1.5,5);setS('zR',30,20,100);setS('zT',20,10,600)");pg.wait_for_timeout(300)
     assert 'zombie' in ev("document.getElementById('pb').textContent").lower()
     ev("window.mkPts=async(c,R,n)=>randPts(c,R,n,30,[]);window.chkGps=async()=>[]")
     ev("st()");pg.wait_for_timeout(2500)
@@ -65,6 +72,8 @@ with app(390,844) as (pg,ev,errs):
     tick(ev);ev(TO)
     iv=ev("zIv(G,P(),now())");print('Ping-Intervall',iv);assert iv==360000   # 4 Zombies/1 Hider vs 1/4: √16=4 -> max 3·p0
     iv0=ev("zIv(G,P(),G.startAt+2*6e4+1000)");assert iv0==120000
+    assert ev("(()=>{G.s.zC=2;const v=zIv(G,P(),now());G.s.zC=3;return v})()")==240000
+    assert ev("(()=>{G.s.zP=false;const v=zIv(G,P(),now());delete G.s.zP;return v})()")==120000
     pg.wait_for_timeout(1500);print(ev("JSON.stringify(G.ev)"));assert 'Letzter Überlebender: Ben' in ev("JSON.stringify(G.ev)")
     shot(pg,'zombie_karte');ev("lgToggle()");pg.wait_for_timeout(300);shot(pg,'legende')
     assert 'Verwandelt' in ev("document.getElementById('lg').innerText")
