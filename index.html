@@ -221,7 +221,8 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 /* §CSS-DIALOG Dialog (dlg/dbx), Ergebnis (res) */
 #dlg,#bnd,#gd{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
 .dbx{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;width:min(380px,100%);box-shadow:0 12px 40px #0009}
-.dbx h3{margin:0 0 8px;font:700 22px var(--f-d);letter-spacing:.02em}.dbx p{color:var(--mut);margin:0 0 14px;font-size:14px;line-height:1.45}.dbx p b{color:var(--fg);font-weight:600}.dbx input{margin:0 0 14px}
+.dbx h3{margin:0 0 8px;font:700 22px var(--f-d);letter-spacing:.02em}.dbx p{color:var(--mut);margin:0 0 14px;font-size:14px;line-height:1.45}.dbx p b{color:var(--fg);font-weight:600}
+.dbb{display:grid;gap:8px;margin:0 0 12px}.dbb button{display:flex;align-items:center;justify-content:center;gap:8px}.dbb button svg{width:18px;height:18px}.dbx input{margin:0 0 14px}
 /* Briefing (§BRIEFING) */
 #bfd{position:fixed;inset:0;z-index:2400;display:flex;align-items:center;justify-content:center;background:#000b;padding:16px}
 .bf{padding:0;overflow:hidden;max-height:calc(100% - 8px);display:flex;flex-direction:column}
@@ -1162,15 +1163,15 @@ async function join(c){
 
 // §DIALOG dlg()
 function dlg(o){return new Promise(res=>{const el=document.createElement('div');el.id='dlg';
-  el.innerHTML=`<div class=dbx role=dialog aria-modal=true aria-label="${esc(o.t)}"><h3>${esc(o.t)}</h3>${o.x?`<p>${o.x}</p>`:''}${o.inp?`<input id=dli maxlength=${o.max||40} placeholder="${esc(o.ph||'')}" autocomplete=off>`:''}<div class=row><button class=g id=dlc>${esc(o.no||'Abbrechen')}</button><button id=dlo class="${o.bad?'dng':''}">${esc(o.ok||'OK')}</button></div></div>`;
+  el.innerHTML=`<div class=dbx role=dialog aria-modal=true aria-label="${esc(o.t)}"><h3>${esc(o.t)}</h3>${o.x?`<p>${o.x}</p>`:''}${o.inp?`<input id=dli maxlength=${o.max||40} placeholder="${esc(o.ph||'')}" autocomplete=off>`:''}${o.btns?`<div class=dbb>${o.btns.map((b,i)=>`<button class="${b.bad?'dng':'g'}" data-bi="${i}">${b.ic?ic(b.ic)+' ':''}${esc(b.l)}</button>`).join('')}</div>`:''}<div class=row><button class=g id=dlc>${esc(o.no||'Abbrechen')}</button>${o.ok===null?'':`<button id=dlo class="${o.bad?'dng':''}">${esc(o.ok||'OK')}</button>`}</div></div>`;
   document.body.appendChild(el);const inp=el.querySelector('#dli'),prev=document.activeElement;
   const done=v=>{document.removeEventListener('keydown',kd,true);el.remove();try{prev&&prev.focus&&prev.focus()}catch(e){}res(v)},
     kd=e=>{if(e.key==='Escape'){e.preventDefault();done(o.inp?null:false)}else if(e.key==='Enter'&&inp){e.preventDefault();ok()}},
     ok=()=>{if(inp){const v=inp.value.trim();if(!v){inp.focus();return}done(v)}else done(true)};
-  document.addEventListener('keydown',kd,true);
-  el.querySelector('#dlo').onclick=ok;el.querySelector('#dlc').onclick=()=>done(o.inp?null:false);
+  el.querySelectorAll('[data-bi]').forEach(b=>b.onclick=()=>done(o.btns[+b.dataset.bi].v));document.addEventListener('keydown',kd,true);
+  const dlo=el.querySelector('#dlo');if(dlo)dlo.onclick=ok;el.querySelector('#dlc').onclick=()=>done(o.inp?null:false);
   el.onclick=e=>{if(e.target===el)done(o.inp?null:false)};
-  setTimeout(()=>(inp||el.querySelector('#dlo')).focus(),30)})}
+  setTimeout(()=>(inp||el.querySelector('#dlo')||el.querySelector('#dlc')).focus(),30)})}
 
 // §FARBWAHL
 let colBusy=0;
@@ -1265,6 +1266,14 @@ const rndOn=g=>!!(g&&g.s&&g.s.rnd),rndN=()=>Object.values(P()).filter(p=>!p.lf&&
 const setRnd=on=>{const u={rnd:!!on};if(on)u.rH=zmb(G)?1:Math.max(1,Object.values(P()).filter(p=>p.role==='hunter'&&!p.lf&&!p.w).length);db.ref(`games/${code}/s`).update(u)};
 function ctr(){if(pos)db.ref(`games/${code}/c`).set(pos)}
 const byJ=(a,b)=>(a[1].j||0)-(b[1].j||0)||(a[0]<b[0]?-1:1);
+// Host tippt in der Lobby auf einen Mitspieler: Host abgeben oder aus der Lobby entfernen
+async function plMenu(u){const p=P()[u];if(!p||!G||G.host!==uid||G.status!=='lobby')return;
+  const v=await dlg({t:p.name,x:'Was möchtest du tun?',btns:[{l:'Zum Host machen',v:'host',ic:'crown'},{l:'Aus der Lobby entfernen',v:'kick',bad:1}],no:'Abbrechen',ok:null});
+  if(v==='host')return toHost(u);if(v==='kick')return kick(u)}
+async function kick(u){const p=P()[u];if(!p||G.host!==uid||G.status!=='lobby')return;
+  if(!(await dlg({t:'Spieler entfernen?',x:'<b>'+esc(p.name)+'</b> wird aus der Lobby entfernt. Mit dem Spiel-Code kann er wieder beitreten.',ok:'Entfernen',no:'Abbrechen',bad:1})))return;
+  if(!G||G.status!=='lobby'||!P()[u])return;const up={['players/'+u]:null};Object.entries(G.cols||{}).forEach(([i,v])=>{if(v===u)up['cols/'+i]=null});
+  db.ref('games/'+code).update(up).then(()=>toast(p.name+' wurde entfernt')).catch(()=>toast('Entfernen nicht möglich'))}
 async function toHost(u){const p=P()[u];if(!p||G.host!==uid||!(await dlg({t:'Host abgeben',x:'<b>'+esc(p.name)+'</b> zum Host machen? Du wirst normaler Spieler.',ok:'Host abgeben',no:'Abbrechen'})))return;db.ref(`games/${code}/host`).set(u).then(()=>toast(p.name+' ist jetzt Host'))}
 async function giveUp(){const m=P()[uid];if(!m||m.state!=='alive'||!(await dlg({t:'Aufgeben?',x:'Du scheidest aus und kannst nur noch zuschauen.',ok:'Aufgeben',no:'Weiterspielen',bad:1})))return;
   db.ref(`games/${code}/players/${uid}`).update({state:'quit',sT:now()});evW(uid+'_q',lbl(m)+' hat aufgegeben')}
@@ -1735,8 +1744,8 @@ function lobbyUI(g,host,me_){
   const pl=Object.entries(P()),s=g.s,sv=md(g)!=='mission';
   let b=`<div class=tabs2><button class="${ui.lt==='players'?'on':''}" onclick="tabGo('lt','players')">${ic('users')} Spieler (${pl.length})</button><button class="${ui.lt==='set'?'on':''}" onclick="tabGo('lt','set')">${ic('gear')} Einstellungen</button></div>`;
   if(ui.lt==='players'){
-    const chip=([k,p])=>{const me=k===uid,ng=noGps(p,k),on=me&&!p.w?'palTog()':(host&&!me?`toHost('${k}')`:'');
-        return `<${on?'button':'div'} class="lchip${me?' me':''}${ng?' ng':''}"${on?` onclick="${on}" aria-label="${me?'Farbe ändern':esc(p.name)+' zum Host machen'}"`:''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><span class=nm>${esc(p.name)}</span>${k===g.host?ic('crown'):''}${p.w?'<span class=spin role=img aria-label="sieht noch das Ergebnis"></span>':''}</${on?'button':'div'}>`},
+    const chip=([k,p])=>{const me=k===uid,ng=noGps(p,k),on=me&&!p.w?'palTog()':(host&&!me?`plMenu('${k}')`:'');
+        return `<${on?'button':'div'} class="lchip${me?' me':''}${ng?' ng':''}"${on?` onclick="${on}" aria-label="${me?'Farbe ändern':esc(p.name)+': Host abgeben oder entfernen'}"`:''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><span class=nm>${esc(p.name)}</span>${k===g.host?ic('crown'):''}${p.w?'<span class=spin role=img aria-label="sieht noch das Ergebnis"></span>':''}</${on?'button':'div'}>`},
       col=(r,t)=>{const a=pl.filter(([k,p])=>p.role===r),mine=(P()[uid]||{}).role,sw=mine&&mine!==r&&!(P()[uid]||{}).w;
         return `<div class=lcol><h4><span>${t}</span><span>${a.length}</span></h4>${a.map(chip).join('')}${sw?`<button class=lsw onclick="setRole('${r}')">+ Zu den ${r==='hunter'?(zmb(g)?'Zombies':'Huntern'):'Hidern'} wechseln</button>`:''}</div>`},
       bad=pl.filter(([k,p])=>noGps(p,k)&&k!==uid).map(([k,p])=>esc(p.name)),wt=pl.filter(([k,p])=>p.w).map(([k,p])=>esc(p.name));
@@ -1749,7 +1758,7 @@ function lobbyUI(g,host,me_){
           +`<div class=lrs>${n<2?'Mindestens 2 Spieler nötig':`<b>${H}</b> ${HN(g)}${H>1&&!zmb(g)?'':H>1?'s':''} · <b>${n-H}</b> Hider werden ausgelost`}${zmb(g)&&H===1?' · <span>Patient Null</span>':''}</div>`})()
         :`<div class=lcols>${col('hunter',HNP(g))}${col('hider','Hider')}</div>`)+(ui.pal&&!(P()[uid]||{}).w?palUI():'')
       +(bad.length?`<small class=lnote style="color:#ff8a8d">Kein GPS: ${bad.join(', ')}</small>`:'')+(wt.length?`<small class=lnote>Sieht noch das Ergebnis: ${wt.join(', ')}</small>`:'')
-      +`<small class=lnote>Tippe auf dich, um die Farbe zu ändern.${host?' Tippe auf andere, um den Host abzugeben.':''}</small>`;
+      +`<small class=lnote>Tippe auf dich, um die Farbe zu ändern.${host?' Tippe auf andere, um den Host abzugeben oder sie zu entfernen.':''}</small>`;
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0);
     const zoneS=`${s.r0} m → ${s.rMin} m · −${sstp(s)} m alle ${s.shrink} Min · Headstart ${s.head} Min`,gameS=`${s.dur} Min · Ping alle ${s.ping} s · `+(dqOn(g)?`GPS ${s.gw||20}/${s.gd||60} s`:`GPS-Warnung ${s.gw||20} s, ohne DQ`),

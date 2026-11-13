@@ -26,9 +26,9 @@ JS in Dateireihenfolge:
 | §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min); Rolle zur Zeit t `rvRole(p,t)` (Zombie), `RV.zt` |
 | §GPS | `startGPS` (Sprungfilter `onFix0`/`jf` vor `onFix`: > 10 m/s erst nach Bestätigung, Protokoll `gj`), `write` |
 | §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
-| §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
+| §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm`; Zusatzknöpfe `btns:[{l,v,bad,ic}]` (Ergebnis `v`), `ok:null` = nur Abbrechen |
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
-| §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode` (`zoneFit`), Auslosen `rndOn`/`rndH`/`setRnd`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
+| §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)` (rundet auf den Feldschritt), Spieler-Menü des Hosts `plMenu`/`kick`/`toHost`, `setMode` (`zoneFit`), Auslosen `rndOn`/`rndH`/`setRnd`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | Zombie: `zInf` (Verwandlung schreiben), `zTick`/`ZV`/`zLock` (Wartezeit am Fangort, `ZR` 30 m), `zLast`; `cc`, `rq` (keine Doppelmeldung, Hunter-Karte „Warte auf …“ im Panel), `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*` (Ortbarkeit `locatable`, Grund `locWhy`/`locMsg`), Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView` (Zeilen, `ui.specX`), Radar, `hInv` |
 | §RADAR | Bonus Radar (Konzept `KONZEPT_Bewegungsmelder.md`): Hider `type:'bm'` = Hunter-Radar, Hunter `k:'bm'` = Hider-Radar (Zeitbonus). `bmRv`/`bmTv` (Radius/Dauer, 0 = auto), `ddBm` (Dead-Drop-Verteilung per Hash), `ITN` (Item-Name), `bmMine` (eigenes laufendes Radar; Hider-Start in `LS[bmKey(id)]`), `bmCount` (Hysterese +15 m), `bmTick` (HUD/Meldungen), `bmOv` (Sonar-Kreis als `L.svgOverlay`, CSS `.bmr`), Zustand `BM`. Der alte Hider-Bonus heißt in Texten „Satellitenbild“ (intern weiter `radar`/`rad`/`useRadar`) |
