@@ -10,7 +10,7 @@ Mit Manuel auf Deutsch sprechen, knapp und direkt.
 - Der Projektstand für andere Chats liegt im claude.ai-Projekt „Blown Cover“: `claude/UEBERGABE_App.md` (kurz). Konzepte: `claude/KONZEPT_Hacking.md`, `KONZEPT_Balancing.md`, `KONZEPT_Zombie.md`.
 
 ## Codekarte (`grep -n "§" index.html`)
-CSS: `§CSS-BASIS` (Tokens `--task` lila, `--danger`, `--ok`, `--xping`), `§CSS-ELEMENTE`, `§CSS-KOMPONENTEN` (card, chip, acc, `.fl`/`.fl.sub`, num, sw), `§CSS-OVERLAYS`, `§CSS-CHAT`, `§CSS-DIALOG`, `§CSS-REPLAY`, `§CSS-KNOEPFE`, `§CSS-SPIEL-PANEL`, `§CSS-TIPPEN` (Tipp-Rückmeldung: kein Browser-Aufleuchten, Knöpfe drücken sich ein), `§CSS-FANG` (Fang-Raster `.cgt`, Fang-Alarm `#fa`), `§CSS-ZUSCHAUER` (`.zr`, `.zs` Aufgabe, `.zc` Bonus). `§HTML` Grundgerüst.
+CSS: `§CSS-BASIS` (Tokens `--task` lila, `--danger`, `--ok`, `--xping`), `§CSS-ELEMENTE`, `§CSS-KOMPONENTEN` (card, chip, acc, `.fl`/`.fl.sub`, num, sw), `§CSS-OVERLAYS`, `§CSS-CHAT`, `§CSS-DIALOG`, `§CSS-REPLAY`, `§CSS-KNOEPFE`, `§CSS-SPIEL-PANEL`, `§CSS-TIPPEN` (Tipp-Rückmeldung: kein Browser-Aufleuchten, Knöpfe drücken sich ein), `§CSS-FANG` (Fang-Raster `.cgt`, Fang-Alarm `#fa`), `§CSS-FANG-STARTEN` (`.fsb`, `.fzh`, `#fz`), `§CSS-ZUSCHAUER` (`.zr`, `.zs` Aufgabe, `.zc` Bonus). `§HTML` Grundgerüst.
 JS in Dateireihenfolge:
 | Marke | Inhalt / wichtige Namen |
 |---|---|
@@ -30,6 +30,7 @@ JS in Dateireihenfolge:
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)` (rundet auf den Feldschritt), Spieler-Menü des Hosts `plMenu`/`kick`/`toHost`, `setMode` (`zoneFit`), Auslosen `rndOn`/`rndH`/`setRnd`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
 | §FANG | Zombie: `zInf` (Verwandlung schreiben), `zTick`/`ZV`/`zLock` (Wartezeit am Fangort, `ZR` 30 m), `zLast`; `cc`, `rq` (keine Doppelmeldung, Hunter-Karte „Warte auf …“ im Panel), `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
+| §FANG-STARTEN | „Fang ohne Verfolgungsjagd“ (`s.fs`): Hunter `fsBtn`/`fsGo`/`fsCand`, Wartezeit `fsMine`/`fsWait`, Karte `fsHunterH`; Hider `fsTick` (stille Prüfung, `FSH`, Ergebnis nur in LS + `fzp/<code>/<uid>`), Vollbild `fsOv` (`#fz`, unter `#fa`), `fsStand`, Alarm `fsAlarm` (Vibration/Ton), Entkommen `FSX` (Hunter live) + Ping-Ausfall `fsSkip`/`pS`; Panel-Signatur `fsSig` |
 | §AUFGABEN | Hunter-Boni `hb*` (Ortbarkeit `locatable`, Grund `locWhy`/`locMsg`), Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView` (Zeilen, `ui.specX`), Radar, `hInv` |
 | §RADAR | Bonus Radar (Konzept `KONZEPT_Bewegungsmelder.md`): Hider `type:'bm'` = Hunter-Radar, Hunter `k:'bm'` = Hider-Radar (Zeitbonus). `bmRv`/`bmTv` (Radius/Dauer, 0 = auto), `ddBm` (Dead-Drop-Verteilung per Hash), `ITN` (Item-Name), `bmMine` (eigenes laufendes Radar; Hider-Start in `LS[bmKey(id)]`), `bmCount` (Hysterese +15 m), `bmTick` (HUD/Meldungen), `bmOv` (Sonar-Kreis als `L.svgOverlay`, CSS `.bmr`), Zustand `BM`. Der alte Hider-Bonus heißt in Texten „Satellitenbild“ (intern weiter `radar`/`rad`/`useRadar`) |
 | §CHAT, §PANEL-ZIEHEN | Chat `ch*`, Schnellnachrichten `chQR` (passend zu laufenden Aufgaben, nur Team/Privat) + `chQSync`; Panel-Geste mit Stufen voll / Mitte `m` (Replay-Karte und Lobby-Einstellungen, Anker `pAnc`, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand am Ende von `#ps`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
@@ -50,14 +51,15 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 
 ## Datenmodell (Firebase)
 - `games/$code`: `host`, `status` (lobby|running|over), `startAt`, `winner`, `c` {lat,lng} (Zonenmitte), `rn` (Rundennummer), `prev`, `chk`
-  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig)
-  - `catches/$hider` {hunter,t,status,why}, `hb/$hunter/$bonus`, `live/$hider/$hunter`, `xp/$id` (Extra-Ping), `ev/$id` {t,x,u} (Meldungen an alle; `u:'hk'` = Hacking-System)
+  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig); pS (ausfallender Ping nach missglücktem „Fang starten“)
+  - `catches/$hider` {hunter,t,status,why}, `hb/$hunter/$bonus`, `live/$hider/$hunter`, `xp/$id` (Extra-Ping), `fz/$hider` {h,t} („Fang starten“), `ev/$id` {t,x,u} (Meldungen an alle; `u:'hk'` = Hacking-System)
   - `tasks/$tid`: `sh` (Safehouse), `ev` (Evakuierung), Dead Drops/Meetings (`isDd(id)`), `hk` (Hacking: `t0`, `loc`, `rr:0`, `at/<n>` Versuche, `res`, `cm`, `oz`; `a` ist bei Dead Drop belegt, darum heißt der Versuchsknoten `at`)
+- `fzp/$code/$uid` {t,ok,a}: Ergebnis „Fang starten“, nur für den Hider selbst lesbar
 - `chats/…`, `marks/…`, `analysis/$code` (Analyse-Protokolle), `rp/$code/$uid` (Replay-Wege)
 - **Regeln:** `database.rules.json` liegt im Zweig `db-rules` (`git show db-rules:database.rules.json`). Unter `s`, `players/$pid` usw. gilt `$o: false`: **jede neue Einstellung bzw. jedes neue Feld braucht eine Regel**, sonst schlägt das Schreiben fehl. Claude liefert Manuel immer die komplette Datei, Manuel lädt sie selbst hoch. Danach den Zweig `db-rules` aktualisieren.
 
 ## Einstellungen (`G.s`)
-Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, zT, zR, zC (Zombie, Menü `zAcc`), r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), zP, zB (Zombie), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
+Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, zT, zR, zC (Zombie, Menü `zAcc`), fsR, fsT (Fang starten), r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), zP, zB (Zombie), fs (Fang ohne Verfolgungsjagd), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
 Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`hkDef`), Zeile in `lobbyUI` (Unterpunkt mit `nf(k,1)`), DB-Regel `s/<key>`, ggf. `balCalc`.
 
 ## Konventionen
