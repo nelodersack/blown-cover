@@ -19,17 +19,17 @@ JS in Dateireihenfolge:
 | §APP | Sichtbarkeit, Fehler-Hooks, `bcSetHidden` |
 | §STATE | globale `let`s (G, uid, code, pos, ping, …), `now()` (Serverzeit), `$`, `esc`, `D` (Distanz m), `P()` (Spieler), `gwE`, `dqOn`, `hpOn`, `evW`, `note` |
 | §ERGEBNIS | `CW`, `catchWhy`, `buildRes` (inkl. `tk` Aufgabenbilanz, Spielerfarben), `resHTML` (Kacheln, zwei Spalten), `rpView` (Replay direkt aus dem Endscreen; solange `RV` läuft, ruhen `panel`/`draw`/HUD/`resSync`), `resSync` |
-| §ZONE-AUFGABEN-RECHNUNG | `rs` (Ende Headstart), `Rad(g,t)`, `zoneSeq`, `md(g)` (Modus), `ddPlan`, Boni `hb*`, `myTk`, `myItems`, Orte `ovPts`/`randPts`/`mkPts` |
+| §ZONE-AUFGABEN-RECHNUNG | `rs` (Ende Headstart), `Rad(g,t)`, `zoneSeq`, `md(g)` (Modus: survive|mission|zombie), `zmb(g)`, `HN`/`HNP` (Hunter/Zombie), Ping `zIv`/`pgK`, `ddPlan`, Boni `hb*`, `myTk`, `myItems`, Orte `ovPts`/`randPts`/`mkPts` |
 | §UI-BASIS | `toast`, Icons `SV`/`ic()`, Farben `PAL`/`colOf`, Markerformen `shape`/`shape0`, `TH`, Wake Lock |
 | §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, Gesten `g*` (Finger in `tps`; Geisterfinger-Schutz `gReset`/`gTouch`, weil iOS pointerup verliert), Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
-| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min) |
+| §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min); Rolle zur Zeit t `rvRole(p,t)` (Zombie), `RV.zt` |
 | §GPS | `startGPS` (Sprungfilter `onFix0`/`jf` vor `onFix`: > 10 m/s erst nach Bestätigung, Protokoll `gj`), `write` |
 | §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm` |
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
-| §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
-| §FANG | `cc`, `rq` (keine Doppelmeldung, Hunter-Karte „Warte auf …“ im Panel), `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
+| §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)`, `setMode` (`zoneFit`), Auslosen `rndOn`/`rndH`/`setRnd`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
+| §FANG | Zombie: `zInf` (Verwandlung schreiben), `zTick`/`ZV`/`zLock` (Wartezeit am Fangort, `ZR` 30 m), `zLast`; `cc`, `rq` (keine Doppelmeldung, Hunter-Karte „Warte auf …“ im Panel), `ok`, `no`, Fang-Alarm `faSync` (Vollbild beim Hider), `fin`, `endNow` |
 | §AUFGABEN | Hunter-Boni `hb*` (Ortbarkeit `locatable`, Grund `locWhy`/`locMsg`), Meeting `mt*`, `chk`, Evakuierung `rv*`-Lock, `useImm`, `hTasks`, Zuschauer `specView` (Zeilen, `ui.specX`), Radar, `hInv` |
 | §RADAR | Bonus Radar (Konzept `KONZEPT_Bewegungsmelder.md`): Hider `type:'bm'` = Hunter-Radar, Hunter `k:'bm'` = Hider-Radar (Zeitbonus). `bmRv`/`bmTv` (Radius/Dauer, 0 = auto), `ddBm` (Dead-Drop-Verteilung per Hash), `ITN` (Item-Name), `bmMine` (eigenes laufendes Radar; Hider-Start in `LS[bmKey(id)]`), `bmCount` (Hysterese +15 m), `bmTick` (HUD/Meldungen), `bmOv` (Sonar-Kreis als `L.svgOverlay`, CSS `.bmr`), Zustand `BM`. Der alte Hider-Bonus heißt in Texten „Satellitenbild“ (intern weiter `radar`/`rad`/`useRadar`) |
 | §CHAT, §PANEL-ZIEHEN | Chat `ch*`, Schnellnachrichten `chQR` (passend zu laufenden Aufgaben, nur Team/Privat) + `chQSync`; Panel-Geste mit Stufen voll / Mitte `m` (Replay-Karte und Lobby-Einstellungen, Anker `pAnc`, `pMid`/`pMidSet`, CSS-Variablen `--mid` Versatz und `--pad` Scroll-Abstand am Ende von `#ps`, damit das Menü in der Mitte scrollbar bleibt; `pRO`/`pObs` vermessen bei späteren Größenänderungen neu) / eingeklappt `c`; `pVis` = sichtbare Panelhöhe |
@@ -50,14 +50,14 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 
 ## Datenmodell (Firebase)
 - `games/$code`: `host`, `status` (lobby|running|over), `startAt`, `winner`, `c` {lat,lng} (Zonenmitte), `rn` (Rundennummer), `prev`, `chk`
-  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa
+  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig)
   - `catches/$hider` {hunter,t,status,why}, `hb/$hunter/$bonus`, `live/$hider/$hunter`, `xp/$id` (Extra-Ping), `ev/$id` {t,x,u} (Meldungen an alle; `u:'hk'` = Hacking-System)
   - `tasks/$tid`: `sh` (Safehouse), `ev` (Evakuierung), Dead Drops/Meetings (`isDd(id)`), `hk` (Hacking: `t0`, `loc`, `rr:0`, `at/<n>` Versuche, `res`, `cm`, `oz`; `a` ist bei Dead Drop belegt, darum heißt der Versuchsknoten `at`)
 - `chats/…`, `marks/…`, `analysis/$code` (Analyse-Protokolle), `rp/$code/$uid` (Replay-Wege)
 - **Regeln:** `database.rules.json` liegt im Zweig `db-rules` (`git show db-rules:database.rules.json`). Unter `s`, `players/$pid` usw. gilt `$o: false`: **jede neue Einstellung bzw. jedes neue Feld braucht eine Regel**, sonst schlägt das Schreiben fehl. Claude liefert Manuel immer die komplette Datei, Manuel lädt sie selbst hoch. Danach den Zweig `db-rules` aktualisieren.
 
 ## Einstellungen (`G.s`)
-Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
+Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
 Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`hkDef`), Zeile in `lobbyUI` (Unterpunkt mit `nf(k,1)`), DB-Regel `s/<key>`, ggf. `balCalc`.
 
 ## Konventionen

@@ -25,7 +25,7 @@ os.makedirs(OUT, exist_ok=True)
 def app(width=400, height=800, page='index.html', hash='#test', init=None):
     with sync_playwright() as p:
         b = p.chromium.launch()
-        pg = b.new_context(viewport={'width': width, 'height': height}).new_page()
+        pg = b.new_context(viewport={'width': width, 'height': height}, device_scale_factor=float(os.environ.get('DSF', '1'))).new_page()
         errs = []
         pg.on('pageerror', lambda e: errs.append('PE:' + str(e)))
         pg.on('console', lambda m: errs.append('C:' + m.text)
