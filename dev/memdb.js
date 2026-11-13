@@ -7,10 +7,12 @@ const setp=(p,v)=>{const ks=p.split('/').filter(Boolean);let o=__T;for(let i=0;i
 const setp0=p=>{const ks=p.split('/').filter(Boolean);let o=__T;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];delete o[ks[ks.length-1]]};
 const snap=v=>({val:()=>v==null?null:JSON.parse(JSON.stringify(v)),exists:()=>v!=null,key:null});
 const notify=()=>{__ls.slice().forEach(l=>{try{l.cb(snap(getp(l.p)))}catch(e){console.error('ls',e)}})};
+// Schreibprotokoll für die Regelprüfung (dev/rules/): nur wenn window.__WLOG gesetzt ist
+window.__W=[];const rec=(op,p,v)=>{if(!window.__WLOG)return;try{__W.push({op,p,v:v===undefined?null:JSON.parse(JSON.stringify(v)),uid:typeof uid!=='undefined'?uid:null,now:Date.now(),before:JSON.stringify(__T)})}catch(e){}};
 const R=p=>({
- set(v){setp(p,v);setTimeout(notify,0);return Promise.resolve()},
- update(u){for(const [k,v] of Object.entries(u))setp(p+'/'+k,v);setTimeout(notify,0);return Promise.resolve()},
- remove(){setp(p,null);setTimeout(notify,0);return Promise.resolve()},
+ set(v){rec('set',p,v);setp(p,v);setTimeout(notify,0);return Promise.resolve()},
+ update(u){rec('update',p,u);for(const [k,v] of Object.entries(u))setp(p+'/'+k,v);setTimeout(notify,0);return Promise.resolve()},
+ remove(){rec('set',p,null);setp(p,null);setTimeout(notify,0);return Promise.resolve()},
  get(){return Promise.resolve(snap(getp(p)))},once(){return Promise.resolve(snap(getp(p)))},
  on(e,cb){if(e==='value'){__ls.push({p,cb});setTimeout(()=>cb(snap(getp(p))),0)}return cb},
  off(){for(let i=__ls.length-1;i>=0;i--)if(__ls[i].p===p)__ls.splice(i,1)},

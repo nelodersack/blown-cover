@@ -72,6 +72,8 @@ Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`
 ## Testen
 - `sh dev/check.sh` prüft die JS-Syntax und führt alle Tests in `dev/tests/` aus. `sh dev/check.sh syntax` prüft nur die Syntax, `sh dev/check.sh replay` führt nur passende Tests aus.
 - Die Tests laufen mit Playwright/Chromium (vorinstalliert) und `dev/memdb.js` als Firebase-Ersatz: `__T` ist die Datenbank, `notify()` löst die Listener aus. Vorlage für neue Tests: `dev/tests/hacking_mit_helfer.py` (Spiel in `__T.games` anlegen, `uid`/`pos` setzen, `join(code)`). Screenshots landen in `dev/out/` (nicht im Repo).
+- **Regeln prüfen ohne Firebase:** `sh dev/rules.sh` (nimmt `db-rules`, oder eine Datei als Argument; `schnell` = nur feste Fälle). Wertet `database.rules.json` offline aus (targaryen): feste Fälle in `dev/rules/faelle.js` plus alle Schreibvorgänge, die die App in den Tests macht (`WLOG`-Protokoll aus `dev/memdb.js`, `dev/rules/replay.js`). Bei neuen Feldern/Regeln dort einen Fall ergänzen und vor dem Liefern laufen lassen.
+- `dev/check.sh` endet mit „ALLE TESTS OK“; jeder Test muss mit der Zeile `errors: []` enden und Exit-Code 0 liefern.
 - Firebase und github.io sind aus der Cloud-Umgebung nicht erreichbar. Echte Tests macht Manuel auf dem Handy und schickt Analyse-JSON bzw. App-Logs.
 
 ## Regeln von Manuel

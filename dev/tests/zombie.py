@@ -91,4 +91,20 @@ with app(390,844) as (pg,ev,errs):
     ev("rvJump(Object.values(RV.pl).find(p=>p.name==='Tom').zt+2000)");pg.wait_for_timeout(800);shot(pg,'replay')
     evs=ev("JSON.stringify((RV.ev||[]).filter(e=>/infiziert/.test(e.x)).map(e=>e.x))");print(evs)
     assert not [e for e in errs if 'PE:' in e],errs
-print('ok')
+# 4 Hunter-Sicht: Infektion per Timeout (Hider antwortet nicht), Marker des Infizierten verschwinden; letzter Überlebender bekommt die Meldung selbst
+MK="(()=>{const o=[];lay.eachLayer(l=>{const c=l.options&&l.options.icon&&l.options.icon.options&&l.options.icon.options.className;if(c)o.push(c)});return o})()"
+with app(390,844) as (pg,ev,errs):
+    running(ev,'u1');tick(ev)
+    ev("ping={k:5,t:now()-20000,pts:{u2:{lat:47.0705,lng:15.4405,name:'Lena'},u3:{lat:47.0716,lng:15.443,name:'Max'}},grey:{}};xping={t:now(),pts:{u2:{lat:47.0705,lng:15.4405,name:'Lena'}},grey:{}};lastK=pgK(G,now()).k;__T.games.K7QF.live={u2:{u1:Date.now()+50000}};notify()")
+    pg.wait_for_timeout(600);m0=ev(MK);assert m0.count('mkw ping')==2 and 'mkw xping' in m0 and 'mkw live' in m0,m0
+    ev("__T.games.K7QF.catches={u2:{hunter:'u1',t:Date.now()-31000,status:'pending',lat:47.0705,lng:15.4405}};notify()");pg.wait_for_timeout(2200)
+    p=ev("G.players.u2");assert p['role']=='hunter' and p['zb']=='u1' and p['zl']['lat']==47.0705 and ev("G.catches.u2.status")=='done',p
+    m1=ev(MK);print('Marker nach Infektion:',m1);assert m1.count('mkw ping')==1 and 'mkw xping' not in m1 and 'mkw live' not in m1 and 'mkw mate' in m1 and 'mkw catch' in m1,m1
+    assert 'Live' not in ev("document.getElementById('hud').innerText")
+    assert not [e for e in errs if 'PE:' in e],errs
+with app(390,844) as (pg,ev,errs):
+    ev("window.__toasts=[];window.__tw=1")
+    running(ev,'u5',650,"for(const k of ['u2','u3','u4']){g.players[k].role='hunter';g.players[k].zt=Date.now()-100000;g.players[k].zb='u1';g.players[k].zd=Date.now()-80000}")
+    pg.wait_for_timeout(1500);t=ev("document.getElementById('toast').textContent");print('Toast:',t);assert 'letzte Überlebende' in t,t
+    assert not [e for e in errs if 'PE:' in e],errs
+print('errors: []')

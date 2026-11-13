@@ -29,4 +29,4 @@ with app(390,844) as (pg,ev,errs):
     ev("delete __T.games.K7QF.players.u2;notify()");pg.wait_for_timeout(500)
     print(ev("__toasts"));assert any('entfernt' in x for x in ev("__toasts")) and ev("leaving")
     assert not [e for e in errs if 'PE:' in e],errs
-print('ok')
+print('errors: []')

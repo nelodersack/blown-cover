@@ -69,4 +69,4 @@ with app(390,844) as (pg,ev,errs):
     ev("FSH.t0-=40000;fsSave()");pg.wait_for_timeout(1600)
     assert not ev("!!document.getElementById('fz')") and not ev("G.players.u2.immUntil") and not ev("FSX")
     pe(errs)
-print('ok')
+print('errors: []')

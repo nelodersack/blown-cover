@@ -65,7 +65,7 @@ with app() as (pg,ev,errs):
     ev("__T.games.K7QF.players.u2.immUntil=now()+1500;notify()");pg.wait_for_timeout(3500)
     assert any(x.startswith('Schutz abgelaufen') for x in ev("__ts")),ev("__ts")
     # Meeting-Wahl: Knöpfe
-    ev("__T.games.K7QF.tasks.m1={t0:Date.now()-1000,a:'u2',b:'u3',loc:{lat:47.072,lng:15.442}};notify()");pg.wait_for_timeout(800)
+    ev("__T.games.K7QF.tasks.m1={t0:Date.now()-1000,a:'u2',b:'u3',loc:{lat:47.072,lng:15.442},rr:0};notify()");pg.wait_for_timeout(800)
     pb=ev("$('pb').innerText");assert 'Wähle deinen Bonus' in pb,pb
     ev("[...$('pb').querySelectorAll('button.ggo')].find(b=>b.innerText==='Wählen').click()");pg.wait_for_timeout(300)
     btn=ev("[...$('gd').querySelectorAll('button')].map(b=>b.innerText.replace(/\\n/g,' ')).join('|')");print('Meeting',btn)

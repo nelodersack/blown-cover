@@ -16,7 +16,9 @@ P
 fail=0
 for t in dev/tests/*${1}*.py; do
   echo "== $(basename "$t" .py)"
-  out=$(timeout 180 python3 "$t" 2>&1); echo "$out" | tail -n 12
-  echo "$out" | grep -q "^errors: \[\]" || { echo "!! FEHLER in $t"; fail=1; }
+  out=$(timeout 180 python3 "$t" 2>&1); rc=$?; echo "$out" | tail -n 12
+  # Fehler, wenn der Test abbricht (Assertion, Timeout) oder die Schlusszeile "errors: []" fehlt
+  { [ $rc -eq 0 ] && echo "$out" | grep -q "^errors: \[\]"; } || { echo "!! FEHLER in $t (Exit $rc)"; fail=1; }
 done
+[ $fail -eq 0 ] && echo "ALLE TESTS OK" || echo "ES GIBT FEHLER"
 exit $fail

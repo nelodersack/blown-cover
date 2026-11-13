@@ -43,11 +43,23 @@ def app(width=400, height=800, page='index.html', hash='#test', init=None):
         pg.route('**/*', route)
         if init:
             pg.add_init_script(init)
+        wlog = os.environ.get('WLOG')            # Schreibprotokoll für die Regelprüfung (dev/rules/)
+        if wlog:
+            pg.add_init_script('window.__WLOG=1')
         pg.goto('file://' + os.path.join(ROOT, page) + hash)
         pg.wait_for_timeout(500)
         try:
             yield pg, (lambda s: pg.evaluate(s)), errs
         finally:
+            if wlog:
+                try:
+                    import json, sys, time
+                    w = pg.evaluate('JSON.stringify(window.__W||[])')
+                    os.makedirs(wlog, exist_ok=True)
+                    name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+                    open(os.path.join(wlog, '%s_%d.json' % (name, time.time() * 1000)), 'w').write(w)
+                except Exception:
+                    pass
             b.close()
 
 

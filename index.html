@@ -477,9 +477,8 @@ function evW(key,x,u){if(!code||evSeen.has(key))return;evSeen.add(key);db.ref(`g
 function note(m){nq.push(m);if(!nB)nxt()}
 function nxt(){if(!nq.length){nB=0;return}nB=1;toast(nq.shift());navigator.vibrate&&navigator.vibrate(120);setTimeout(nxt,2600)}
 // §ERGEBNIS Fang-Ablehnungsgründe (CW, catchWhy), Ergebnisfenster (buildRes, resHTML, resSync)
-const CW={far:'Fang abgelehnt: Hunter nicht in 40 m Nähe',stale:'Fang abgelehnt: Standort nicht aktuell'};
+const CW={far:'Fang abgelehnt: zu weit weg (mehr als 40 m)',stale:'Fang abgelehnt: Standort nicht aktuell'};
 const catchWhy=(p,t)=>(!p||!p.lat||!pos||t-(p.ts||0)>30000||Date.now()-lastFix>30000)?'stale':(D(pos,p)>40?'far':null);
-const resTm=x=>x.t==null?'':(x.t<0?' im Headstart':' nach '+fmt(x.t));
 function buildRes(g){const R0=rs(g),ct=g.catches||{},pl=g.players||{};
   const l=Object.entries(pl).filter(([k,p])=>p.role).map(([k,p])=>({n:p.name,r:p.role,s:p.state,t:p.sT?p.sT-R0:null,by:p.zt?((pl[p.zb||(ct[k]||{}).hunter]||{}).name||null):p.state==='caught'&&ct[k]&&ct[k].hunter?((pl[ct[k].hunter]||{}).name||null):null,lf:!!p.lf,c:colOf(k),i:inkOf(k),z:p.zt?p.zt-R0:null}));
   const T=g.tasks||{};let tn=0,td=0;Object.entries(T).forEach(([id,k])=>{if(!k)return;
@@ -840,9 +839,6 @@ function rpListen(){if(rpRef)return;rpRef=db.ref('rp/'+code);
   rpRef.on('value',s=>{const v=s.val()||{};for(const k in v){try{const o=JSON.parse(v[k]);RP.got[k]=o.tr.map(x=>[o.t0+x[0]*1000,x[1]/1e5,x[2]/1e5,x[3]])}catch(e){}}
     rpSave();if(G&&G.status==='over')resSync(G)},()=>{})}
 function rpNeed(){const S=RP.snap;return Object.keys(S.players).filter(k=>!S.players[k].lf)}
-function rpCard(){if(!RP||!RP.snap)return'';const need=rpNeed(),n=need.filter(k=>RP.got[k]||(k===uid&&RP.own.length)).length;
-  return`<div class=card style="margin-top:12px;text-align:left"><div class="row sp"><div class=hd style="flex:none">${ic('play')}Replay</div><span class="chip ${n>=need.length?'ok':'or'}" style="flex:none">${n} von ${need.length} Wegen da</span></div>
-   <button onclick="rpDl()">Replay herunterladen</button><small class=mut>Abspielen: Startseite → „Replay abspielen“. Am iPhone landet die Datei in der Dateien-App.${n<need.length?' Fehlende Wege werden aus dem ergänzt, was dein Handy empfangen hat.':''}</small></div>`}
 function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.players[a].j||0)-(S.players[b].j||0)),id={};ids.forEach((k,i)=>id[k]='p'+(i+1));
   const mp=x=>typeof x==='string'&&id[x]?id[x]:x,mpP=p=>p.split('/').map(mp).join('/');
   const tracks={},players=[];
@@ -1359,7 +1355,7 @@ function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;if(zLock(G,
   fsCand=null;cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
   if(!cand.length)toast('Keine Hider mehr');panel(1)}
 function rq(h){cand=[];const q=P()[h]||{},o=(G.catches||{})[h],c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
-  if(o&&o.status==='pending'){toast(o.hunter===uid?'Deine Fangmeldung an '+(q.name||'?')+' läuft schon':'Für '+(q.name||'?')+' läuft schon eine Fangmeldung von '+((P()[o.hunter]||{}).name||'einem Hunter'));panel(1);return}
+  if(o&&o.status==='pending'){toast(o.hunter===uid?'Deine Fangmeldung an '+(q.name||'?')+' läuft schon':'Für '+(q.name||'?')+' läuft schon eine Fangmeldung von '+((P()[o.hunter]||{}).name||'einem '+HN(G)));panel(1);return}
   db.ref(`games/${code}/catches/${h}`).set(c).then(()=>toast('Fangmeldung an '+(q.name||'?')+' gesendet')).catch(()=>toast('Fangmeldung ging nicht durch (läuft schon oder keine Verbindung)'));panel(1)}
 function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')return;const hq=P()[c.hunter];
   if(!hq||hq.state!=='alive')return db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{});
@@ -1374,7 +1370,7 @@ function zInf(h,hu,t,q,u){const p=P()[h]||{},o=Object.assign({},u);o[`players/${
   o[`ev/${h}_c`]={t,x:((p.name||'?')+' wurde von '+((P()[hu]||{}).name||'einem Zombie')+' infiziert').slice(0,100),u:h};return o}
 // Letzter Überlebender (nur Zombie): Meldung an alle, sobald genau ein Hider frei ist
 function zLast(g,t){if(!zmb(g)||g.status!=='running')return;const a=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive');
-  if(a.length===1&&Object.values(P()).some(p=>p.zt))evW('ls_'+a[0][0],'Letzter Überlebender: '+a[0][1].name,a[0][0])}
+  if(a.length===1&&Object.values(P()).some(p=>p.zt)){const k='ls_'+a[0][0];if(a[0][0]===uid&&!evSeen.has(k))note('Du bist der letzte Überlebende. Halte durch!');evW(k,'Letzter Überlebender: '+a[0][1].name,a[0][0])}}
 // Verwandlung: neuer Zombie bleibt „Wartezeit nach Fang“ (hbC) lang im 30-m-Kreis um den Fangort (Hysterese: raus ab 45 m);
 // Verlassen setzt zurück, ohne Signal pausiert der Countdown. Fortschritt lokal in LS (zKey), fertig = players/zd.
 const ZRH=15,zRad=g=>(g&&g.s&&g.s.zR)||30,zPg=g=>!(g&&g.s&&g.s.zP===false),zCap=g=>(g&&g.s&&g.s.zC)||3,zEarly=g=>!(g&&g.s&&g.s.zB===false),zKey=()=>'zv_'+code+'_'+((G&&G.rn)||0)+'_'+uid,zDur=g=>Math.max(10,(g.s.zT||g.s.hbC||60))*1000;
@@ -1399,7 +1395,7 @@ function faSync(g,m,t){let e=$('fa');const c=(g&&g.status==='running'&&m&&m.role
   if(!e){e=document.createElement('div');e.id='fa';e.setAttribute('role','alertdialog');e.setAttribute('aria-modal','true');document.body.appendChild(e)}
   const rem=Math.max(0,Math.ceil((30000-(t-c.t))/1000)),k=c.hunter+'_'+c.t;
   if(faK!==k){faK=k;navigator.vibrate&&navigator.vibrate([400,150,400,150,400]);
-    e.innerHTML=`<div class=fb><div class=fe>FANGMELDUNG</div><div class=fr><div></div></div><div class=ft>${esc(hq.name||'Ein Hunter')} meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Ohne Antwort gilt der Fang nach 30 s.</div><div class=row><button class=fy onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`}
+    e.innerHTML=`<div class=fb><div class=fe>FANGMELDUNG</div><div class=fr><div></div></div><div class=ft>${esc(hq.name||'Ein '+HN(g))} meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Ohne Antwort gilt der Fang nach 30 s.</div><div class=row><button class=fy onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`}
   e.querySelector('.fr').style.setProperty('--p',(rem/30*100).toFixed(1)+'%');e.querySelector('.fr>div').textContent=rem;e.classList.add('on')}
 async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}try{await db.ref('rp/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function psave(){try{LS['bp_'+code+'_'+(G.rn||0)]=JSON.stringify({ping,xping,lk})}catch(e){}}
@@ -1425,7 +1421,7 @@ function fsGo(h){const g=G,t=now(),q=P()[h];fsCand=null;if(!q){panel(1);return}
   const f=(g.fz||{})[h];if(!f||f.t+fsTv(g)<t)db.ref(`games/${code}/fz/${h}`).set({h:uid,t}).catch(()=>{});
   lg('fs',{h,d:pos&&q.lat?Math.round(D(pos,q)):null});panel(1)}
 // Hunter: laufender eigener Countdown (immer gleich, egal ob angekommen)
-const fsHunt=(g,t)=>{const m=fsMine();return m.h&&m.t&&t<m.t+fsTv(g)&&m.t>=(g.startAt||0)?m:null};
+const fsHunt=(g,t)=>{const m=fsMine(),q=P()[m.h]||{};return m.h&&m.t&&t<m.t+fsTv(g)&&m.t>=(g.startAt||0)&&q.role==='hider'&&q.state==='alive'?m:null};
 // Hider: Auslösung prüfen, Alarm, „Ich bleibe stehen“, Ablauf
 function fsLoad(){try{return JSON.parse(LS[fsKey('fsh')]||'null')}catch(e){return null}}
 function fsSave(){try{LS[fsKey('fsh')]=JSON.stringify({h:FSH,x:FSX})}catch(e){}}
@@ -1492,15 +1488,6 @@ function hbLiveGo(h){const g=G,t=now(),id=hbLive,i=id&&hbMine(g)[id];if(!i||i.u|
   if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast(locMsg(P()[h],t,h)+'. Dein Bonus bleibt erhalten.')}
   const until=t+(g.s.hbL||60)*1000;
   hbRef(id+'/u').set(t).then(()=>{db.ref(`games/${code}/live/${h}/${uid}`).set(until);hbLive=null;toast('Live-Ortung läuft');draw();panel(1)})}
-function hbPanel(g,t){const tk=hbTokens(g,t),it=hbItems(g),N=g.s.hbN||2,full=it.length>=N;let h=`<h3>Boni (${it.length}/${N})</h3>`;
-  if(hbPick)h+=`<div class=tk><b>Vorrat voll</b><br><small>Welchen Bonus ersetzt du durch ${HBK[hbPick.k]}?</small><br>`+it.map(([id,i])=>`<button class="s" onclick="hbSwap('${id}')">${HBK[i.k]}</button>`).join(' ')+` <button class="s g" onclick="hbPick=null;panel(1)">Abbrechen</button></div>`;
-  else tk.forEach(x=>{if(x.id==='time'){h+=`<div class=tk><b>Neuer Bonus (Zeitbonus): Hider-Radar</b><br><small>Zeigt ${fmt(bmTv(g.s)*1000)} lang, wie viele Hider im Umkreis von ${bmRv(g.s)} m um dich sind.${full?' Dein Vorrat ist voll: Tausche ihn gegen einen vorhandenen Bonus oder lass ihn verfallen.':''}</small><br><button class="s" onclick="hbChoose('time','bm',${x.base})">${full?'Tauschen':'Übernehmen'}</button>${full?` <button class="s g" onclick="hbForfeit('time')">Verfallen lassen</button>`:''}</div>`;return}
-    h+=`<div class=tk><b>Neuer Bonus</b> <small>(${x.lbl})</small>${full?'<br><small>Dein Vorrat ist voll: Wähle einen Bonus und tausche ihn gegen einen vorhandenen, oder lass ihn verfallen.</small>':''}<br><button class="s" onclick="hbChoose('${x.id}','live',${x.base})">Live-Standort</button> <button class="s" onclick="hbChoose('${x.id}','ping',${x.base})">Extra-Ping</button>${full?` <button class="s g" onclick="hbForfeit('${x.id}')">Verfallen lassen</button>`:''}</div>`});
-  if(hbLive){const hs=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
-    h+=`<div class=tk><b>Live-Standort</b> <small>(${g.s.hbL||60} s)</small><br><small>Wessen Standort willst du live sehen?</small>`+hs.map(([k,p])=>`<button style="width:100%" onclick="hbLiveGo('${k}')">${esc(p.name)}</button>`).join('')+`<button class=g style="width:100%" onclick="hbLive=null;panel(1)">Abbrechen</button></div>`}
-  else it.forEach(([id,i])=>{const rd=t>=i.av;h+=`<div class=tk><b>${HBK[i.k]}</b>${i.k==='live'?` <small>(${g.s.hbL||60} s)</small>`:i.k==='bm'?` <small>(${bmRv(g.s)} m · ${fmt(bmTv(g.s)*1000)})</small>`:''} `+(rd?`<button class="s" onclick="hbUse('${id}')">Einsetzen</button>`:`<small>${cdT(i.av,'bereit in ')}</small>`)+`</div>`});
-  if(!tk.length&&!it.length)h+=`<br><small>Noch keine Boni. Nach einem Fang darfst du einen wählen.</small>`;
-  return h}
 const mtRef=id=>db.ref(`games/${code}/tasks/${id}/p/${uid}`);
 function mtD(k){const q=P()[k.a===uid?k.b:k.a];if(!q||!q.lat||!pos||now()-q.ts>30000)return null;return Math.round(D(pos,q))}
 function mtChoice(id,c){const k=G.tasks&&G.tasks[id];if(!k||k.fin||k.ex)return;mtRef(id).set({c,ok:false})}
@@ -1602,19 +1589,13 @@ function specView(g,t){const T=g.tasks||{},ex=ui.specX||(ui.specX={}),sq=(i,c,l)
     return row(u,p,zs||SL[p.state]||p.state,p.state==='alive'?'hu':'bad',ic_||'<small>keine Boni</small>',(p.zt?'Infiziert nach '+fmt(Math.max(0,p.zt-rs(g)))+(p.zb&&P()[p.zb]?' von '+esc(P()[p.zb].name):'')+(det?'<br>':''):'')+det)}).join('')+`</div>`;
   return h}
 function useRadar(id){const pts=Object.values(P()).filter(p=>p.role==='hunter'&&p.lat).map(p=>({lat:p.lat,lng:p.lng,name:p.name}));
-  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild: '+pts.length+' Hunter erfasst ('+sbV(G.s)+' s sichtbar)');draw();panel(1)})}
-function hInv(g,me_,t){const it=myItems(g),act=(me_.immUntil||0)>t;let h='';
-  it.forEach(i=>{const used=me_.used&&me_.used[i.id];
-    if(i.type==='radar')h+=`<div class=tk><b>Satellitenbild</b> <small>(alle Hunter ${sbV(g.s)} s)</small> `+(used?'<small>eingesetzt</small>':`<button class="s" onclick="useRadar('${i.id}')">Einsetzen</button>`)+`</div>`;
-    else if(i.type==='bm'){const a=bmMine(g,t),on=a&&a.id===i.id;h+=`<div class=tk><b>Hunter-Radar</b> <small>(${bmRv(g.s)} m · ${fmt(bmTv(g.s)*1000)})</small> `+(on?`<small>${cdT(a.end,'läuft noch ')}</small>`:used?'<small>eingesetzt</small>':a?'<small>anderes Radar läuft</small>':`<button class="s" onclick="useBm('${i.id}')">Einsetzen</button>`)+`</div>`}
-    else h+=`<div class=tk><b>Immunität</b> ${fmt(i.sec*1000)} `+(used?'<small>eingesetzt</small>':act?'<small>Schutz läuft noch</small>':`<button class="s" onclick="useImm('${i.id}',${i.sec})">Einsetzen</button>`)+`</div>`});
-  return h?`<h3>Inventar</h3>`+h:''}
+  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild: '+pts.length+' '+(pts.length===1?HN(G):HNP(G))+' erfasst ('+sbV(G.s)+' s sichtbar)');draw();panel(1)})}
 // Ende eines eigenen Bonus melden (nur wenn er in dieser Sitzung lief): Schutz (Safehouse/Terminal), Live-Standort der Hunter
 const BE={imm:false,live:{}};
 function bnEnd(g,m,t){const al=m.state==='alive';
   const on=al&&m.role==='hider'&&(m.immUntil||0)>t;if(BE.imm&&!on&&al)toast('Schutz abgelaufen: Du tauchst wieder bei Pings auf');BE.imm=on;
-  const L_={};if(al&&m.role==='hunter')Object.entries(g.live||{}).forEach(([h,o])=>{if(o&&o[uid]>t)L_[h]=1});
-  Object.keys(BE.live).forEach(h=>{const p=P()[h];if(!L_[h]&&p&&p.state==='alive')toast('Live-Standort von '+p.name+' abgelaufen')});BE.live=L_}
+  const L_={};if(al&&m.role==='hunter')Object.entries(g.live||{}).forEach(([h,o])=>{if(o&&o[uid]>t&&(P()[h]||{}).role==='hider')L_[h]=1});
+  Object.keys(BE.live).forEach(h=>{const p=P()[h];if(!L_[h]&&p&&p.state==='alive'&&p.role==='hider')toast('Live-Standort von '+p.name+' abgelaufen')});BE.live=L_}
 // §RADAR Bonus Radar: Hunter-Radar (Hider, zählt Hunter) / Hider-Radar (Hunter, zählt Hider) im Umkreis; HUD-Zahl, Meldung bei jeder Änderung, Sonar-Kreis (bmOv)
 const bmKey=id=>'bm_'+code+'_'+((G&&G.rn)||0)+'_'+id;
 // eigenes laufendes Radar: Hunter über hb/<uid>/<id>/u, Hider über den Startzeitpunkt im LS (nach Neuladen ohne Eintrag = abgelaufen)
@@ -1655,7 +1636,7 @@ function bmOv(p,R,hit){if(!p){if(BM.ov){map.removeLayer(BM.ov);BM.ov=null}return
 // §CHAT
 // Chat: Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene Hider lesen alles und schreiben nur in "out"
 let chSet='',chRefs={},chCur=null,chOpen=false,chUnread=0,chSince=0,dmUn={},chLastDm=null;
-const chName={hunter:'Hunter',hider:'Hider',out:'Ausgeschieden'};
+const chName={get hunter(){return HNP(G)},hider:'Hider',out:'Ausgeschieden'};
 const pairKey=u=>[uid,u].sort().join('_');
 const mates=()=>{const m=P()[uid];return m&&m.role&&!isSpec(m)?Object.keys(P()).filter(k=>k!==uid&&P()[k].role===m.role).sort():[]};
 function chChans(){const m=P()[uid];if(!m||!m.role)return[];return isSpec(m)?['out','hider','hunter']:[m.role]}
@@ -2026,7 +2007,7 @@ function runUI(g,me_,t,host,run){
   const im=(me_.immUntil||0)>t,
     zl_=me_.role==='hunter'&&zLock(g,uid),strip=`<div class=strip><span class="chip big${zmb(g)&&me_.role==='hunter'?' zmc':''}">${ic(me_.role==='hider'?'hider':'hunter')} ${me_.role==='hider'?'Hider':HN(g)}</span><span class="chip ${zl_?'zw':'ok'}">${me_.role==='hider'?'Frei':zl_?'Verwandlung':'Aktiv'}</span>${im?`<span class="chip or">${cdT(me_.immUntil,'Geschützt ')}</span>`:''}<button class="s g bfb" onclick="bfShow(1)" aria-label="Briefing anzeigen">${AKTE}Briefing</button></div>`;
   if(me_.role==='hider'){const fsc=fsHiderH(g,t);h=(fsc?strip.replace(`<span class="chip ok">Frei</span>`,`<span class="chip fzc">Bleib stehen</span>`):strip)+fsc+`<small>${hh}</small>`;
-    if(c&&c.status==='pending'&&(P()[c.hunter]||{}).state==='alive')h+=`<div class=card><div class=hd>${ic('hunter')}Fangmeldung</div><p><b>${esc((P()[c.hunter]||{}).name||'Ein Hunter')}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`;
+    if(c&&c.status==='pending'&&(P()[c.hunter]||{}).state==='alive')h+=`<div class=card><div class=hd>${ic('hunter')}Fangmeldung</div><p><b>${esc((P()[c.hunter]||{}).name||'Ein '+HN(g))}</b> meldet, dich gefangen zu haben.</p><div class=row><button onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`;
     h+=gBonH(g,me_,t)+gTaskH(g,t,me_)}
   else{h=strip;
     if(run&&zl_){const ph=(ZV&&ZV.ph)||'in',r=ZV?ZV.rem:zDur(g);
@@ -2336,15 +2317,15 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
     else if(m.role==='hider'&&p.role==='hunter'&&p.state==='alive'&&FSX&&FSX.h===k&&FSX.until>t)mkr('hunter',ll,'p'+k,()=>[lbl(p),'live, bis du nicht mehr geschützt bist'],k);
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))mkr('out',ll,'p'+k,()=>['Hider '+p.name,p.out?'außerhalb der Zone, Standort sichtbar':'Strafzeit, Standort sichtbar'],k)});
   if(ping){const own=m.role==='hider';
-    Object.entries(ping.pts).forEach(([id,p])=>{const q=P()[id];if(!q)return;
+    Object.entries(ping.pts).forEach(([id,p])=>{const q=P()[id];if(!q||q.zt)return;
       if(own){if(q.state==='alive'){if(id===uid)mkr('pingme',[p.lat,p.lng],'pg'+id,()=>['Dein letzter Ping',ago(ping.t)],id);else mkr('ping',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name,'Ping '+ago(ping.t)],id)}return}
       if(q.state==='alive')mkr('ping',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name,'Ping '+ago(ping.t)],id);
       else if(q.state!=='caught')mkr('stale',[p.lat,p.lng],'pg'+id,()=>['Hider '+p.name+' ('+(STX[q.state]||'ausgeschieden')+')','letzter Ping '+ago(ping.t)],id)});
-    if(ping.grey)Object.entries(ping.grey).forEach(([id,p])=>{const q=P()[id];if(!q||q.state!=='alive')return;mkr('stale',[p.lat,p.lng],'gr'+id,()=>p.old?['Hider '+p.name+' (nicht aktuell)','letzter Standort '+ago(p.ts||ping.t)]:['Hider '+p.name+' (nicht ortbar)','letzte bekannte Position'],id)})}
+    if(ping.grey)Object.entries(ping.grey).forEach(([id,p])=>{const q=P()[id];if(!q||q.state!=='alive'||q.zt)return;mkr('stale',[p.lat,p.lng],'gr'+id,()=>p.old?['Hider '+p.name+' (nicht aktuell)','letzter Standort '+ago(p.ts||ping.t)]:['Hider '+p.name+' (nicht ortbar)','letzte bekannte Position'],id)})}
   if(m.role==='hunter'&&!spec){
-    if(xping){Object.entries(xping.pts).forEach(([id,q])=>{if(P()[id]&&P()[id].state!=='alive')return;mkr('xping',[q.lat,q.lng],'xp'+id,()=>['Hider '+q.name,'Extra-Ping '+ago(xping.t)],id)});
-      Object.entries(xping.grey).forEach(([id,q])=>{if(P()[id]&&P()[id].state!=='alive')return;mkr('stale',[q.lat,q.lng],'xg'+id,()=>['Hider '+q.name+' (nicht ortbar)','letzte bekannte Position'],id)})}
-    Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid],q=P()[hid];if(!(un>t)||!q||q.state!=='alive')return;
+    if(xping){Object.entries(xping.pts).forEach(([id,q])=>{if(P()[id]&&(P()[id].state!=='alive'||P()[id].zt))return;mkr('xping',[q.lat,q.lng],'xp'+id,()=>['Hider '+q.name,'Extra-Ping '+ago(xping.t)],id)});
+      Object.entries(xping.grey).forEach(([id,q])=>{if(P()[id]&&(P()[id].state!=='alive'||P()[id].zt))return;mkr('stale',[q.lat,q.lng],'xg'+id,()=>['Hider '+q.name+' (nicht ortbar)','letzte bekannte Position'],id)})}
+    Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid],q=P()[hid];if(!(un>t)||!q||q.state!=='alive'||q.role!=='hider')return;
       if(locatable(q,t,hid)){lk[hid]={lat:q.lat,lng:q.lng,name:q.name};mkr(q.out?'out':'live',[q.lat,q.lng],'lv'+hid,()=>['Hider '+q.name,q.out?'Live-Standort, außerhalb der Zone':'Live-Standort'],hid)}
       else if(lk[hid])mkr('stale',[lk[hid].lat,lk[hid].lng],'lg'+hid,()=>['Hider '+q.name+' (nicht ortbar)','letzte bekannte Position'],hid)})}
   if((m.role==='hunter'&&!spec)||spec)Object.entries(g.catches||{}).forEach(([h,c])=>{const q=P()[h];if(c.status==='done'&&c.lat&&q&&(q.state==='caught'||q.zt))mkr('catch',[c.lat,c.lng],'ct'+h,()=>['Hider '+q.name+(q.zt?' (infiziert)':' (gefangen)'),'Fangort · nach '+fmt(Math.max(0,c.t-rs(g)))+' von '+((P()[c.hunter]||{}).name||'?')])});
@@ -2358,7 +2339,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||(isMt(id)&&!k.sol)||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
-  if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>['Hunter '+p.name,'Satellitenbild '+ago(radar.t)]));
+  if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>[HN(g)+' '+p.name,'Satellitenbild '+ago(radar.t)]));
   {const me0=P()[uid]||{};if(zLock(g,uid)&&me0.zl)L.circle([me0.zl.lat,me0.zl.lng],{radius:zRad(g),color:'#58c322',weight:2,dashArray:'6 5',fillColor:'#58c322',fillOpacity:.12,interactive:false}).addTo(lay)}
   if(pos)L.marker([pos.lat,pos.lng],{icon:L.divIcon({className:'mkw me',html:(imMe()?shape('me',uid).replace('stroke="#1e7cf0"','stroke="#f2b705"'):shape('me',uid))+meH(),iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(lay);
   if(imMe()){clearTimeout(imT);imT=setTimeout(()=>{if(G)draw()},Math.max(500,(P()[uid].immUntil||0)-now()+300))}
@@ -2372,7 +2353,7 @@ function onData(){
   lgData();rpData();rotMode(!!G);
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
-  if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
+  if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);if(FSH)db.ref(`fzp/${code}/${uid}`).remove().catch(()=>{});db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
   if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;FSH=null;FSX=null;fsCand=null;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
@@ -2384,7 +2365,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
   const nw=Date.now();if(nw-lastTick>3000)skipUntil=nw+10000;lastTick=nw;
   if(pos&&nw-lastW>=8000&&nw-lastFix<15000)write(1);
   if(m.role&&t>=hostLock){const ho=P()[g.host];
-    if(!ho||ho.lf||(g.status!=='running'&&ho.ts&&t-ho.ts>80000)){
+    if(!ho||ho.lf||(g.status!=='running'&&ho.ts&&t-ho.ts>180000)){
       const c=Object.entries(P()).filter(([k,p])=>!p.lf&&(k===uid||(p.ts&&t-p.ts<30000))).sort(byJ)[0];
       if(c&&c[0]===uid&&g.host!==uid){hostLock=t+5000;db.ref(`games/${code}/host`).set(uid).catch(()=>{})}}}
   if(g.status==='lobby'){$('hud').innerHTML='';return}
@@ -2397,7 +2378,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
       if(age>gwv(g)*1000)evW(k+'_w_'+p.ts,lbl(p)+' hat das Signal verloren',k);
       if(dqOn(g)&&age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',lbl(p)+' wurde disqualifiziert (Signal verloren)',k)}})}
   if(t<g.startAt)h=`<span>Start in ${fmt(g.startAt-t)}</span>`;
-  else if(t<R0)h=m.role==='hunter'?`<span>Hunter starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
+  else if(t<R0)h=m.role==='hunter'?`<span>${HNP(g)} starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
   else{const el=t-R0,nextS=g.s.shrink*6e4-el%(g.s.shrink*6e4),pk=pgK(g,t),nextP=pk.next-t;
     if(zmb(g)&&pk.iv!==zPiv){if(zPiv&&t-R0>2000)toast('Ping jetzt alle '+fmt(pk.iv));zPiv=pk.iv}
     const rz=Rad(g,t),dz=Math.round(rz-Rad(g,t+nextS+500)),hot=m.role==='hider'&&m.state==='alive'&&nextP<=pk.iv/4,hp=(l,v,c='')=>`<span class="hp${c}"><small>${l}</small><b>${v}</b></span>`;
@@ -2414,7 +2395,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
       if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`;
-      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für Hunter: ${fmt(m.revealUntil-t)}</span>`;
+      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für ${HNP(g)}: ${fmt(m.revealUntil-t)}</span>`;
       const lim=(g.s.ot||0)*6e4;
       if(lim>0){const nw=Date.now(),dt=oaT?Math.min(3000,nw-oaT):0;oaT=nw;if(oaL===null)oaL=m.oa||0;
         if(out&&gap<=GW*1000)oaL+=dt;
@@ -2440,13 +2421,13 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
   if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild abgelaufen')}
-  if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
+  if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t&&(P()[hid]||{}).role==='hider'){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
     const lv=Math.max(0,...Object.values((g.live||{})[uid]||{}));
     if(lv>t){h+=`<span class=w>${ic('live')}Live geortet ${fmt(lv-t)}</span>`;if(lv>lastLv&&lv-t>1500){toast('Du wirst live geortet!');navigator.vibrate&&navigator.vibrate([300,100,300])}}
     lastLv=Math.max(lastLv,lv);
     const xs=Object.values(g.xp||{}).map(e=>e.t),mx=xs.length?Math.max(...xs):0;
-    if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die Hunter orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
+    if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die '+HNP(g)+' orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
   if(m.role&&t>=R0){const zk=zsStep(g.s,t-R0);if(zsK===null)zsK=zk;else if(zk>zsK){const r0_=RadS(g.s,(zk-1)*g.s.shrink*6e4),r1_=RadS(g.s,zk*g.s.shrink*6e4);zsK=zk;
     if(r1_<r0_&&t-(R0+zk*g.s.shrink*6e4)<10000){note('Zone schrumpft: jetzt '+Math.round(r1_)+' m'+(r1_<=g.s.rMin?' (Endgröße)':''));draw()}}}
   h+=hkTick(g,m,t);
