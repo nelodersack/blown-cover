@@ -60,7 +60,7 @@
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000"
           },
           "mode": {
-            ".validate": "newData.val() === 'survive' || newData.val() === 'mission'"
+            ".validate": "newData.val() === 'survive' || newData.val() === 'mission' || newData.val() === 'zombie'"
           },
           "taskR": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
@@ -163,6 +163,36 @@
           },
           "hk": {
             ".validate": "newData.isBoolean()"
+          },
+          "rnd": {
+            ".validate": "newData.isBoolean()"
+          },
+          "rH": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 50 && newData.val() % 1 === 0"
+          },
+          "zT": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 600"
+          },
+          "zR": {
+            ".validate": "newData.isNumber() && newData.val() >= 20 && newData.val() <= 100"
+          },
+          "zC": {
+            ".validate": "newData.isNumber() && newData.val() >= 1.5 && newData.val() <= 5"
+          },
+          "zP": {
+            ".validate": "newData.isBoolean()"
+          },
+          "zB": {
+            ".validate": "newData.isBoolean()"
+          },
+          "fs": {
+            ".validate": "newData.isBoolean()"
+          },
+          "fsR": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 100"
+          },
+          "fsT": {
+            ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 120"
           }
         },
         "players": {
@@ -173,7 +203,7 @@
               ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16"
             },
             "role": {
-              ".write": "auth.uid === $pid && root.child('games').child($code).child('status').val() === 'lobby'",
+              ".write": "(auth.uid === $pid && root.child('games').child($code).child('status').val() === 'lobby') || (root.child('games').child($code).child('host').val() === auth.uid && root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('s').child('rnd').val() === true) || ((root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider') && newData.val() === 'hunter')",
               ".validate": "newData.val() === 'hunter' || newData.val() === 'hider'"
             },
             "state": {
@@ -193,15 +223,15 @@
               ".validate": "newData.isNumber()"
             },
             "out": {
-              ".write": "auth.uid === $pid",
+              ".write": "auth.uid === $pid || ((root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider') && !newData.exists())",
               ".validate": "newData.isBoolean()"
             },
             "revealUntil": {
-              ".write": "auth.uid === $pid",
+              ".write": "auth.uid === $pid || ((root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider') && !newData.exists())",
               ".validate": "newData.isNumber()"
             },
             "immUntil": {
-              ".write": "auth.uid === $pid",
+              ".write": "auth.uid === $pid || ((root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider') && !newData.exists())",
               ".validate": "newData.isNumber() && newData.val() <= now + 7200000"
             },
             "used": {
@@ -236,6 +266,39 @@
             "col": {
               ".write": "auth.uid === $pid && root.child('games').child($code).child('status').val() === 'lobby'",
               ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 11 && newData.val() % 1 === 0"
+            },
+            "zt": {
+              ".write": "(root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider')",
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "zs": {
+              ".write": "(root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider')",
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "zb": {
+              ".write": "(root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider')",
+              ".validate": "newData.isString() && root.child('games').child($code).child('players').child(newData.val()).child('role').val() === 'hunter'"
+            },
+            "zl": {
+              ".write": "(root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && (auth.uid === $pid || root.child('games').child($code).child('catches').child($pid).child('hunter').val() === auth.uid) && root.child('games').child($code).child('catches').child($pid).child('status').val() === 'pending' && data.parent().child('role').val() === 'hider')",
+              ".validate": "newData.hasChildren(['lat','lng'])",
+              "lat": {
+                ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+              },
+              "lng": {
+                ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+              },
+              "$o": {
+                ".validate": false
+              }
+            },
+            "zd": {
+              ".write": "auth.uid === $pid && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('mode').val() === 'zombie' && data.parent().child('zt').exists()",
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+            },
+            "pS": {
+              ".write": "auth.uid === $pid",
+              ".validate": "newData.isNumber() && newData.val() <= now + 7200000"
             }
           }
         },
@@ -602,6 +665,22 @@
             ".write": "$i.matches(/^([0-9]|1[01])$/) && ((newData.exists() && newData.val() === auth.uid && root.child('games').child($code).child('status').val() === 'lobby' && (!data.exists() || !root.child('games').child($code).child('players').child(data.val()).exists() || root.child('games').child($code).child('players').child(data.val()).child('lf').val() === true)) || (!newData.exists() && (data.val() === auth.uid || root.child('games').child($code).child('host').val() === auth.uid)))",
             ".validate": "newData.isString()"
           }
+        },
+        "fz": {
+          ".write": "!newData.exists() && root.child('games').child($code).child('status').val() === 'over' && root.child('games').child($code).child('players').child(auth.uid).exists()",
+          "$hid": {
+            ".write": "root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('s').child('fs').val() === true && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive' && root.child('games').child($code).child('players').child($hid).child('role').val() === 'hider' && newData.child('h').val() === auth.uid && (!data.exists() || ((root.child('games').child($code).child('s').child('fsT').exists() && data.child('t').val() + root.child('games').child($code).child('s').child('fsT').val() * 1000 < now) || (!root.child('games').child($code).child('s').child('fsT').exists() && data.child('t').val() + 40000 < now)))",
+            ".validate": "newData.hasChildren(['h','t'])",
+            "h": {
+              ".validate": "newData.isString()"
+            },
+            "t": {
+              ".validate": "newData.isNumber() && newData.val() <= now + 60000 && newData.val() >= now - 60000"
+            },
+            "$o": {
+              ".validate": false
+            }
+          }
         }
       }
     },
@@ -718,6 +797,27 @@
         "$pid": {
           ".write": "auth != null && auth.uid === $pid && root.child('games').child($code).child('status').val() === 'over' && root.child('games').child($code).child('players').child(auth.uid).exists()",
           ".validate": "newData.isString() && newData.val().length < 400000"
+        }
+      }
+    },
+    "fzp": {
+      "$code": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['t'])",
+          "t": {
+            ".validate": "newData.isNumber()"
+          },
+          "ok": {
+            ".validate": "newData.isBoolean()"
+          },
+          "a": {
+            ".validate": "newData.isNumber()"
+          },
+          "$o": {
+            ".validate": false
+          }
         }
       }
     }
