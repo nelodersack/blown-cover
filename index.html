@@ -2097,10 +2097,13 @@ function pgZone(g){const s=g.s,z=zoneSeq(s),n=z.length-1,end=(s.head||0)+n*s.shr
     +card('Zone verlassen',`<p class=mzs>Wer draußen ist, wird live gezeigt. ${(s.ot||0)>0?`Nach ${chp('ot')} scheidet er aus`:`Ausscheiden: ${chp('ot','nie')}`}, nach der Rückkehr bleibt er ${chp('pen')} sichtbar.</p>`+pop('ot','Höchstens draußen · 0 = nie')+pop('pen','Sichtbar nach der Rückkehr'))
     +`<div class=zhint>Zonenmitte: roten Punkt auf der Karte ziehen · <button onclick="ctr()">Auf mich</button></div>`}
 
-function pgZeit(g){const s=g.s,T=s.dur||60,h=s.head||0,p=(s.ping||60)/60,X=m=>10+340*Math.min(1,m/T);let pg=[];for(let t=h+p;t<T&&pg.length<400;t+=p)pg.push(t);
-  const st=T<=30?10:T<=90?15:30;let tk='';for(let m=0;m<=T;m+=st)tk+=`<line x1="${X(m).toFixed(1)}" y1="44" x2="${X(m).toFixed(1)}" y2="50" stroke="#363b42"/><text x="${X(m).toFixed(1)}" y="64" text-anchor="middle" class=t2>${m}′</text>`;
-  const svg=`<svg class=mzv viewBox="0 0 360 70" role=img aria-label="${pg.length} Pings in ${T} Minuten"><defs><pattern id=mzh width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#9ca1a8" stroke-opacity=".55" stroke-width="2"/></pattern></defs>
-    <rect x="10" y="30" width="340" height="8" rx="4" fill="#272b30"/>${h?`<rect x="10" y="30" width="${(X(h)-10).toFixed(1)}" height="8" rx="4" fill="url(#mzh)"/><text x="10" y="18" class=t2>Headstart</text>`:''}
+function pgZeit(g){const s=g.s,T=s.dur||60,h=s.head||0,p=(s.ping||60)/60,X=m=>10+340*(m+h)/(T+h);let pg=[];for(let t=p;t<=T+1e-6&&pg.length<400;t+=p)pg.push(t);
+  // Headstart liegt vor der Spielzeit (Minute −h bis 0), Pings ab Minute 0 alle p Minuten; Striche alle 5 Min, Zahlen alle 15 Min
+  let tk='';const T_=(m,l)=>`<line x1="${X(m).toFixed(1)}" y1="44" x2="${X(m).toFixed(1)}" y2="${l?51:48}" stroke="${l?'#5c6168':'#363b42'}"/>`;
+  for(let m=-Math.floor((h-1e-6)/5)*5;m<=T;m+=5)if(m>-h)tk+=T_(m,m%15===0)+(m%15===0&&m>=0?`<text x="${X(m).toFixed(1)}" y="64" text-anchor="middle" class=t2>${m}′</text>`:'');
+  if(h)tk+=T_(-h,1)+(X(0)-10>=28?`<text x="10" y="64" class=t2>−${h}′</text>`:'');
+  const svg=`<svg class=mzv viewBox="0 0 360 70" role=img aria-label="${h} Min Headstart, dann ${pg.length} Pings in ${T} Minuten"><defs><pattern id=mzh width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#9ca1a8" stroke-opacity=".55" stroke-width="2"/></pattern></defs>
+    <rect x="${X(0).toFixed(1)}" y="30" width="${(350-X(0)).toFixed(1)}" height="8" rx="4" fill="#272b30"/>${h?`<rect x="10" y="30" width="${(X(0)-10).toFixed(1)}" height="8" rx="4" fill="url(#mzh)"/><text x="10" y="18" class=t2>Headstart</text>`:''}
     ${pg.map(t=>`<circle cx="${X(t).toFixed(1)}" cy="34" r="${pg.length>30?2.5:4.5}" fill="#ff8a1f"/>`).join('')}${tk}</svg>`;
   return card('',svg+`<div class=mzleg><span><i style="background:#ff8a1f"></i>${pg.length} Pings</span><span><i style="background:#9ca1a8"></i>${h} Min Headstart</span></div>`,'tl')
     +`<div class=mz2>${big('dur','Dauer')}${big('head','Headstart')}</div>`
