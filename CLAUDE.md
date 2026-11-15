@@ -19,7 +19,7 @@ JS in Dateireihenfolge:
 | §APP | Sichtbarkeit, Fehler-Hooks, `bcSetHidden` |
 | §STATE | globale `let`s (G, uid, code, pos, ping, …), `now()` (Serverzeit), `$`, `esc`, `D` (Distanz m), `P()` (Spieler), `gwE`, `dqOn`, `hpOn`, `evW`, `note` |
 | §ERGEBNIS | `CW`, `catchWhy`, `buildRes` (inkl. `tk` Aufgabenbilanz, Spielerfarben), `resHTML` (Kacheln, zwei Spalten), `rpView` (Replay direkt aus dem Endscreen; solange `RV` läuft, ruhen `panel`/`draw`/HUD/`resSync`), `resSync` |
-| §ZONE-AUFGABEN-RECHNUNG | `rs` (Ende Headstart), `Rad(g,t)`, `zoneSeq`, `md(g)` (Modus: survive|mission|zombie), `zmb(g)`, `HN`/`HNP` (Hunter/Zombie), `zx(html)` (ersetzt im Zombie-Modus übrige „Hunter“-Texte an den Ausgabestellen Panel/Anzeige/Meldung/Fenster/Legende/Popup; body-Klassen `zm`/`zmh` färben grün), Ping `zIv`/`pgK`, `ddPlan`, Boni `hb*`, `myTk`, `myItems`, Orte `ovPts`/`randPts`/`mkPts` |
+| §ZONE-AUFGABEN-RECHNUNG | `rs` (Ende Headstart), `Rad(g,t)`, `zoneSeq`, `md(g)` (Modus: survive|mission|zombie), `zmb(g)`, `HN`/`HNP` (Hunter/Zombie), `zx(html)` (ersetzt im Zombie-Modus übrige „Hunter“-Texte an den Ausgabestellen Panel/Anzeige/Meldung/Fenster/Legende/Popup; body-Klassen `zm`/`zmh` färben grün), Ping `zIv`/`pgK`, `ddPlan` (mit `s.tsol`: Partner gefangen → `sol` + `cmp` = Ort für Hunter sichtbar, `cmpIds`; Belohnung allein `solRw`), Boni `hb*`, `myTk`, `myItems`, Orte `ovPts`/`randPts`/`mkPts` |
 | §UI-BASIS | `toast` (stapelt höchstens zwei Meldungen in `#toast`), Icons `SV`/`ic()`, Farben `PAL`/`colOf`, Markerformen `shape`/`shape0`, `TH`, Wake Lock |
 | §KARTE, §KARTE-DREHEN, §AUSRICHTUNG, §GESTEN, §KOMPASS | `map`, `rotSize`, `fitZ`, `FM`/`FA`, `nbTap`, `nbFit` (Kompass aus, solange das Panel ihn verdeckt), Gesten `g*` (Finger in `tps`; Geisterfinger-Schutz `gReset`/`gTouch`, weil iOS pointerup verliert), Blickrichtung `HD`, `crs` |
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
@@ -53,13 +53,13 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 - `games/$code`: `host`, `status` (lobby|running|over), `startAt`, `winner`, `c` {lat,lng} (Zonenmitte), `rn` (Rundennummer), `prev`, `chk`
   - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig); pS (ausfallender Ping nach missglücktem „Fang starten“)
   - `catches/$hider` {hunter,t,status,why}, `hb/$hunter/$bonus`, `live/$hider/$hunter`, `xp/$id` (Extra-Ping), `fz/$hider` {h,t} („Fang starten“), `ev/$id` {t,x,u} (Meldungen an alle; `u:'hk'` = Hacking-System)
-  - `tasks/$tid`: `sh` (Safehouse), `ev` (Evakuierung), Dead Drops/Meetings (`isDd(id)`), `hk` (Hacking: `t0`, `loc`, `rr:0`, `at/<n>` Versuche, `res`, `cm`, `oz`; `a` ist bei Dead Drop belegt, darum heißt der Versuchsknoten `at`)
+  - `tasks/$tid`: `sh` (Safehouse), `ev` (Evakuierung), Dead Drops/Meetings (`isDd(id)`; `sol` allein, `ex` verfallen, `cmp` Ort verraten), `hk` (Hacking: `t0`, `loc`, `rr:0`, `at/<n>` Versuche, `res`, `cm`, `oz`; `a` ist bei Dead Drop belegt, darum heißt der Versuchsknoten `at`)
 - `fzp/$code/$uid` {t,ok,a}: Ergebnis „Fang starten“, nur für den Hider selbst lesbar
 - `chats/…`, `marks/…`, `analysis/$code` (Analyse-Protokolle), `rp/$code/$uid` (Replay-Wege)
 - **Regeln:** `database.rules.json` liegt im Zweig `db-rules` (`git show db-rules:database.rules.json`). Unter `s`, `players/$pid` usw. gilt `$o: false`: **jede neue Einstellung bzw. jedes neue Feld braucht eine Regel**, sonst schlägt das Schreiben fehl. Claude liefert Manuel immer die komplette Datei, Manuel lädt sie selbst hoch. Danach den Zweig `db-rules` aktualisieren.
 
 ## Einstellungen (`G.s`)
-Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, zT, zR, zC (Zombie, Menü `zAcc`), fsR, fsT (Fang starten), r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), zP, zB (Zombie), fs (Fang ohne Verfolgungsjagd), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
+Zahlen stehen in `FD` als `key:[Label,min,max,Schritt,Einheit]`: rH, zT, zR, zC (Zombie, Menü `zAcc`), fsR, fsT (Fang starten), r0, rMin, shrink, step, ot, head, dur, ping, pen, gw, gd, shT, imm, ddN, ddT, mtN, mtT, taskR, evT, hbN, hbC, hbL, hbT, bmR, bmT, sbT, hkS, hkZ, hkT, hkR, hkN, ozR. Schalter: mode (survive|mission|zombie), rnd (Teams auslosen, Anzahl `rH`), zP, zB (Zombie), fs (Fang ohne Verfolgungsjagd), tsol (Aufgabe geht allein weiter), shOn, bon, hbOn, an (Analyse), dq, hp, rp, hk.
 Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`hkDef`), Zeile in `lobbyUI` (Unterpunkt mit `nf(k,1)`), DB-Regel `s/<key>`, ggf. `balCalc`.
 
 ## Konventionen

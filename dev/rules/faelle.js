@@ -49,10 +49,13 @@ T('Ping-Ausfall durch anderen',false,base(),'u1','set',G+'/players/u3/pS',N+9000
  T('Host entfernt Spieler',true,d,'u1','update',G,{'players/u3':null,'cols/2':null});T('Nicht-Host entfernt Spieler',false,d,'u2','update',G,{'players/u3':null,'cols/2':null});
  T('Host-Übernahme, Host 79 s still',false,(()=>{const x=JSON.parse(JSON.stringify(d));x.games.K7QF.players.u1.ts=N-79000;return x})(),'u2','set',G+'/host','u2');
  T('Host-Übernahme, Host 81 s still',true,(()=>{const x=JSON.parse(JSON.stringify(d));x.games.K7QF.players.u1.ts=N-81000;return x})(),'u2','set',G+'/host','u2')}
+// Aufgabe geht allein weiter: jeder Mitspieler darf sol + cmp setzen (wie ex), cmp nur als Wahrheitswert
+{const d=base();d.games.K7QF.tasks=Object.assign({},d.games.K7QF.tasks,{d1:{t0:N-60000,loc:{lat:47.07,lng:15.44},rr:0,a:'u2',b:'u3'}});
+ T('Aufgabe allein + Ort verraten',true,d,'u1','update',G+'/tasks/d1',{sol:'u3',cmp:true});T('Ort verraten: falscher Typ',false,d,'u1','set',G+'/tasks/d1/cmp','ja');T('Ort verraten durch Fremden',false,d,'zz','set',G+'/tasks/d1/cmp',true)}
 // Neues Spiel mit den Standardwerten (preOf(60) = Balancing für 2 Hunter/4 Hider)
 T('Neues Spiel anlegen',true,{},'u9','set','/games/N3WG',{host:'u9',status:'lobby',c:{lat:47.07,lng:15.44},s:{mode:'survive',taskR:0,shOn:true,bon:true,hbOn:true,hbN:2,gw:20,gd:60,dur:60,pen:2,shT:20,ddT:8,mtT:15,evT:8,hbT:30,ot:5,r0:900,rMin:400,shrink:4,step:55,head:5,ping:290,imm:290,hbC:150,hbL:70,ddN:1,mtN:1}});
 // Einstellungen
 {const d=base({status:'lobby',startAt:null,catches:null});const S=(k,v,w)=>T('Einstellung '+k+'='+v,w,d,'u1','set',G+'/s/'+k,v);
- S('zT',60,true);S('zR',30,true);S('zC',2.5,true);S('zP',false,true);S('zB',false,true);S('fs',true,true);S('fsR',40,true);S('fsT',40,true);S('rnd',true,true);S('rH',2,true);S('mode','zombie',true);S('zC',9,false);S('mode','x',false);
+ S('zT',60,true);S('zR',30,true);S('zC',2.5,true);S('zP',false,true);S('zB',false,true);S('fs',true,true);S('fsR',40,true);S('fsT',40,true);S('rnd',true,true);S('tsol',true,true);S('tsol',1,false);S('rH',2,true);S('mode','zombie',true);S('zC',9,false);S('mode','x',false);
  T('Einstellung durch Nicht-Host',false,d,'u2','set',G+'/s/zT',60)}
 console.log(fail?"\n"+fail+" FALSCH":"\nalle Fälle wie erwartet");process.exit(fail?1:0);

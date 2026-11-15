@@ -563,7 +563,9 @@ const zx=h=>!zmb(G)||typeof h!=='string'||h.indexOf('Hunter')<0?h:h.replace(/Hun
 const isDd=id=>/^d[1-9]$/.test(id),isMt=id=>/^m[1-9]$/.test(id);
 const bonOn=g=>md(g)!=='mission'||g.s.bon!==false;
 const missionOk=g=>md(g)!=='mission'||Object.entries(g.tasks||{}).every(([id,k])=>!(isDd(id)||isMt(id))||k.fin||k.pick||k.ex);
-function ddPlan(T,pl,mission,t){const out={};if(!T)return out;
+// solo (Schalter s.tsol): Fällt ein Partner aus und es gibt keinen Ersatz, macht der andere allein weiter (in allen Modi). Wurde der Partner gefangen, gibt es keinen Ersatz
+// und die Hunter erfahren den Ort (cmp); das gilt auch für einen abgelegten, noch nicht abgeholten Dead Drop.
+function ddPlan(T,pl,mission,t,solo){const out={};if(!T)return out;const cg=u=>!!solo&&!!pl[u]&&(pl[u].state==='caught'||!!pl[u].zt),so=mission||solo;
   const ids=Object.keys(T).filter(i=>isDd(i)||isMt(i)).sort();if(!ids.length)return out;
   const gone=u=>!!pl[u]&&(pl[u].state!=='alive'||pl[u].role!=='hider'),used=new Set();
   ids.forEach(i=>{used.add(T[i].a);used.add(T[i].b)});
@@ -572,12 +574,13 @@ function ddPlan(T,pl,mission,t){const out={};if(!T)return out;
     if(k.sol){if(gone(k.sol))u.ex=true}
     else if(isMt(i)){const nA=gone(k.a),nB=gone(k.b);
       if(nA&&nB){if(free.length>=2){u.a=free.shift();u.b=free.shift();u.p=null}else u.ex=true}
-      else if(nA){if(free.length){u.a=free.shift();u.p=null}else if(mission)u.sol=k.b;else u.ex=true}
-      else if(nB){if(free.length){u.b=free.shift();u.p=null}else if(mission)u.sol=k.a;else u.ex=true}}
+      else if(nA){if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(free.length){u.a=free.shift();u.p=null}else if(so)u.sol=k.b;else u.ex=true}
+      else if(nB){if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(free.length){u.b=free.shift();u.p=null}else if(so)u.sol=k.a;else u.ex=true}}
     else{const nA=gone(k.a)&&!k.dep,nB=gone(k.b)&&!k.pick;
       if(nA&&nB){if(free.length>=2){u.a=free.shift();u.b=free.shift()}else u.ex=true}
-      else if(nA){if(free.length)u.a=free.shift();else if(mission)u.sol=k.b;else u.ex=true}
-      else if(nB){if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(mission)u.sol=k.a;else u.ex=true}}
+      else if(nA){if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(free.length)u.a=free.shift();else if(so)u.sol=k.b;else u.ex=true}
+      else if(nB){if(cg(k.b)&&!k.dep){u.sol=k.a;u.cmp=true}else if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(so)u.sol=k.a;else u.ex=true}
+      else if(k.dep&&!k.cmp&&cg(k.a))u.cmp=true}
     if(Object.keys(u).length)out[i]=u});
   return out}
 const hbOn=g=>g.s.hbOn!==false,HBK={live:'Live-Standort',ping:'Extra-Ping',bm:'Hider-Radar'};
@@ -594,23 +597,30 @@ function hbTokens(g,t){const o=[],R0=rs(g),mine=hbMine(g);
 function myTk(g,t){const T=g.tasks||{},o=[];['sh','ev'].forEach(id=>{if(tv(g,id,t))o.push(id)});
   Object.keys(T).filter(i=>isDd(i)||isMt(i)).sort().forEach(id=>{const k=T[id];if(t<k.t0)return;
     if(k.a!==uid&&k.b!==uid)return;o.push(id+(k.a===uid?'a':'b'));
-    if(k.ex)o.push(id+'x');else if(k.sol===uid)o.push(id+'s')});
+    if(k.ex)o.push(id+'x');else if(k.sol===uid)o.push(id+'s');
+    if(k.cmp&&!k.ex&&!k.fin&&!k.pick&&(k.sol===uid||(!k.sol&&k.b===uid)))o.push(id+'c')});
   return o}
-const tkMsg=x=>x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: dein Partner fiel aus':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
+// Verratene Aufgabenorte (für Hunter): Partner gefangen, Aufgabe noch offen
+const cmpIds=(g,t)=>Object.keys(g.tasks||{}).filter(i=>(isDd(i)||isMt(i))&&g.tasks[i].cmp&&g.tasks[i].loc&&t>=g.tasks[i].t0&&!g.tasks[i].fin&&!g.tasks[i].ex&&!g.tasks[i].pick).sort();
+let lastCT=null;
+const tkMsg=x=>/c$/.test(x)?'Achtung: Die '+HNP(G)+' kennen jetzt den Ort '+(x[0]==='m'?'des Meetings':'des Dead Drops'):x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: dein Partner fiel aus':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
 const tv=(g,id,t)=>{const k=g.tasks&&g.tasks[id];return !!k&&t>=k.t0};
 const rankOf=(inn,u)=>{const a=Object.entries(inn||{}).sort((x,y)=>x[1].t-y[1].t||(x[0]<y[0]?-1:1));return a.findIndex(e=>e[0]===u)+1};
 // Radar (Konzept: claude/KONZEPT_Bewegungsmelder.md): Radius/Dauer (0 = auto), Dead-Drop-Verteilung per Hash aus code+rn+id (alle Geräte gleich, ohne DB)
 const sbV=s=>s.sbT>0?s.sbT:60; // Satellitenbild-Dauer in s
 const bmRv=s=>s.bmR>0?s.bmR:Math.max(40,Math.round(.2*(s.r0||500)/5)*5),bmTv=s=>s.bmT>0?s.bmT:(s.ping||120);
 const ddBm=(g,id)=>{const s=(g.code||code)+':'+(g.rn||0)+':'+id;let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return h%2===1};
+const solRw=g=>!!g.s.tsol&&bonOn(g); // allein erledigte Aufgabe bringt die Belohnung (nur mit Schalter)
+const solTx=(g,k)=>'Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort'+(solRw(g)?'':' (ohne Belohnung)')+'.'+(k.cmp?' Achtung: Die '+HNP(g)+' kennen den Ort.':''),solSb=(g,k)=>(k.cmp?'Ort verraten':'Partner fällt aus')+(solRw(g)?'':' · ohne Belohnung');
 const ITN=i=>i.type==='radar'?'Satellitenbild':i.type==='bm'?'Hunter-Radar':'Immunität '+fmt((i.sec||0)*1000);
 function myItems(g,u=uid){const r=rankOf(g.tasks&&g.tasks.sh&&g.tasks.sh.in,u),im=g.s.imm||120,o=[];
   if(r===1)o.push({id:'sh',type:'imm',sec:im});else if(r===2)o.push({id:'sh',type:'imm',sec:Math.round(im/2)});
-  if(bonOn(g))Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isDd(id)||k.sol)return;
+  if(bonOn(g))Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isDd(id))return;
+    if(k.sol){if(k.sol===u&&k.fin&&solRw(g))o.push({id:id+(k.a===u?'a':'b'),type:(k.a===u)===ddBm(g,id)?'bm':'radar'});return}
     const aBm=ddBm(g,id); // versiegeltes Dossier: A bekommt per Zufall (Hash) einen der beiden Boni, B den anderen
     if(k.dep&&k.dep.u===u)o.push({id:id+'a',type:aBm?'bm':'radar'});
     if(k.pick&&k.pick.u===u)o.push({id:id+'b',type:aBm?'radar':'bm'})});
-  if(bonOn(g))Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isMt(id)||!k.fin||k.sol)return;const c=k.p&&k.p[u]&&k.p[u].c;
+  if(bonOn(g))Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isMt(id)||!k.fin)return;if(k.sol){if(k.sol===u&&solRw(g))o.push({id:id+'m',type:ddBm(g,id)?'bm':'radar'});return}const c=k.p&&k.p[u]&&k.p[u].c;
     if(c==='bm')o.push({id:id+'m',type:'bm'});else if(c==='imm')o.push({id:id+'m',type:'imm',sec:g.s.imm||120});else if(c==='rad')o.push({id:id+'m',type:'radar'})});
   return o}
 function ovPts(j,c,R){const o=[];((j&&j.elements)||[]).forEach(e=>{
@@ -1521,9 +1531,9 @@ function mtTick(g){Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isMt(id)||
   if(pa&&pb&&pa.ok&&pb.ok&&(!bonOn(g)||(pa.c&&pb.c&&pa.c!==pb.c)))db.ref(`games/${code}/tasks/${id}/fin`).set(now()).catch(()=>{})})}
 function chk(id){const k=G.tasks&&G.tasks[id],m=P()[uid]||{};if(!k||!pos||m.state!=='alive')return;
   if(D(pos,k.loc)>40)return toast('Noch nicht am Ort');
-  if(isMt(id)){if(k.fin||k.ex||k.sol!==uid||now()<k.t0)return;return db.ref(`games/${code}/tasks/${id}/fin`).set(now()).then(()=>toast('Aufgabe erledigt'))}
+  if(isMt(id)){if(k.fin||k.ex||k.sol!==uid||now()<k.t0)return;return db.ref(`games/${code}/tasks/${id}/fin`).set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?'. Deine Belohnung: '+(ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')))}
   if(isDd(id)){if(k.fin||k.pick||k.ex||now()<k.t0)return;const ref=db.ref(`games/${code}/tasks/${id}`);
-    if(k.sol===uid)return ref.child('fin').set(now()).then(()=>toast('Aufgabe erledigt'));
+    if(k.sol===uid)return ref.child('fin').set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?'. Deine Belohnung: '+((k.a===uid)===ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')));
     const bo=bonOn(G),aBm=ddBm(G,id),bn=x=>x?'Hunter-Radar':'Satellitenbild';
     if(k.a===uid&&!k.dep&&!k.sol)return ref.child('dep').set({u:uid,t:now()}).then(()=>toast(bo?'Dossier abgelegt. Deine Belohnung: '+bn(aBm):'Datenträger deponiert'));
     if(k.b===uid&&k.dep&&!k.sol)return ref.child('pick').set({u:uid,t:now()}).then(()=>toast(bo?'Dossier geöffnet: '+bn(!aBm):'Datenträger abgeholt'));
@@ -1560,11 +1570,11 @@ function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
     const mA=k.a===uid,mB=k.b===uid;if(!mA&&!mB)return;
     const d=pos?Math.round(D(pos,k.loc)):null,near=d!==null&&d<=40,
       btn=(txt,fn)=>`<button ${near?'':'class=g disabled'} onclick="${fn}">${txt}${near?'':(d===null?' (warte auf GPS)':' (noch '+d+' m)')}</button>`,
-      bo=bonOn(g)&&!k.sol,mine=bo?(myItems(g).find(i=>i.id===id+(mA?'a':'b'))||null):null,
+      bo=bonOn(g)&&!k.sol,mine=bonOn(g)?(myItems(g).find(i=>i.id===id+(mA?'a':'b'))||null):null,
       rw=bo?(mA?' Belohnung: per Zufall Hunter-Radar oder Satellitenbild, dein Partner bekommt den anderen.':' Belohnung: der Bonus, den dein Informant nicht bekommen hat.'):'',H=x=>`<div class=tk>${TH('box','Dead Drop')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`;
     if(k.ex)h+=H(['Verfallen: Dein Partner wurde gefangen und es gibt keinen Ersatz. Du hast keine Aufgabe mehr.']);
     else if(k.fin||k.pick||(mA&&k.dep))h+=H([(mA&&k.dep?'Dossier abgelegt. Aufgabe erledigt.':mB&&k.pick?'Dossier geöffnet. Aufgabe erledigt.':'Aufgabe erledigt.')+(mine?' Deine Belohnung: '+ITN(mine)+'.':'')]);
-    else if(k.sol===uid)h+=H(['Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort (ohne Belohnung).',btn('Bestätigen',`chk('${id}')`)]);
+    else if(k.sol===uid)h+=H([solTx(g,k),btn('Bestätigen',`chk('${id}')`)]);
     else if(mA)h+=H(['Deponiere den Datenträger am markierten Ort.'+rw,btn('Deponieren',`chk('${id}')`)+` <button class="s g" onclick="rr('${id}')">Ort unpassend</button>`]);
     else if(!k.dep)h+=H(['Warte, bis dein Informant den Datenträger deponiert hat.']);
     else h+=H(['Der Datenträger liegt bereit. Hole ihn am markierten Ort ab.'+rw,btn('Abholen',`chk('${id}')`)])});
@@ -1574,7 +1584,7 @@ function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
     if(k.ex){h+=H(['Verfallen: Dein Partner wurde gefangen und es gibt keinen Ersatz. Du hast keine Aufgabe mehr.']);return}
     if(k.fin){const c=k.p&&k.p[uid]&&k.p[uid].c;h+=H(['Treffen erfolgreich. Aufgabe erledigt.'+(bon&&c?' Du erhältst: '+CH[c]+'.':'')]);return}
     if(k.sol===uid){const d=pos?Math.round(D(pos,k.loc)):null,near=d!==null&&d<=40;
-      h+=H(['Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort (ohne Belohnung).',`<button ${near?'':'class=g disabled'} onclick="chk('${id}')">Bestätigen${near?'':(d===null?' (warte auf GPS)':' (noch '+d+' m)')}</button>`]);return}
+      h+=H([solTx(g,k),`<button ${near?'':'class=g disabled'} onclick="chk('${id}')">Bestätigen${near?'':(d===null?' (warte auf GPS)':' (noch '+d+' m)')}</button>`]);return}
     const my=(k.p||{})[uid]||{},ot=(k.p||{})[o]||{},d=mtD(k),near=d!==null&&d<=40,same=bon&&my.c&&my.c===ot.c,can=near&&(!bon||(my.c&&my.c!==ot.c));
     let y='';
     if(bon)y+=['bm','rad'].map(c=>`<button class="s ${my.c===c?'':'g'}" ${my.ok?'disabled':''} onclick="mtChoice('${id}','${c}')">${CH[c]}</button>`).join(' ')+`<br><small>${on} wählt: ${ot.c?CH[ot.c]:'noch nichts'}${same?' (gleiche Wahl: bitte abstimmen)':''}</small><br>`;
@@ -1851,8 +1861,9 @@ function lobbyUI(g,host,me_){
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
     else t+=nf('evT');
     t+=`<div class=fl><label>Terminal<small>Riskante Hider-Aufgabe: ein Terminal hacken, mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
+    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Aufgabe geht allein weiter','Fällt ein Partner aus, erledigt der andere die Aufgabe allein und bekommt die Belohnung. Wurde der Partner gefangen, sehen die '+HNP(g)+' den Ort.');
     if(nT>0)t+=nf('taskR');
-    if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, verfällt die Aufgabe, weil kein Ersatz frei ist.</small>`;
+    if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}, weil kein Ersatz frei ist.</small>`;
     if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;
     const mo=md(g);b+=`<h3>Modus</h3><div class="tiles t3"><button class="tile ${mo==='survive'?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Hider überstehen die Zeit</span></button><button class="tile ${mo==='mission'?'on':''}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben, dann Evakuierung</span></button><button class="tile zt ${mo==='zombie'?'on':''}" onclick="setMode('zombie')"><b>Zombie</b><span>Gefangene jagen mit</span></button></div>${mo==='zombie'?grp('','',zAcc(g)):''}
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
@@ -1936,10 +1947,10 @@ function gTasks(g,t){const T=g.tasks||{},o=[],im=g.s.imm||120,bo=bonOn(g),d_=k=>
       else o.push({id,i:'home',n:`Safehouse · ${2-ins} ${2-ins===1?'Platz':'Plätze'} frei`,sub:`Belohnung: Immunität ${fmt(im*1000)}`+(ins?'':` (Platz 2: ${fmt(im*500)})`),d,r:near?gGo('Einchecken',"chk('sh')"):gDst(d)})}
     else o.push({id,i:'exit',n:'Evakuierung',sub:'Hier bist du in Sicherheit',d,r:near?gGo('Bestätigen',"chk('ev')"):gDst(d)})});
   Object.keys(T).filter(isDd).sort().forEach(id=>{const k=T[id];if(t<k.t0)return;const mA=k.a===uid,mB=k.b===uid;if(!mA&&!mB)return;const d=d_(k),near=d!==null&&d<=40,
-      mine=bo&&!k.sol?myItems(g).find(i=>i.id===id+(mA?'a':'b')):null;
+      mine=bo?myItems(g).find(i=>i.id===id+(mA?'a':'b')):null;
     if(k.ex)o.push({id,i:'box',n:'Dead Drop',sub:'Verfallen: dein Partner ist ausgeschieden',done:1});
     else if(k.fin||k.pick||(mA&&k.dep))o.push({id,i:'box',n:'Dead Drop',sub:mine?'Erledigt · Belohnung: '+ITN(mine):'Erledigt',done:1,r:gOk});
-    else if(k.sol===uid)o.push({id,i:'box',n:'Dead Drop allein erledigen',sub:'Partner fällt aus · ohne Belohnung',d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)});
+    else if(k.sol===uid)o.push({id,i:'box',n:'Dead Drop allein erledigen',sub:solSb(g,k),d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)});
     else if(mA)o.push({id,i:'box',n:'Dead Drop deponieren',sub:bo?'Belohnung: Dossier (Zufall)':'Datenträger ablegen',d,r:near?gGo('Deponieren',`chk('${id}')`):gDst(d)});
     else if(!k.dep)o.push({id,i:'box',n:'Dead Drop abholen',sub:'Warte, bis dein Informant deponiert hat',d:1e7,r:'<span class=gdst>wartet</span>'});
     else o.push({id,i:'box',n:'Dead Drop abholen',sub:bo?'Belohnung: der andere Bonus aus dem Dossier':'Datenträger abholen',d,r:near?gGo('Abholen',`chk('${id}')`):gDst(d)})});
@@ -1947,7 +1958,7 @@ function gTasks(g,t){const T=g.tasks||{},o=[],im=g.s.imm||120,bo=bonOn(g),d_=k=>
     const ot=mA?k.b:k.a,on=esc((P()[ot]||{}).name||'Partner'),bon=bo&&!k.sol,my=(k.p||{})[uid]||{},op=(k.p||{})[ot]||{},CH=MTC(g);
     if(k.ex)return o.push({id,i:'meet',n:'Meeting',sub:'Verfallen: dein Partner ist ausgeschieden',done:1});
     if(k.fin)return o.push({id,i:'meet',n:'Meeting mit '+on,sub:bon&&my.c?'Erledigt · erhalten: '+CH[my.c]:'Erledigt',done:1,r:gOk});
-    if(k.sol===uid){const d=d_(k),near=d!==null&&d<=40;return o.push({id,i:'meet',n:'Meeting allein erledigen',sub:'Partner fällt aus · ohne Belohnung',d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)})}
+    if(k.sol===uid){const d=d_(k),near=d!==null&&d<=40;return o.push({id,i:'meet',n:'Meeting allein erledigen',sub:solSb(g,k),d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)})}
     const d=mtD(k),near=d!==null&&d<=40,can=near&&(!bon||(my.c&&my.c!==op.c));
     o.push({id,i:'meet',n:'Meeting mit '+on,sub:bon?(my.c?`Deine Wahl: ${CH[my.c]}`+(op.c?` · ${on}: ${CH[op.c]}`:''):'Wähle deinen Bonus'):'Trefft euch und bestätigt',d:d===null?1e6:d,
       r:my.ok?'<span class=gdst>bestätigt</span>':bon&&!my.c?gGo('Wählen',`gdShow('t:${id}')`):can?gGo('Bestätigen',`mtConfirm('${id}')`):gDst(d)})});
@@ -1990,7 +2001,7 @@ function gdBody(k,g,t,me_){const [kind,id]=k.split(/:(.*)/);
   if(kind==='hk'||kind==='hi'||kind==='hr')return gdHb(g,t,kind,id);
   return null}
 function gdMeet(g,t,id){const k=(g.tasks||{})[id];if(!k)return null;const ot=k.a===uid?k.b:k.a,on=esc((P()[ot]||{}).name||'Partner'),my=(k.p||{})[uid]||{},op=(k.p||{})[ot]||{},CH=MTC(g),bon=bonOn(g)&&!k.sol;
-  if(k.fin||k.ex||k.sol)return gdHead('meet','Meeting mit '+on)+`<p>${k.fin?'Treffen erfolgreich.'+(bon&&my.c?' Du hast '+CH[my.c]+' erhalten.':''):k.ex?'Verfallen: dein Partner ist ausgeschieden.':'Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort (ohne Belohnung).'}</p><button class=g onclick="gdClose()">Schließen</button>`;
+  if(k.fin||k.ex||k.sol)return gdHead('meet','Meeting mit '+on)+`<p>${k.fin?'Treffen erfolgreich.'+(bon&&my.c?' Du hast '+CH[my.c]+' erhalten.':''):k.ex?'Verfallen: dein Partner ist ausgeschieden.':solTx(g,k)}</p><button class=g onclick="gdClose()">Schließen</button>`;
   const sel=mtSel[id]||my.c||'',d=mtD(k),near=d!==null&&d<=40,can=near&&(!bon||(my.c&&my.c!==op.c));
   const opt=(c,i,n,tx)=>`<button class="gopt${sel===c?' on':''}${op.c===c?' taken':''}" ${my.ok?'disabled':''} onclick="mtSel['${id}']='${c}';gdSync()"><span class=gci>${ic(i)}</span><span><b>${n}</b><small>${tx}</small>${op.c===c?`<small class=gtk>${on} hat das schon gewählt</small>`:''}</span></button>`;
   let b=gdHead('meet','Meeting mit '+on,'Einigt euch im privaten Chat auf einen Ort.');
@@ -2284,8 +2295,8 @@ function dot(ll,col,tip,r=8,op=1){const m=L.circleMarker(ll,{radius:r,color:'#ff
 function tkInfo(s,id,k){k=k||{};const bo=s.bon!==false,im=s.imm||120,L_=x=>`<span style="display:block;margin-top:4px">${x}</span>`;
   if(id==='sh')return['Safehouse',L_(`Die ersten zwei Hider, die hier einchecken, bekommen Immunität: Platz 1 ${fmt(im*1000)}, Platz 2 ${fmt(im*500)}.`)];
   if(id==='ev')return['Evakuierung',L_('Wer hier bestätigt, ist in Sicherheit.')];
-  if(isDd(id))return['Dead Drop',L_('Ein Hider deponiert hier einen Datenträger, ein zweiter holt ihn ab.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: Satellitenbild und Hunter-Radar, per Zufall verteilt (versiegeltes Dossier).':'Ohne Belohnung (Aufgaben-Boni aus).')];
-  if(isMt(id))return['Meeting',L_('Zwei Hider treffen sich hier.')+L_(k.sol?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: jeder wählt Hunter-Radar oder Satellitenbild.':'Ohne Belohnung (Aufgaben-Boni aus).')];
+  if(isDd(id))return['Dead Drop',L_('Ein Hider deponiert hier einen Datenträger, ein zweiter holt ihn ab.')+L_(k.sol&&!(bo&&s.tsol)?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: Satellitenbild und Hunter-Radar, per Zufall verteilt (versiegeltes Dossier).':'Ohne Belohnung (Aufgaben-Boni aus).')];
+  if(isMt(id))return['Meeting',L_('Zwei Hider treffen sich hier.')+L_(k.sol&&!(bo&&s.tsol)?'Allein erledigt: ohne Belohnung.':bo?'Belohnung: jeder wählt Hunter-Radar oder Satellitenbild.':'Ohne Belohnung (Aufgaben-Boni aus).')];
   if(id==='hk')return['Terminal',L_(`Hider hacken hier das Terminal (allein ${fmt((s.hkT||180)*1000)}, zu zweit schneller).`)+L_(`Belohnung bei Erfolg: Immunität ${fmt((s.hbC||0)*1000)} für alle Beteiligten und die Gegenüberwachung (alle Hider sehen die Hunter ${fmt((s.hkR||60)*1000)} lang).`)+L_(`Verteidigen die Hunter, bekommen sie das Sperrgebiet (${s.ozR||75} m).`)];
   return['Aufgabe','']}
 function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||kind==='pin',m=L.marker(ll,{zIndexOffset:/^t-/.test(kind)||kind==='oz'?-2000:0,icon:L.divIcon({className:'mkw '+kind,html:shape(kind,pid,hid),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false}).addTo(lay);
@@ -2359,6 +2370,8 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')Object.entries(g.tasks||{}).filter(([id])=>isDd(id)||isMt(id)).forEach(([id,k])=>{
     if(t<k.t0||k.fin||k.pick||k.ex)return;
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
+  if(m.role==='hunter'&&m.state==='alive'&&!spec&&g.status==='running')cmpIds(g,t).forEach(id=>{const k=g.tasks[id];L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15}).addTo(lay);
+    mkr(TKK(id),[k.loc.lat,k.loc.lng],'tk'+id,()=>[TKT(id)+' (verraten)',pos?'noch '+Math.round(D(pos,k.loc))+' m':'',(P()[k.sol||k.b]||{}).name?esc(P()[k.sol||k.b].name)+' muss hierher, um die Aufgabe zu erledigen.':'Ein Hider muss hierher.'])});
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||(isMt(id)&&!k.sol)||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>[HN(g)+' '+p.name,'Satellitenbild '+ago(radar.t)]));
@@ -2376,7 +2389,7 @@ function onData(){
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);if(FSH)db.ref(`fzp/${code}/${uid}`).remove().catch(()=>{});db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
-  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;FSH=null;FSX=null;fsCand=null;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
+  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;FSH=null;FSX=null;fsCand=null;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;lastCT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();
   panel();draw();chatSync();mkSync();faSync(G,P()[uid],now());
@@ -2442,6 +2455,8 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(ids!==lastHT){const was=lastHT===null?[]:lastHT.split(','),ms=new Set();lastHT=ids;
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
+  if(m.role==='hunter'&&m.state==='alive'){const cs=cmpIds(g,t).join();if(cs!==lastCT){const was=lastCT===null?cs.split(','):lastCT.split(',');lastCT=cs;
+      cs.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{note((x[0]==='m'?'Meeting':'Dead Drop')+' verraten: Der Ort ist auf der Karte');navigator.vibrate&&navigator.vibrate(200)});draw()}}
   if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild abgelaufen')}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t&&(P()[hid]||{}).role==='hider'){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
@@ -2454,7 +2469,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(r1_<r0_&&t-(R0+zk*g.s.shrink*6e4)<10000){note('Zone schrumpft: jetzt '+Math.round(r1_)+' m'+(r1_<=g.s.rMin?' (Endgröße)':''));draw()}}}
   h+=hkTick(g,m,t);
   h+=bmTick(g,t);
-  if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t),ks=Object.keys(up);
+  if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t,!!g.s.tsol),ks=Object.keys(up);
     if(ks.length){ddLock=t+2500;ks.forEach(i=>db.ref(`games/${code}/tasks/${i}`).update(up[i]).catch(()=>{}))}}
   if(m.role==='hider'&&m.state==='alive'){mtTick(g);const sk=g.tasks&&g.tasks.sh;
     if(sk&&sk.rv&&!Object.keys(sk.in||{}).length&&t>=rvLock){const el=rvEl();if(el.length&&el.every(u=>sk.rv[u])){rvLock=t+4000;rvApply(sk)}}}
