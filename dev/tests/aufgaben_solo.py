@@ -47,6 +47,13 @@ with app(390,844) as (pg,ev,errs):
     ev("__T.games.K7QF.players.u7.state='caught';notify()");pg.wait_for_timeout(2600)
     d=ev(T_+".d1");assert d.get('sol')=='u3' and d.get('cmp') is True,d
     assert not [e for e in errs if 'PE:' in e],errs
+# 2c Dossier abgelegt, Ableger gefangen -> Ort verraten (Abholer bleibt)
+with app(390,844) as (pg,ev,errs):
+    game(ev,pg,'u1');ev(T_+".d1.dep={u:'u2',t:Date.now()};notify()");pg.wait_for_timeout(600)
+    ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(3000)
+    d=ev(T_+".d1");assert d.get('cmp') is True and d.get('b')=='u3' and not d.get('sol') and not d.get('fin'),d
+    assert ev("cmpIds(G,now())")==['d1']
+    assert not [e for e in errs if 'PE:' in e],errs
 # 3 Partner ohne Fang weg (DQ): allein, Ort bleibt geheim
 with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u3');ev("__T.games.K7QF.players.u2.state='dq';notify()");pg.wait_for_timeout(2600)

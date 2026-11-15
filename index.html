@@ -564,7 +564,7 @@ const isDd=id=>/^d[1-9]$/.test(id),isMt=id=>/^m[1-9]$/.test(id);
 const bonOn=g=>md(g)!=='mission'||g.s.bon!==false;
 const missionOk=g=>md(g)!=='mission'||Object.entries(g.tasks||{}).every(([id,k])=>!(isDd(id)||isMt(id))||k.fin||k.pick||k.ex);
 // Fällt ein Partner aus, übernimmt zuerst ein freier Hider ohne Aufgabe. Erst wenn keiner frei ist: mit Schalter s.tsol (solo) macht der andere allein weiter (alle Modi);
-// wurde der Partner gefangen, erfahren die Hunter dann den Ort (cmp).
+// wurde der Partner gefangen, erfahren die Hunter dann den Ort (cmp). Wird der Ableger eines abgelegten, noch nicht abgeholten Dead Drops gefangen, ist der Ort ebenfalls verraten.
 function ddPlan(T,pl,mission,t,solo){const out={};if(!T)return out;const cg=u=>!!solo&&!!pl[u]&&(pl[u].state==='caught'||!!pl[u].zt),so=mission||solo;
   const ids=Object.keys(T).filter(i=>isDd(i)||isMt(i)).sort();if(!ids.length)return out;
   const gone=u=>!!pl[u]&&(pl[u].state!=='alive'||pl[u].role!=='hider'),used=new Set();
@@ -579,7 +579,8 @@ function ddPlan(T,pl,mission,t,solo){const out={};if(!T)return out;const cg=u=>!
     else{const nA=gone(k.a)&&!k.dep,nB=gone(k.b)&&!k.pick;
       if(nA&&nB){if(free.length>=2){u.a=free.shift();u.b=free.shift()}else u.ex=true}
       else if(nA){if(free.length)u.a=free.shift();else if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(so)u.sol=k.b;else u.ex=true}
-      else if(nB){if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(so)u.sol=k.a;else u.ex=true}}
+      else if(nB){if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(so)u.sol=k.a;else u.ex=true}
+      else if(k.dep&&!k.cmp&&cg(k.a))u.cmp=true}
     if(Object.keys(u).length)out[i]=u});
   return out}
 const hbOn=g=>g.s.hbOn!==false,HBK={live:'Live-Standort',ping:'Extra-Ping',bm:'Hider-Radar'};
