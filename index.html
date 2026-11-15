@@ -563,8 +563,8 @@ const zx=h=>!zmb(G)||typeof h!=='string'||h.indexOf('Hunter')<0?h:h.replace(/Hun
 const isDd=id=>/^d[1-9]$/.test(id),isMt=id=>/^m[1-9]$/.test(id);
 const bonOn=g=>md(g)!=='mission'||g.s.bon!==false;
 const missionOk=g=>md(g)!=='mission'||Object.entries(g.tasks||{}).every(([id,k])=>!(isDd(id)||isMt(id))||k.fin||k.pick||k.ex);
-// solo (Schalter s.tsol): Fällt ein Partner aus und es gibt keinen Ersatz, macht der andere allein weiter (in allen Modi). Wurde der Partner gefangen, gibt es keinen Ersatz
-// und die Hunter erfahren den Ort (cmp); das gilt auch für einen abgelegten, noch nicht abgeholten Dead Drop.
+// Fällt ein Partner aus, übernimmt zuerst ein freier Hider ohne Aufgabe. Erst wenn keiner frei ist: mit Schalter s.tsol (solo) macht der andere allein weiter (alle Modi);
+// wurde der Partner gefangen, erfahren die Hunter dann den Ort (cmp).
 function ddPlan(T,pl,mission,t,solo){const out={};if(!T)return out;const cg=u=>!!solo&&!!pl[u]&&(pl[u].state==='caught'||!!pl[u].zt),so=mission||solo;
   const ids=Object.keys(T).filter(i=>isDd(i)||isMt(i)).sort();if(!ids.length)return out;
   const gone=u=>!!pl[u]&&(pl[u].state!=='alive'||pl[u].role!=='hider'),used=new Set();
@@ -574,13 +574,12 @@ function ddPlan(T,pl,mission,t,solo){const out={};if(!T)return out;const cg=u=>!
     if(k.sol){if(gone(k.sol))u.ex=true}
     else if(isMt(i)){const nA=gone(k.a),nB=gone(k.b);
       if(nA&&nB){if(free.length>=2){u.a=free.shift();u.b=free.shift();u.p=null}else u.ex=true}
-      else if(nA){if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(free.length){u.a=free.shift();u.p=null}else if(so)u.sol=k.b;else u.ex=true}
-      else if(nB){if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(free.length){u.b=free.shift();u.p=null}else if(so)u.sol=k.a;else u.ex=true}}
+      else if(nA){if(free.length){u.a=free.shift();u.p=null}else if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(so)u.sol=k.b;else u.ex=true}
+      else if(nB){if(free.length){u.b=free.shift();u.p=null}else if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(so)u.sol=k.a;else u.ex=true}}
     else{const nA=gone(k.a)&&!k.dep,nB=gone(k.b)&&!k.pick;
       if(nA&&nB){if(free.length>=2){u.a=free.shift();u.b=free.shift()}else u.ex=true}
-      else if(nA){if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(free.length)u.a=free.shift();else if(so)u.sol=k.b;else u.ex=true}
-      else if(nB){if(cg(k.b)&&!k.dep){u.sol=k.a;u.cmp=true}else if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(so)u.sol=k.a;else u.ex=true}
-      else if(k.dep&&!k.cmp&&cg(k.a))u.cmp=true}
+      else if(nA){if(free.length)u.a=free.shift();else if(cg(k.a)){u.sol=k.b;u.cmp=true}else if(so)u.sol=k.b;else u.ex=true}
+      else if(nB){if(free.length)u.b=free.shift();else if(k.dep)u.fin=t;else if(cg(k.b)){u.sol=k.a;u.cmp=true}else if(so)u.sol=k.a;else u.ex=true}}
     if(Object.keys(u).length)out[i]=u});
   return out}
 const hbOn=g=>g.s.hbOn!==false,HBK={live:'Live-Standort',ping:'Extra-Ping',bm:'Hider-Radar'};
@@ -1861,7 +1860,7 @@ function lobbyUI(g,host,me_){
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
     else t+=nf('evT');
     t+=`<div class=fl><label>Terminal<small>Riskante Hider-Aufgabe: ein Terminal hacken, mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
-    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Aufgabe geht allein weiter','Fällt ein Partner aus, erledigt der andere die Aufgabe allein und bekommt die Belohnung. Wurde der Partner gefangen, sehen die '+HNP(g)+' den Ort.');
+    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Aufgabe geht allein weiter','Fällt ein Partner aus und ist kein Hider ohne Aufgabe mehr frei, erledigt der andere die Aufgabe allein und bekommt die Belohnung. Wurde der Partner gefangen, sehen die '+HNP(g)+' dann den Ort.');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}, weil kein Ersatz frei ist.</small>`;
     if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;

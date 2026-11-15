@@ -38,6 +38,15 @@ with app(390,844) as (pg,ev,errs):
     # erledigt -> Ort verschwindet
     ev(T_+".m1.fin=Date.now();notify()");pg.wait_for_timeout(1500);assert ev("cmpIds(G,now()).length")==0
     assert not [e for e in errs if 'PE:' in e],errs
+# 2b Freier Hider ohne Aufgabe übernimmt zuerst, Ort bleibt geheim
+with app(390,844) as (pg,ev,errs):
+    game(ev,pg,'u3');ev("__T.games.K7QF.players.u7={name:'Kim',role:'hider',state:'alive',j:7,col:6,lat:47.071,lng:15.441,ts:Date.now()};notify()");pg.wait_for_timeout(600)
+    ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(2600)
+    d=ev(T_+".d1");assert d.get('a')=='u7' and not d.get('sol') and not d.get('cmp'),d
+    # danach fällt auch Kim (gefangen), keiner mehr frei -> allein + verraten
+    ev("__T.games.K7QF.players.u7.state='caught';notify()");pg.wait_for_timeout(2600)
+    d=ev(T_+".d1");assert d.get('sol')=='u3' and d.get('cmp') is True,d
+    assert not [e for e in errs if 'PE:' in e],errs
 # 3 Partner ohne Fang weg (DQ): allein, Ort bleibt geheim
 with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u3');ev("__T.games.K7QF.players.u2.state='dq';notify()");pg.wait_for_timeout(2600)
