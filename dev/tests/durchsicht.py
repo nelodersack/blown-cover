@@ -22,7 +22,9 @@ for W,H in [(390,844),(360,640)]:
     assert (p30['r0'],p30['rMin'],p30['head'],p30['ping'],p30['ddN'],p30['mtN'])==(600,250,3,180,1,1),p30
     assert (p60['r0'],p60['rMin'],p60['head'],p60['ping'])==(900,400,5,290),p60
     b=ev("balCalc({dur:30,mode:'survive'},2,4,2,1).o");assert all(p30[k]==v for k,v in b.items()),(b,p30)
-    assert ev("balCalc({dur:30},2,4,0,1).o.r0")==700 and ev("balCalc({dur:30},2,4,4,1).o.r0")==500 and ev("balCalc({dur:30},2,4,4,1).o.ping")==120
+    assert ev("balCalc({dur:30},2,4,0,1).o.r0")==700 and ev("balCalc({dur:30},2,4,4,1).o.r0")==550 and ev("balCalc({dur:30},2,4,4,1).o.ping")==130
+    # mehr Hider je Hunter = kleinere Zone und häufigerer Ping (Hunter müssen alle fangen)
+    assert ev("balCalc({dur:30},2,8,2,1).o.r0")<ev("balCalc({dur:30},2,4,2,1).o.r0")<ev("balCalc({dur:30},2,3,2,1).o.r0") and ev("balCalc({dur:30},2,8,2,1).o.ping")<180
     z=ev("balCalc({dur:30,mode:'zombie'},1,5,2,1).o");assert (z['r0'],z['rMin'],z['ping'])==(650,400,110),z   # Zombie unverändert
     # Kompass: an, aber vom Panel verdeckt -> unsichtbar; Panel eingeklappt -> sichtbar
     ev("rotOn=true;nbPaint()");pg.wait_for_timeout(200)
