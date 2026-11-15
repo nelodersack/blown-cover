@@ -1,6 +1,6 @@
 # Blown Cover – Arbeitsanleitung für Claude
 
-IRL-Versteckspiel (Hunter gegen Hider, schrumpfende GPS-Zone, Pings, Aufgaben). Die gesamte Web-App steckt in **`index.html`** (≈210 KB, Leaflet + Firebase Realtime DB europe-west1). `main` ist über GitHub Pages live: https://nelodersack.github.io/blown-cover/. Die Android-App (Zweig `android-app`) ist eine WebView-Hülle und lädt die Live-Seite. Website-Änderungen brauchen deshalb keine neue APK, außer die Bridge `BlownNative` oder Java-Code ändert sich.
+IRL-Versteckspiel (Hunter gegen Hider, schrumpfende GPS-Zone, Pings, Aufgaben). Die gesamte Web-App steckt in **`index.html`** (≈210 KB, Leaflet + Firebase Realtime DB europe-west1). `main` ist über GitHub Pages live unter der eigenen Domain **https://blowncover.app/** (Namecheap-DNS, Datei `CNAME` in `main` nicht löschen; die alte Adresse https://nelodersack.github.io/blown-cover/ leitet dorthin weiter). Die Android-App (Zweig `android-app`) ist eine WebView-Hülle und lädt die Live-Seite. Website-Änderungen brauchen deshalb keine neue APK, außer die Bridge `BlownNative` oder Java-Code ändert sich.
 Mit Manuel auf Deutsch sprechen, knapp und direkt.
 
 ## Sparsam lesen (wichtig)
@@ -75,7 +75,7 @@ Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`
 - Die Tests laufen mit Playwright/Chromium (vorinstalliert) und `dev/memdb.js` als Firebase-Ersatz: `__T` ist die Datenbank, `notify()` löst die Listener aus. Vorlage für neue Tests: `dev/tests/hacking_mit_helfer.py` (Spiel in `__T.games` anlegen, `uid`/`pos` setzen, `join(code)`). Screenshots landen in `dev/out/` (nicht im Repo).
 - **Regeln prüfen ohne Firebase:** `sh dev/rules.sh` (nimmt `db-rules`, oder eine Datei als Argument; `schnell` = nur feste Fälle). Wertet `database.rules.json` offline aus (targaryen): feste Fälle in `dev/rules/faelle.js` plus alle Schreibvorgänge, die die App in den Tests macht (`WLOG`-Protokoll aus `dev/memdb.js`, `dev/rules/replay.js`). Bei neuen Feldern/Regeln dort einen Fall ergänzen und vor dem Liefern laufen lassen.
 - `dev/check.sh` endet mit „ALLE TESTS OK“; jeder Test muss mit der Zeile `errors: []` enden und Exit-Code 0 liefern.
-- Firebase und github.io sind aus der Cloud-Umgebung nicht erreichbar. Echte Tests macht Manuel auf dem Handy und schickt Analyse-JSON bzw. App-Logs.
+- Firebase, github.io und blowncover.app sind aus der Cloud-Umgebung nicht erreichbar. Echte Tests macht Manuel auf dem Handy und schickt Analyse-JSON bzw. App-Logs.
 
 ## Regeln von Manuel
 - **Nichts nach `main` ohne sein ausdrückliches Wort.** Erst auf einen Zweig pushen (mit `-u`), nach „Go“ per Fast-Forward auf `main`. Zweige löscht Manuel selbst.
