@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="vendor/fonts.css">
 <style>
 /* §CSS-BASIS Farben (Tokens), Grundelemente */
-:root{--bg:#0b0e12;--panel:#141a21;--panel2:#1b232c;--line:#2a343f;--fg:#e9eef3;--mut:#8d99a8;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--grey:#7a8696;
+:root{--bg:#0b0e12;--panel:#141a21;--panel2:#1b232c;--line:#2a343f;--fg:#e9eef3;--mut:#8d99a8;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--cmp:#e2459b;--grey:#7a8696;
 --f-d:'Barlow Condensed','Arial Narrow',sans-serif;--f-b:'Barlow',system-ui,sans-serif;--f-m:'JetBrains Mono',ui-monospace,monospace;color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:15px/1.4 var(--f-b);background:var(--bg);color:var(--fg)}
 #map{position:fixed;inset:0}
@@ -108,7 +108,7 @@ button.cgt .av{width:44px;height:44px;font-size:20px}button.cgt b{font-size:14px
 #fa .fr>div{width:80px;height:80px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font:700 30px var(--f-m)}
 #fa .ft{font-size:19px;font-weight:700;line-height:1.25}#fa .fs{font-size:13px;color:var(--mut)}
 #fa .row{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}#fa .row button{margin:0}#fa button.fy{background:var(--danger);color:#fff}
-/* §CSS-FANG-STARTEN „Fang starten“ in Orange: Knopf (fsb), Karten (fzh), Hider-Alarm (#fz, unter dem Fang-Alarm #fa) */
+/* §CSS-FANG-STARTEN „Festsetzen“ in Orange: Knopf (fsb), Karten (fzh), Hider-Alarm (#fz, unter dem Fang-Alarm #fa) */
 .fsrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fsrow button{margin:0}
 button.fsb{background:transparent!important;border:1.5px solid var(--xping)!important;color:var(--xping)!important}button.fsb[disabled]{opacity:.55}
 .card.fzh{border-color:#ffb03b88}.card.fzh .fzn{font:700 20px var(--f-m);color:var(--xping)}.card.fzh .av{width:34px;height:34px;font-size:16px;flex:none}
@@ -218,6 +218,11 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 @media (prefers-reduced-motion:reduce){.bmr .bs{animation:none;opacity:0}.bmr.hit .bp{animation:none}.bmr.hit .bf{fill-opacity:.14}}
 #hud .bmh b{font-weight:700}#hud .bmh.on{background:var(--ok);color:#04150a;font-family:var(--f-b);font-weight:600}
 .hkb{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:6px 0 2px}.hkb i{display:block;height:100%;background:var(--task);transition:width .8s linear}.tsq.oz{background:#ff5f1f}
+/* Kompromittierte Aufgabe (Ort den Huntern bekannt): Magenta = Aufgabe (lila) + Gefahr (rot) */
+.tsq.cmp{background:var(--cmp)}
+.grow.cmp{border-color:var(--cmp);background:color-mix(in srgb,var(--cmp) 12%,var(--panel2))}
+.grow.cmp .gsq{border-color:var(--cmp);color:var(--cmp)}
+.grow.cmp small,.cmpt{color:var(--cmp)}
 .tsq{width:30px;height:30px;border-radius:8px;background:var(--task);color:#fff;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}.tsq .ic{width:17px;height:17px;color:#fff}
 #lg .tsq{width:24px;height:24px;border-width:2px;flex:none}#lg .tsq .ic{width:14px;height:14px}
 .bcp .leaflet-popup-content-wrapper{background:#0b0e12;color:var(--fg);border-radius:10px;box-shadow:0 4px 14px #0008}.bcp .leaflet-popup-tip{background:#0b0e12}.bcp .leaflet-popup-content{margin:8px 12px;font:13px/1.3 var(--f-b)}.bcp b{display:block;font-weight:600;font-size:14px}.bcp span{color:var(--mut)}
@@ -603,7 +608,7 @@ function myTk(g,t){const T=g.tasks||{},o=[];['sh','ev'].forEach(id=>{if(tv(g,id,
 // Verratene Aufgabenorte (für Hunter): Partner gefangen, Aufgabe noch offen
 const cmpIds=(g,t)=>Object.keys(g.tasks||{}).filter(i=>(isDd(i)||isMt(i))&&g.tasks[i].cmp&&g.tasks[i].loc&&t>=g.tasks[i].t0&&!g.tasks[i].fin&&!g.tasks[i].ex&&!g.tasks[i].pick).sort();
 let lastCT=null;
-const tkMsg=x=>/c$/.test(x)?'Achtung: Die '+HNP(G)+' kennen jetzt den Ort '+(x[0]==='m'?'des Meetings':'des Dead Drops'):x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: dein Partner fiel aus':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
+const tkMsg=x=>/c$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert: Die '+HNP(G)+' kennen jetzt den Ort':x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: dein Partner fiel aus':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
 const tv=(g,id,t)=>{const k=g.tasks&&g.tasks[id];return !!k&&t>=k.t0};
 const rankOf=(inn,u)=>{const a=Object.entries(inn||{}).sort((x,y)=>x[1].t-y[1].t||(x[0]<y[0]?-1:1));return a.findIndex(e=>e[0]===u)+1};
 // Radar (Konzept: claude/KONZEPT_Bewegungsmelder.md): Radius/Dauer (0 = auto), Dead-Drop-Verteilung per Hash aus code+rn+id (alle Geräte gleich, ohne DB)
@@ -611,7 +616,8 @@ const sbV=s=>s.sbT>0?s.sbT:60; // Satellitenbild-Dauer in s
 const bmRv=s=>s.bmR>0?s.bmR:Math.max(40,Math.round(.2*(s.r0||500)/5)*5),bmTv=s=>s.bmT>0?s.bmT:(s.ping||120);
 const ddBm=(g,id)=>{const s=(g.code||code)+':'+(g.rn||0)+':'+id;let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return h%2===1};
 const solRw=g=>!!g.s.tsol&&bonOn(g); // allein erledigte Aufgabe bringt die Belohnung (nur mit Schalter)
-const solTx=(g,k)=>'Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort'+(solRw(g)?'':' (ohne Belohnung)')+'.'+(k.cmp?' Achtung: Die '+HNP(g)+' kennen den Ort.':''),solSb=(g,k)=>(k.cmp?'Ort verraten':'Partner fällt aus')+(solRw(g)?'':' · ohne Belohnung');
+const cmpTx=g=>'<b class=cmpt>Kompromittiert:</b> Die '+HNP(g)+' kennen den Ort und können dort auf dich warten.';
+const solTx=(g,k)=>(k.cmp?cmpTx(g)+' ':'')+'Dein Partner fällt aus. Erledige den Auftrag allein am markierten Ort'+(solRw(g)?'':' (ohne Belohnung)')+'.',solSb=(g,k)=>(k.cmp?'Kompromittiert · '+HNP(g)+' kennen den Ort':'Partner fällt aus')+(solRw(g)?'':' · ohne Belohnung');
 const ITN=i=>i.type==='radar'?'Satellitenbild':i.type==='bm'?'Hunter-Radar':'Immunität '+fmt((i.sec||0)*1000);
 function myItems(g,u=uid){const r=rankOf(g.tasks&&g.tasks.sh&&g.tasks.sh.in,u),im=g.s.imm||120,o=[];
   if(r===1)o.push({id:'sh',type:'imm',sec:im});else if(r===2)o.push({id:'sh',type:'imm',sec:Math.round(im/2)});
@@ -706,8 +712,8 @@ function shape0(k){const sv=b=>`<svg viewBox="0 0 36 36" aria-hidden="true">${b}
     case'next':return sv(`<circle cx="18" cy="18" r="12" fill="none" stroke="#7a8696" stroke-width="2.5" stroke-dasharray="4 4"/>`);
     case'catch':return sv(`<circle cx="18" cy="18" r="11" fill="#14181e" stroke="#e5484d" stroke-width="2.5"/><g transform="translate(10.5 10.5) scale(.625)" fill="none" stroke="#e5484d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${SV.catch}</g>`);
   }
-  const T={'t-sh':'home','t-ev':'exit','t-dd':'box','t-mt':'meet','t-hk':'hack',oz:'block'};
-  return T[k]?`<span class="tsq${k==='t-hk'?' hk':k==='oz'?' oz':''}">${ic(T[k])}</span>`:''}
+  const T={'t-sh':'home','t-ev':'exit','t-dd':'box','t-mt':'meet','t-hk':'hack',oz:'block','t-ddc':'box','t-mtc':'meet'};
+  return T[k]?`<span class="tsq${k==='t-hk'?' hk':k==='oz'?' oz':/c$/.test(k)?' cmp':''}">${ic(T[k])}</span>`:''}
 const TH=(i,t)=>`<div class=hd>${ic(i)}${t}</div>`;
 async function lock(){try{wl=await navigator.wakeLock.request('screen');lg('wl','on');wl.addEventListener('release',()=>lg('wl','off'))}catch(e){lg('wl','fail:'+(e&&e.name||''))}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.status==='running')lock()});
@@ -925,7 +931,7 @@ function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={pl
   f.log.forEach(([t,p,v])=>{if(cur[p]===v)return;const old=cur[p];cur[p]=v;rvSetP(st,p,v);let m;
     if((m=/^players\/([^/]+)\/state$/.exec(p))&&P_[m[1]]&&v&&v!=='alive'&&(old==null||old==='alive')){const q=P_[m[1]];if(!q.sT){q.state=v;q.sT=t}}
     else if((m=/^players\/([^/]+)\/sT$/.exec(p))&&P_[m[1]]&&v&&!P_[m[1]]._sT)P_[m[1]]._sT=v;
-    else if((m=/^fz\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'catch',hu:1,i:'catch',x:`${nm(cur['fz/'+m[1]+'/h'])} startet einen Fang auf ${nm(m[1])}`});
+    else if((m=/^fz\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'catch',hu:1,i:'catch',x:`${nm(cur['fz/'+m[1]+'/h'])} setzt ${nm(m[1])} fest`});
     else if((m=/^tasks\/(\w+)\/t0$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],i:rvTI(m[1]),x:`${rvTN(m[1])} erscheint`,start:1});
     else if((m=/^tasks\/(\w+)\/in\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'task',i:rvTI(m[1]),x:`${nm(m[2])} erreicht ${m[1]==='sh'?'das Safehouse':'die '+rvTN(m[1])}`});
     else if((m=/^tasks\/(\w+)\/fin$/.exec(p))&&v){const k=st.tasks[m[1]];ev.push({t:v,k:'task',i:rvTI(m[1]),x:isMt(m[1])&&k?`Meeting erfüllt: ${nm(k.a)} und ${nm(k.b)}`:`${rvTN(m[1])} erledigt`})}
@@ -1433,7 +1439,7 @@ function pclean(all){try{const cur='bp_'+code+'_'+((G&&G.rn)||0);Object.keys(LS)
 function leave(){rotMode(false);pclean(1);LS.removeItem('c');location.reload()}
 const endNow=async()=>{if(await dlg({t:'Spiel beenden?',x:'Die Runde endet für alle sofort.',ok:'Beenden',no:'Weiterspielen',bad:1}))db.ref('games/'+code).update({status:'over',winner:'host'})};
 
-// §FANG-STARTEN „Fang ohne Verfolgungsjagd“ (Konzept KONZEPT_Fang_starten.md): Hunter zwingt einen Hider in fsR zum Stehenbleiben.
+// §FANG-STARTEN „Festsetzen“ (früher „Fang starten“, Konzept KONZEPT_Fang_starten.md): Hunter zwingt einen Hider in fsR zum Stehenbleiben.
 // Der Hunter erfährt nie, ob es ankam: Ergebnis (ok/a) liegt nur beim Hider (LS + fzp/<code>/<uid>, nur für ihn lesbar).
 const fsOn=g=>!!(g&&g.s&&g.s.fs),fsRv=g=>(g&&g.s&&g.s.fsR)||40,fsTv=g=>((g&&g.s&&g.s.fsT)||40)*1000;
 let fsCand=null,FSH=null,FSX=null,fsAud=null,fsAK=0;
@@ -1442,7 +1448,7 @@ function fsMine(){try{return JSON.parse(LS[fsKey('fs')]||'null')||{l:0,p:{}}}cat
 // Wartezeit des Hunters: nach jeder Auslösung hbC, auf denselben Hider 2·hbC
 function fsWait(g,h,t){const m=fsMine(),w=Math.max(10,g.s.hbC||60)*1000;let e=m.l?m.l+w:0;if(h&&m.p[h])e=Math.max(e,m.p[h]+2*w);return e>t?e:0}
 function fsBtn(){const g=G,t=now();if(!fsOn(g)||(P()[uid]||{}).state!=='alive')return;if(zLock(g,uid)){toast('Noch in Verwandlung: Du darfst erst danach fangen');return}
-  const w=fsWait(g,null,t);if(w){toast('„Fang starten“ geht wieder in '+fmt(w-t));return}
+  const w=fsWait(g,null,t);if(w){toast('„Festsetzen“ geht wieder in '+fmt(w-t));return}
   cand=[];fsCand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').map(([k])=>k).sort((a,b)=>String(P()[a].name).localeCompare(String(P()[b].name)));
   if(!fsCand.length){fsCand=null;toast('Keine Hider mehr')}panel(1)}
 function fsGo(h){const g=G,t=now(),q=P()[h];fsCand=null;if(!q){panel(1);return}
@@ -1477,22 +1483,22 @@ function fsStand(){if(!FSH||FSH.a)return;FSH.a=now();fsSave();db.ref(`fzp/${code
 function fsOv(H,end,t){let e=$('fz');if(!H){if(e)e.remove();return}
   const q=P()[H.h]||{},rem=Math.max(0,Math.ceil((end-t)/1000)),T=fsTv(G)/1000;
   if(!e){e=document.createElement('div');e.id='fz';e.setAttribute('role','alertdialog');e.setAttribute('aria-modal','true');
-    e.innerHTML=`<div class=fb><div class=fe>FANG GESTARTET</div><div class=fr><div></div></div><div class=ft>Enttarnt!<br>Bleib stehen</div><div class=who><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><b>${esc(q.name||'Ein '+HN(G))} hat dich im Visier</b></div><div class=fs>Ein ${HN(G)} kommt zu dir. Er muss dich berühren und den Fang melden. Läuft die Zeit ohne Fang ab, bist du frei.</div><button class=fy onclick="fsStand()">Ich bleibe stehen</button></div>`;document.body.appendChild(e)}
+    e.innerHTML=`<div class=fb><div class=fe>FESTGESETZT</div><div class=fr><div></div></div><div class=ft>Enttarnt!<br>Bleib stehen</div><div class=who><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><b>${esc(q.name||'Ein '+HN(G))} hat dich im Visier</b></div><div class=fs>Ein ${HN(G)} kommt zu dir. Er muss dich berühren und den Fang melden. Läuft die Zeit ohne Fang ab, bist du frei.</div><button class=fy onclick="fsStand()">Ich bleibe stehen</button></div>`;document.body.appendChild(e)}
   e.querySelector('.fr').style.setProperty('--p',(rem/T*100).toFixed(1)+'%');e.querySelector('.fr>div').textContent=rem}
 // Alarm: Vibration (Android) bzw. Ton (iPhone), jede Sekunde neu bis „Ich bleibe stehen“
 function fsAudio(){try{if(!fsAud){const C=window.AudioContext||window.webkitAudioContext;if(C)fsAud=new C()}if(fsAud&&fsAud.state==='suspended')fsAud.resume()}catch(e){}}
 document.addEventListener('pointerdown',()=>{if(fsOn(G))fsAudio()},{passive:true});
 function fsAlarm(on){if(!on){if(fsAK){fsAK=0;try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}return}
   const n=Date.now();if(n-fsAK<950)return;const first=!fsAK;fsAK=n;
-  if(first&&(document.hidden||window.bcHidden))toast('Fang gestartet! Bleib stehen');
+  if(first&&(document.hidden||window.bcHidden))toast('Festgesetzt! Bleib stehen');
   let v=false;try{v=!!(navigator.vibrate&&navigator.vibrate([600,400]))}catch(e){}
   if(!v){fsAudio();try{if(fsAud){const o=fsAud.createOscillator(),gn=fsAud.createGain(),c=fsAud.currentTime;o.type='square';o.frequency.value=880;gn.gain.setValueAtTime(.0001,c);gn.gain.exponentialRampToValueAtTime(.25,c+.02);gn.gain.setValueAtTime(.25,c+.25);gn.gain.exponentialRampToValueAtTime(.0001,c+.45);o.connect(gn).connect(fsAud.destination);o.start(c);o.stop(c+.5)}}catch(e){}}}
 // Ping-Ausfall nach missglücktem Fang: der erste Ping nach Ende der Immunität (pS = dessen Zeitpunkt)
 const fsSkip=(p,at)=>!!(p&&p.pS)&&Math.abs(p.pS-at)<3000;
 // Panel-Teile
 function fsHunterH(g,t){const m=fsHunt(g,t),w=fsWait(g,null,t);let h='';
-  if(m){const q=P()[m.h]||{};h+=`<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(m.h)};color:${inkOf(m.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Fang auf ${esc(q.name||'?')} gestartet</b><small style="display:block">Berühren und dann „Fang melden“.</small></div><b class=fzn>${cdT(m.t+fsTv(g),'')}</b></div></div>`}
-  return [h,w?`<button class=fsb disabled>${cdT(w,'Wieder in ')}</button>`:`<button class=fsb onclick="fsBtn()">Fang starten</button>`]}
+  if(m){const q=P()[m.h]||{};h+=`<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(m.h)};color:${inkOf(m.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>${esc(q.name||'?')} festgesetzt</b><small style="display:block">Berühren und dann „Fang melden“.</small></div><b class=fzn>${cdT(m.t+fsTv(g),'')}</b></div></div>`}
+  return [h,w?`<button class=fsb disabled>${cdT(w,'Wieder in ')}</button>`:`<button class=fsb onclick="fsBtn()">Festsetzen</button>`]}
 function fsCandH(g){return `<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du im Visier?</div><div class=cgr>`+fsCand.filter(k=>P()[k]).map(k=>{const p=P()[k];return `<button class=cgt onclick="fsGo('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b></button>`}).join('')+`</div><small style="text-align:center;display:block">Hausregel: nur bei Sichtkontakt. Kommt nur an, wenn der Hider höchstens ${fsRv(g)} m entfernt ist. Du erfährst nicht, ob es geklappt hat.</small><button class=ghost style="margin:0" onclick="fsCand=null;panel(1)">Abbrechen</button></div>`}
 function fsHiderH(g,t){const H=FSH;if(!fsOn(g)||!H||!H.ok||!H.a||H.done)return '';const end=H.t0+fsTv(g);if(t>=end)return '';const q=P()[H.h]||{};
   return `<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Bleib stehen</b><small style="display:block">${esc(q.name||'Ein '+HN(g))} hat dich im Visier. Ohne Fang bist du danach frei.</small></div><b class=fzn id=fscd>${fmt(end-t)}</b></div></div>`}
@@ -1577,7 +1583,7 @@ function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
     else if(k.sol===uid)h+=H([solTx(g,k),btn('Bestätigen',`chk('${id}')`)]);
     else if(mA)h+=H(['Deponiere den Datenträger am markierten Ort.'+rw,btn('Deponieren',`chk('${id}')`)+` <button class="s g" onclick="rr('${id}')">Ort unpassend</button>`]);
     else if(!k.dep)h+=H(['Warte, bis dein Informant den Datenträger deponiert hat.']);
-    else h+=H(['Der Datenträger liegt bereit. Hole ihn am markierten Ort ab.'+rw,btn('Abholen',`chk('${id}')`)])});
+    else h+=H([(k.cmp?cmpTx(g)+' ':'')+'Der Datenträger liegt bereit. Hole ihn am markierten Ort ab.'+rw,btn('Abholen',`chk('${id}')`)])});
   Object.keys(T).filter(isMt).sort().forEach(id=>{const k=T[id];if(t<k.t0)return;const mA=k.a===uid,mB=k.b===uid;if(!mA&&!mB)return;
     const o=mA?k.b:k.a,on=esc((P()[o]||{}).name||'Partner'),H=x=>`<div class=tk>${TH('meet','Meeting')}<small>${x[0]}</small>${x[1]?'<br>'+x[1]:''}</div>`,
       bon=bonOn(g)&&!k.sol,CH={bm:'Hunter-Radar',rad:'Satellitenbild',imm:'Immunität '+fmt((g.s.imm||120)*1000)};
@@ -1861,7 +1867,7 @@ function lobbyUI(g,host,me_){
     if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
     else t+=nf('evT');
     t+=`<div class=fl><label>Terminal<small>Riskante Hider-Aufgabe: ein Terminal hacken, mit Gegenüberwachung als Belohnung; die Hunter bekommen bei Erfolg der Verteidigung das Sperrgebiet</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
-    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Aufgabe geht allein weiter','Fällt ein Partner aus und ist kein Hider ohne Aufgabe mehr frei, erledigt der andere die Aufgabe allein und bekommt die Belohnung. Wurde der Partner gefangen, sehen die '+HNP(g)+' dann den Ort.');
+    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Kompromittierung','Wird ein Hider mit Aufgabe gefangen und ist kein Ersatz frei, erfahren die '+HNP(g)+' den Ort. Der Partner kann die Aufgabe allein erledigen und behält die Belohnung.');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}, weil kein Ersatz frei ist.</small>`;
     if(nT>0)t+=`<small class=mut style="padding:6px 0 2px">Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`;
@@ -1869,11 +1875,11 @@ function lobbyUI(g,host,me_){
     <p class="sm mut">Zone: roten Punkt auf der Karte ziehen. <button class="ghost s" style="text-decoration:underline" onclick="ctr()">Auf meine Position</button></p>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})"><b>${d}</b>${PRN[d]}</button>`).join('')}</div>
     ${grp('','',balAcc(g))}<div data-mid style="height:0;margin-top:-10px"></div>`
-    +grp('Erweitert','Alle Werte einzeln',acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'),`${s.r0} → ${s.rMin} m`)+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('fs',fsOn(g),'Fang ohne Verfolgungsjagd','Hunter können einen Hider in '+fsRv(g)+' m zum Stehenbleiben zwingen („Fang starten“)')+(fsOn(g)?nf('fsR',1)+nf('fsT',1)+`<small class=mut style="padding:4px 0 2px">Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</small>`:'')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''),`Ping ${s.ping%60?s.ping+' s':s.ping/60+' Min'}`)+acc('tasks','home','Aufgaben',tS,t,nT?nT+(nT>1?' Aufgaben':' Aufgabe'):'keine')+bnAcc(g)
+    +grp('Erweitert','Alle Werte einzeln',acc('zone','zone','Zone',zoneS,nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'),`${s.r0} → ${s.rMin} m`)+acc('game','clock','Spiel',gameS,nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen Pings der anderen','Bei jedem Ping auch die Positionen der Mitspieler',1)+nf('gw')+swt('fs',fsOn(g),'Festsetzen','Hunter können einen Hider in '+fsRv(g)+' m zum Stehenbleiben zwingen')+(fsOn(g)?nf('fsR',1)+nf('fsT',1)+`<small class=mut style="padding:4px 0 2px">Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</small>`:'')+swt('dq',dqOn(g),'Disqualifikation bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''),`Ping ${s.ping%60?s.ping+' s':s.ping/60+' Min'}`)+acc('tasks','home','Aufgaben',tS,t,nT?nT+(nT>1?' Aufgaben':' Aufgabe'):'keine')+bnAcc(g)
       +acc('rp','play','Replay',s.rp?'Alle können die Runde am Ende ansehen':'Aus',swt('rp',!!s.rp,'Runde aufzeichnen','Wege und Ereignisse aller Spieler für das Replay')+`<small class=mut style="margin-top:6px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Danach kann jeder das Replay ansehen oder als Datei speichern. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`,s.rp?'an':'aus')+acc('an','gear','Analyse',s.an?'An':'Aus',swt('an',!!s.an,'Protokoll aufzeichnen','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen. Andere Spieler sehen davon nichts.'),s.an?'an':'aus'));
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
-    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',{survive:'Untertauchen',mission:'Mission',zombie:'Zombie'}[md(g)]||'Untertauchen')+(zmb(g)?R('Verwandlung',(s.zT??DEF.zT)+' s im '+(s.zR??DEF.zR)+'-m-Kreis')+R('Ping wächst mit der Horde',zPg(g)?'bis '+String(zCap(g)).replace('.',',')+'×':'nein'):'')+(rndOn(g)?R('Teams',rndH(g)+' '+HN(g)+(rndH(g)>1&&zmb(g)?'s':'')+' werden ausgelost'):'')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Fang ohne Verfolgungsjagd',fsOn(g)?fsRv(g)+' m · '+fsTv(g)/1000+' s':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
+    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p>`+R('Modus',{survive:'Untertauchen',mission:'Mission',zombie:'Zombie'}[md(g)]||'Untertauchen')+(zmb(g)?R('Verwandlung',(s.zT??DEF.zT)+' s im '+(s.zR??DEF.zR)+'-m-Kreis')+R('Ping wächst mit der Horde',zPg(g)?'bis '+String(zCap(g)).replace('.',',')+'×':'nein'):'')+(rndOn(g)?R('Teams',rndH(g)+' '+HN(g)+(rndH(g)>1&&zmb(g)?'s':'')+' werden ausgelost'):'')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' m → '+s.rMin+' m')+R('Ping alle',s.ping+' s')+R('Headstart',s.head+' Min')+R('Dead Drops / Meetings',(s.ddN||0)+' / '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Festsetzen',fsOn(g)?fsRv(g)+' m · '+fsTv(g)/1000+' s':'aus')+R('Hider sehen Pings der anderen',hpOn(g)?'ja':'nein')+R('Disqualifikation bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus');
   }
   const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;
@@ -1918,7 +1924,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.bn)bnClose()});
 // Antippen öffnet das Fenster #gd mit Erklärung und Bestätigung (gdShow/gdSync/gdClose). Meeting: Wunsch-Bonus im Fenster wählen und einloggen.
 const gDis=d=>d===null?'–':d>=1000?(d/1000).toFixed(1).replace('.',',')+' km':d+' m';
 const gGo=(t,fn,cl='')=>`<button class="ggo ${cl}" onclick="event.stopPropagation();${fn}">${t}</button>`,gDst=d=>`<span class=gdst>${gDis(d)}</span>`,gOk='<span class="chip ok">✓</span>';
-const gRow=o=>`<div class="grow${o.done?' done':''}" onclick="gdShow('${o.dk}')" role=button aria-label="${esc(o.n)}: Details"><span class=gsq>${ic(o.i)}</span><div><b>${o.n}</b><small>${o.sub}</small></div>${o.r||''}</div>`;
+const gRow=o=>`<div class="grow${o.done?' done':''}${o.c&&!o.done?' cmp':''}" onclick="gdShow('${o.dk}')" role=button aria-label="${esc(o.n)}: Details"><span class=gsq>${ic(o.i)}</span><div><b>${o.n}</b><small>${o.sub}</small></div>${o.r||''}</div>`;
 const GTRI='<svg class=t viewBox="0 0 50 46" aria-hidden=true><path d="M25 3L47.5 43H2.5Z" fill="#0b0e12" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>';
 // Countdown im Panel ohne Neuaufbau: Text wird jede Sekunde in cdTick aktualisiert (Neuaufbau störte das Scrollen, v. a. am iPhone)
 const cdT=(end,p)=>`<span data-cd="${end}" data-p="${p}">${p}${fmt(Math.max(0,end-now()))}</span>`;
@@ -1950,15 +1956,15 @@ function gTasks(g,t){const T=g.tasks||{},o=[],im=g.s.imm||120,bo=bonOn(g),d_=k=>
       mine=bo?myItems(g).find(i=>i.id===id+(mA?'a':'b')):null;
     if(k.ex)o.push({id,i:'box',n:'Dead Drop',sub:'Verfallen: dein Partner ist ausgeschieden',done:1});
     else if(k.fin||k.pick||(mA&&k.dep))o.push({id,i:'box',n:'Dead Drop',sub:mine?'Erledigt · Belohnung: '+ITN(mine):'Erledigt',done:1,r:gOk});
-    else if(k.sol===uid)o.push({id,i:'box',n:'Dead Drop allein erledigen',sub:solSb(g,k),d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)});
+    else if(k.sol===uid)o.push({id,i:'box',n:'Dead Drop allein erledigen',sub:solSb(g,k),c:k.cmp,d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)});
     else if(mA)o.push({id,i:'box',n:'Dead Drop deponieren',sub:bo?'Belohnung: Dossier (Zufall)':'Datenträger ablegen',d,r:near?gGo('Deponieren',`chk('${id}')`):gDst(d)});
     else if(!k.dep)o.push({id,i:'box',n:'Dead Drop abholen',sub:'Warte, bis dein Informant deponiert hat',d:1e7,r:'<span class=gdst>wartet</span>'});
-    else o.push({id,i:'box',n:'Dead Drop abholen',sub:bo?'Belohnung: der andere Bonus aus dem Dossier':'Datenträger abholen',d,r:near?gGo('Abholen',`chk('${id}')`):gDst(d)})});
+    else o.push({id,i:'box',n:'Dead Drop abholen',sub:k.cmp?'Kompromittiert · '+HNP(g)+' kennen den Ort':bo?'Belohnung: der andere Bonus aus dem Dossier':'Datenträger abholen',c:k.cmp,d,r:near?gGo('Abholen',`chk('${id}')`):gDst(d)})});
   Object.keys(T).filter(isMt).sort().forEach(id=>{const k=T[id];if(t<k.t0)return;const mA=k.a===uid,mB=k.b===uid;if(!mA&&!mB)return;
     const ot=mA?k.b:k.a,on=esc((P()[ot]||{}).name||'Partner'),bon=bo&&!k.sol,my=(k.p||{})[uid]||{},op=(k.p||{})[ot]||{},CH=MTC(g);
     if(k.ex)return o.push({id,i:'meet',n:'Meeting',sub:'Verfallen: dein Partner ist ausgeschieden',done:1});
     if(k.fin)return o.push({id,i:'meet',n:'Meeting mit '+on,sub:bon&&my.c?'Erledigt · erhalten: '+CH[my.c]:'Erledigt',done:1,r:gOk});
-    if(k.sol===uid){const d=d_(k),near=d!==null&&d<=40;return o.push({id,i:'meet',n:'Meeting allein erledigen',sub:solSb(g,k),d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)})}
+    if(k.sol===uid){const d=d_(k),near=d!==null&&d<=40;return o.push({id,i:'meet',n:'Meeting allein erledigen',sub:solSb(g,k),c:k.cmp,d,r:near?gGo('Bestätigen',`chk('${id}')`):gDst(d)})}
     const d=mtD(k),near=d!==null&&d<=40,can=near&&(!bon||(my.c&&my.c!==op.c));
     o.push({id,i:'meet',n:'Meeting mit '+on,sub:bon?(my.c?`Deine Wahl: ${CH[my.c]}`+(op.c?` · ${on}: ${CH[op.c]}`:''):'Wähle deinen Bonus'):'Trefft euch und bestätigt',d:d===null?1e6:d,
       r:my.ok?'<span class=gdst>bestätigt</span>':bon&&!my.c?gGo('Wählen',`gdShow('t:${id}')`):can?gGo('Bestätigen',`mtConfirm('${id}')`):gDst(d)})});
@@ -2049,7 +2055,7 @@ function runUI(g,me_,t,host,run){
       h+=`<div class="card cwt"><div class=row style="align-items:center;gap:10px"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(P()[k].name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Warte auf ${esc(P()[k].name)}</b><small style="display:block">Ohne Antwort gilt der Fang automatisch.</small></div><b class=cwn>${cdT(c.t+30000,'')}</b></div></div>`});
     const fsx=run&&fsOn(g)&&!zl_?fsHunterH(g,t):null;if(fsx)h+=fsx[0];
     if(run&&fsx&&fsCand&&!cand.length)h+=fsCandH(g);else
-    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:(zl_?`<button class=g disabled>Fang melden</button><small style="text-align:center;display:block">Noch in Verwandlung.</small>`:(fsx?`<div class=fsrow><button onclick="cc()">Fang melden</button>${fsx[1]}</div><small style="text-align:center;display:block">„Fang melden“ nach dem Berühren. „Fang starten“ nur bei Sichtkontakt: zwingt den Hider in ${fsRv(g)} m zum Stehenbleiben.</small>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`));
+    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:(zl_?`<button class=g disabled>Fang melden</button><small style="text-align:center;display:block">Noch in Verwandlung.</small>`:(fsx?`<div class=fsrow><button onclick="cc()">Fang melden</button>${fsx[1]}</div><small style="text-align:center;display:block">„Fang melden“ nach dem Berühren. „Festsetzen“ nur bei Sichtkontakt: zwingt den Hider in ${fsRv(g)} m zum Stehenbleiben.</small>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`));
     else h+=`<small>Warte auf das Ende des Headstarts.</small>`;
     if(run&&hbOn(g))h+=gBonHu(g,t);
     if(run){const L_=hkHunterCard(g,t,me_);if(L_)h+=`<div class=gsec><h3>Lage</h3></div>`+L_}}
@@ -2304,12 +2310,12 @@ function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||k
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
 map.on('popupclose',()=>{if(!redrawing)popKey=null;if(typeof mkMode!=='undefined'&&mkMode==='excl-wait')mkMode='excl'});
 const STX={caught:'gefangen',dq:'Signal verloren',quit:'aufgegeben',safe:'in Sicherheit'};
-const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-hk':['Terminal-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],zb:['Verwandelt','grüner Punkt: war Hider, ist jetzt Zombie'],zr:['Verwandlung','grün gestrichelt: hier bleiben, bis der Countdown abläuft'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
+const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-ddc':['Kompromittiert','Magenta: Die Hunter kennen den Ort dieser Aufgabe'],'t-hk':['Terminal-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],zb:['Verwandelt','grüner Punkt: war Hider, ist jetzt Zombie'],zr:['Verwandlung','grün gestrichelt: hier bleiben, bis der Countdown abläuft'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
   b.style.display='grid';b.innerHTML=ic('info');b.setAttribute('aria-label','Legende');b.setAttribute('aria-expanded',lgOpen);
-  const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');if(T.hk)tk.push('t-hk');if(T.hk&&T.hk.oz)tk.push('oz');
+  const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');if(G.s&&G.s.tsol)tk.push('t-ddc');if(T.hk)tk.push('t-hk');if(T.hk&&T.hk.oz)tk.push('oz');
   const ks=isSpec(m)?['hider','hunter','out','next','stale','catch'].concat(tk):m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(hpOn(G)?['ping']:[],tk,['hunter','next']);
   if(BM.id)ks.push('bm');
   const zb=zmb(G),LZ=zb?Object.assign({},LG,{mate:['Deine Horde','Dreieck: Zombies'],hunter:['Zombie','Dreieck'],pingme:['Dein letzter Ping','so sahen dich die Zombies']}):LG;
@@ -2362,16 +2368,17 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
       if(locatable(q,t,hid)){lk[hid]={lat:q.lat,lng:q.lng,name:q.name};mkr(q.out?'out':'live',[q.lat,q.lng],'lv'+hid,()=>['Hider '+q.name,q.out?'Live-Standort, außerhalb der Zone':'Live-Standort'],hid)}
       else if(lk[hid])mkr('stale',[lk[hid].lat,lk[hid].lng],'lg'+hid,()=>['Hider '+q.name+' (nicht ortbar)','letzte bekannte Position'],hid)})}
   if((m.role==='hunter'&&!spec)||spec)Object.entries(g.catches||{}).forEach(([h,c])=>{const q=P()[h];if(c.status==='done'&&c.lat&&q&&(q.state==='caught'||q.zt))mkr('catch',[c.lat,c.lng],'ct'+h,()=>['Hider '+q.name+(q.zt?' (infiziert)':' (gefangen)'),'Fangort · nach '+fmt(Math.max(0,c.t-rs(g)))+' von '+((P()[c.hunter]||{}).name||'?')])});
+  const CMPC='#e2459b';
   const TKK=id=>id==='sh'?'t-sh':id==='ev'?'t-ev':isDd(id)?'t-dd':'t-mt',TKT=id=>id==='sh'?'Safehouse':id==='ev'?'Evakuierung':isDd(id)?'Dead Drop':'Meeting';
-  const task=(id,k)=>{L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15}).addTo(lay);
-    mkr(TKK(id),[k.loc.lat,k.loc.lng],'tk'+id,()=>{const a=tkInfo(g.s,id,k);return[a[0],pos&&!spec?'noch '+Math.round(D(pos,k.loc))+' m':'',a[1]]})};
+  const task=(id,k)=>{const cl=k.cmp?CMPC:'#7c6cff';L.circle([k.loc.lat,k.loc.lng],{radius:40,color:cl,weight:k.cmp?2.5:2,dashArray:'5 5',fillColor:cl,fillOpacity:k.cmp?.2:.15}).addTo(lay);
+    mkr(TKK(id)+(k.cmp?'c':''),[k.loc.lat,k.loc.lng],'tk'+id,()=>{const a=tkInfo(g.s,id,k);return[a[0]+(k.cmp?' (kompromittiert)':''),pos&&!spec?'noch '+Math.round(D(pos,k.loc))+' m':'',a[1]]})};
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')['sh','ev'].forEach(id=>{const k=g.tasks&&g.tasks[id];
     if(!k||t<k.t0||(id==='sh'&&(Object.keys(k.in||{}).length>=2||(k.in&&k.in[uid]))))return;task(id,k)});
   if(m.role==='hider'&&m.state==='alive'&&g.status==='running')Object.entries(g.tasks||{}).filter(([id])=>isDd(id)||isMt(id)).forEach(([id,k])=>{
     if(t<k.t0||k.fin||k.pick||k.ex)return;
     if(k.sol===uid||(isDd(id)&&!k.sol&&((k.a===uid&&!k.dep)||(k.b===uid&&k.dep))))task(id,k)});
-  if(m.role==='hunter'&&m.state==='alive'&&!spec&&g.status==='running')cmpIds(g,t).forEach(id=>{const k=g.tasks[id];L.circle([k.loc.lat,k.loc.lng],{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15}).addTo(lay);
-    mkr(TKK(id),[k.loc.lat,k.loc.lng],'tk'+id,()=>[TKT(id)+' (verraten)',pos?'noch '+Math.round(D(pos,k.loc))+' m':'',(P()[k.sol||k.b]||{}).name?esc(P()[k.sol||k.b].name)+' muss hierher, um die Aufgabe zu erledigen.':'Ein Hider muss hierher.'])});
+  if(m.role==='hunter'&&m.state==='alive'&&!spec&&g.status==='running')cmpIds(g,t).forEach(id=>{const k=g.tasks[id];L.circle([k.loc.lat,k.loc.lng],{radius:40,color:CMPC,weight:2.5,dashArray:'5 5',fillColor:CMPC,fillOpacity:.2}).addTo(lay);
+    mkr(TKK(id)+'c',[k.loc.lat,k.loc.lng],'tk'+id,()=>[TKT(id)+' (kompromittiert)',pos?'noch '+Math.round(D(pos,k.loc))+' m':'',(P()[k.sol||k.b]||{}).name?esc(P()[k.sol||k.b].name)+' muss hierher, um die Aufgabe zu erledigen.':'Ein Hider muss hierher.'])});
   if(spec&&g.status==='running')Object.entries(g.tasks||{}).forEach(([id,k])=>{if(id==='hk'||!k||!k.loc||(isMt(id)&&!k.sol)||t<k.t0||k.fin||k.ex||k.pick)return;
     if(id==='sh'&&Object.keys(k.in||{}).length>=2)return;task(id,k)});
   if(radar&&t-radar.t<sbV(g.s)*1000)radar.pts.forEach((p,i)=>mkr('hunter',[p.lat,p.lng],'rd'+i,()=>[HN(g)+' '+p.name,'Satellitenbild '+ago(radar.t)]));
@@ -2456,7 +2463,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
   if(m.role==='hunter'&&m.state==='alive'){const cs=cmpIds(g,t).join();if(cs!==lastCT){const was=lastCT===null?cs.split(','):lastCT.split(',');lastCT=cs;
-      cs.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{note((x[0]==='m'?'Meeting':'Dead Drop')+' verraten: Der Ort ist auf der Karte');navigator.vibrate&&navigator.vibrate(200)});draw()}}
+      cs.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{note((x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert: Der Ort ist auf der Karte');navigator.vibrate&&navigator.vibrate(200)});draw()}}
   if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild abgelaufen')}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t&&(P()[hid]||{}).role==='hider'){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){

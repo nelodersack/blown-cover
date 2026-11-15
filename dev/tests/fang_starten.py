@@ -1,4 +1,4 @@
-# Test: „Fang starten“ (Fang ohne Verfolgungsjagd): Hunter löst aus, Hider bekommt Alarm nur in Reichweite, „Ich bleibe stehen“, Fang-Alarm darüber, Entkommen mit Schutz, Ping-Ausfall und Live-Hunter
+# Test: „Festsetzen“ (früher „Fang starten“): Hunter löst aus, Hider bekommt Alarm nur in Reichweite, „Ich bleibe stehen“, Fang-Alarm darüber, Entkommen mit Schutz, Ping-Ausfall und Live-Hunter
 import sys,os;sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from harness import app,OUT
 S="{r0:550,rMin:250,shrink:2,step:50,head:3,dur:30,ping:150,pen:2,mode:'survive',taskR:0,imm:120,shOn:false,shT:10,evT:5,ddN:0,ddT:4,mtN:0,mtT:8,bon:true,hbOn:true,hbN:2,hbC:60,hbL:60,hbT:30,gw:20,gd:60,ot:5,fs:true,fsR:40,fsT:40}"
@@ -22,7 +22,7 @@ with app(390,844) as (pg,ev,errs):
     t=ev("document.getElementById('pb').textContent");assert 'Wen hast du im Visier?' in t and 'Lena' in t and 'Max' in t
     pg.click("#pb button.cgt:has-text('Lena')");pg.wait_for_timeout(700)
     f=ev("G.fz&&G.fz.u2");print('fz',f);assert f and f['h']=='u1'
-    t=ev("document.getElementById('pb').textContent");assert 'Fang auf Lena gestartet' in t and 'Wieder in' in t,t[:400]
+    t=ev("document.getElementById('pb').textContent");assert 'Lena festgesetzt' in t and 'Wieder in' in t,t[:400]
     pg.screenshot(path=OUT+'/fs_hunter_countdown.png')
     ev("fsBtn()");assert 'wieder in' in ev("__toasts.slice(-1)[0]")
     # zweite Auslösung auf denselben Hider während Countdown eines anderen Hunters wird nicht geschrieben

@@ -19,8 +19,9 @@ with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u3');ev("window.__m=[];const t0=toast;toast=function(x){__m.push(String(x));return t0.apply(this,arguments)}")
     ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(2600)
     d=ev(T_+".d1");assert d.get('sol')=='u3' and d.get('cmp') is True and not d.get('ex'),d
-    ms=ev("__m");print(ms);assert any('allein' in x for x in ms) and any('kennen jetzt den Ort des Dead Drops' in x for x in ms),ms
-    t=ev("document.getElementById('pb').textContent");assert 'Ort verraten' in t and 'ohne Belohnung' not in t,t[:400]
+    ms=ev("__m");print(ms);assert any('allein' in x for x in ms) and any('Dead Drop kompromittiert' in x for x in ms),ms
+    t=ev("document.getElementById('pb').textContent");assert 'Kompromittiert' in t and 'ohne Belohnung' not in t,t[:400]
+    assert ev("document.querySelectorAll('.grow.cmp').length")==1 and ev("document.querySelectorAll('.tsq.cmp').length")>=1
     pg.screenshot(path=OUT+'/solo_hider.png')
     ev("chk('d1')");pg.wait_for_timeout(900);assert ev(T_+".d1.fin"),ev(T_+".d1")
     it=ev("myItems(G)");print(it);assert len(it)==1 and it[0]['id']=='d1b' and it[0]['type'] in('bm','radar'),it
@@ -32,8 +33,9 @@ with app(390,844) as (pg,ev,errs):
     assert ev("cmpIds(G,now()).length")==0
     ev("__T.games.K7QF.players.u5.state='caught';notify()");pg.wait_for_timeout(4200)
     m=ev(T_+".m1");assert m.get('sol')=='u6' and m.get('cmp') is True,m
-    assert ev("cmpIds(G,now())")==['m1'];ms=ev("__m");print(ms);assert any('Meeting verraten' in x for x in ms),ms
+    assert ev("cmpIds(G,now())")==['m1'];ms=ev("__m");print(ms);assert any('Meeting kompromittiert' in x for x in ms),ms
     assert ev("document.querySelectorAll('.leaflet-marker-icon').length")>0
+    assert ev("document.querySelectorAll('.tsq.cmp').length")>=1
     pg.screenshot(path=OUT+'/solo_hunter.png')
     # erledigt -> Ort verschwindet
     ev(T_+".m1.fin=Date.now();notify()");pg.wait_for_timeout(1500);assert ev("cmpIds(G,now()).length")==0
@@ -58,7 +60,7 @@ with app(390,844) as (pg,ev,errs):
 with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u3');ev("__T.games.K7QF.players.u2.state='dq';notify()");pg.wait_for_timeout(2600)
     d=ev(T_+".d1");assert d.get('sol')=='u3' and not d.get('cmp'),d
-    t=ev("document.getElementById('pb').textContent");assert 'Partner fällt aus' in t and 'verraten' not in t,t[:400]
+    t=ev("document.getElementById('pb').textContent");assert 'Partner fällt aus' in t and 'Kompromittiert' not in t,t[:400]
 # 4 Schalter aus (Untertauchen): verfällt wie bisher
 with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u3',sol=False);ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(2600)
