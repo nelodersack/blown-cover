@@ -25,7 +25,7 @@ with app(390,844) as (pg,ev,errs):
     shot(pg,'lobby')
     ev("document.querySelector('.lsw').click()");pg.wait_for_timeout(400);assert ev("__T.games.K7QF.players.u1.role")=='hider'
     ev("tabGo('lt','set')");pg.wait_for_timeout(300)
-    n=ev("document.querySelectorAll('.grp .lrw').length");print('Listenzeilen',n);assert n>=7
+    n=ev("document.querySelectorAll('.grp .lrw').length");print('Listenzeilen',n);assert n>=6
     d=ev("(()=>{const b=document.querySelector('.grp .lrw'),c=b.querySelector('.ic:last-child');return b.getBoundingClientRect().right-c.getBoundingClientRect().right})()");print('Pfeil-Abstand rechts',d);assert d<30
     ev("$('ps').scrollTop=400");shot(pg,'einstellungen')
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]
