@@ -190,8 +190,10 @@ public class GameActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
+                // Eigene Hosts (blowncover.app, www, alte github.io-Adresse samt Weiterleitung) bleiben in der WebView.
                 String own = Uri.parse(Prefs.url(GameActivity.this)).getHost();
-                if (u.getHost() != null && own != null && !u.getHost().equals(own)
+                String h = u.getHost();
+                if (h != null && !h.equalsIgnoreCase(own) && !Prefs.ownHost(h)
                         && ("http".equals(u.getScheme()) || "https".equals(u.getScheme()))) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, u));

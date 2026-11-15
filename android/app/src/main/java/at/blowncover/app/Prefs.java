@@ -4,7 +4,16 @@ import android.content.Context;
 
 /** Adresse, die die App lädt: immer die Live-Seite (sie enthält die App-Anbindung). */
 final class Prefs {
-    static final String LIVE = "https://nelodersack.github.io/blown-cover/";
+    static final String LIVE = "https://blowncover.app/";
+
+    /** Hosts, die in der WebView bleiben (eigene Domain + alte Adresse, die per 301 weiterleitet). Alles andere öffnet extern. */
+    static final String[] OWN_HOSTS = {"blowncover.app", "www.blowncover.app", "nelodersack.github.io"};
+
+    static boolean ownHost(String h) {
+        if (h == null) return false;
+        for (String o : OWN_HOSTS) if (o.equalsIgnoreCase(h)) return true;
+        return false;
+    }
 
     /** Versionsname aus dem installierten Paket (build.gradle: versionName). */
     static String ver(Context c) {
