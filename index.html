@@ -1959,11 +1959,13 @@ const balRoster=()=>{if(rndOn(G)){const n=rndN(),H=n<2?0:rndH(G);return{H,X:n-H}
 function balCalc(s,H,X,k,pure){const T=s.dur||30,r50=v=>Math.round(v/50)*50,r10=v=>Math.round(v/10)*10,zb=s.mode==='zombie',He=zb?H+X/3:H;
   // Konstanten (15.11.): mit einem groben Rechenmodell (geeicht an L7VAKL/35P7RK) so bestimmt, dass die Hider bei jeder Besetzung und Dauer etwa die Hälfte der Runden gewinnen.
   // Startradius 840·H^0,61/X^0,52·(T/30)^e mit e = 0,37+0,26·ln(X/H) (0,3…1): Weil die Hunter alle fangen müssen, wird die Zone mit mehr Hidern kleiner; in langen Runden gleicht sich das an.
-  // Ping 0,6·r0/80·√(H/X) Min; der Regler k ändert Radius (BALR) und Ping (BAL), Headstart folgt dem Radius.
+  // Der Regler k ändert Radius (BALR) und Ping (BAL), Headstart folgt dem Radius.
   // Zombie bleibt bei den Werten vom 13.11. (60 / 0,5), bis eine echte Runde gespielt ist: Startradius mit durchschnittlicher Hunter-Zahl H+X/3, Mindestradius 0,6 · r0
   const r0=Math.max(200,r50(BALR[k]*(zb?60*Math.sqrt((He+X/4)*T):840*Math.pow(H,.61)/Math.pow(X,.52)*Math.pow(T/30,Math.min(1,Math.max(.3,.37+.26*Math.log(X/H))))))),rMin=Math.max(100,r50((zb?.6:.45)*r0)),shrink=Math.max(2,Math.round(T/15)),
     step=Math.max(5,Math.round((r0-rMin)/(.6*T/shrink)/5)*5),head=Math.max(1,Math.round(.45*r0/80)),
-    ping=Math.min(T*6,Math.max(30,r10((zb?.5:.6)*r0/80*Math.sqrt(H/X)*60*BAL[k])));
+    // Ping (15.11. abends, Manuel): hängt nicht mehr an der Zonengröße. 3:00 für 2 Hunter/4 Hider in 60 Min; mehr Hunter → länger (√H, sie decken mehr ab),
+    // mehr Hider → etwas kürzer (X^¼), längere Runde → etwas länger (T^¼); 1:00 bis 7:00. Zombie bleibt beim alten Ping (0,5·r0/80·√(H/X)).
+    ping=zb?Math.min(T*6,Math.max(30,r10(.5*r0/80*Math.sqrt(H/X)*60*BAL[k]))):Math.min(420,Math.max(60,r10(180*Math.sqrt(H/2)*Math.pow(4/X,.25)*Math.pow(T/60,.25)*BAL[k])));
   const o={r0,rMin,shrink,step,head,ping,imm:ping,hbC:Math.max(10,r10(ping/2)),hbL:Math.max(10,r10(r0/12.5)),hbN:Math.min(4,Math.max(1,Math.ceil(X/2)))};
   for(const q in o)if(FD[q])o[q]=Math.max(FD[q][1],Math.min(FD[q][2],o[q]));
   // Aufgaben: Safehouse immer; je 2 Hider eine Aufgabe (alle Hider beschäftigt, bei ungerader Zahl bleibt einer als Ersatz); ab 2 Aufgaben jede Art mindestens einmal, sonst Zufall
