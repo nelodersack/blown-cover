@@ -43,6 +43,7 @@ Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beend
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
 Die App lädt immer die Live-Seite, seit v0.3.1 unter **https://blowncover.app/** (die alte Adresse nelodersack.github.io/blown-cover/ leitet dorthin weiter und bleibt ebenfalls in der App). Links zu anderen Seiten öffnen sich im normalen Browser. Die App-Anbindung steckt seit v0.2.6 direkt in `index.html` (im Browser ohne Wirkung).
+Seit v0.3.2 öffnet „Code teilen“ in der Lobby das Android-Teilen-Menü (WhatsApp usw.).
 Seit v0.2.7 kann die Seite Dateien öffnen (Dateiauswahl), z. B. für „Replay abspielen“.
 Seit v0.2.8 startet die App ohne Abfragen; Standort und Berechtigungen („Bereit machen“) kommen erst beim Erstellen oder Beitreten eines Spiels. Zurück-Taste im „Bereit machen“-Fenster bricht ab.
 

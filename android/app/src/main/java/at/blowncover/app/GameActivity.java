@@ -662,6 +662,26 @@ public class GameActivity extends Activity {
         }
 
         /** Speichert eine Datei der Seite (Text) in „Downloads“ (ab Android 10), sonst Teilen-Menü. */
+        /** Teilen über das Android-Menü (die WebView kennt navigator.share nicht). Seit v0.3.2. */
+        @JavascriptInterface
+        public void share(final String text) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Intent i = new Intent(Intent.ACTION_SEND);
+                        i.setType("text/plain");
+                        i.putExtra(Intent.EXTRA_TEXT, text == null ? "" : text);
+                        i.putExtra(Intent.EXTRA_SUBJECT, "Blown Cover");
+                        startActivity(Intent.createChooser(i, "Code teilen"));
+                        Diag.log(GameActivity.this, "Teilen geöffnet");
+                    } catch (Exception e) {
+                        Diag.log(GameActivity.this, "Teilen fehlgeschlagen: " + e);
+                    }
+                }
+            });
+        }
+
         @JavascriptInterface
         public void saveFile(final String name, final String mime, final String content) {
             final String n = (name == null || name.trim().isEmpty()) ? "blowncover_download" : name.replaceAll("[\\\\/:*?\"<>|]", "_");
