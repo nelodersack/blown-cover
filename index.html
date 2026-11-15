@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="vendor/fonts.css">
 <style>
 /* §CSS-BASIS Farben (Tokens), Grundelemente */
-:root{--bg:#0d0f11;--panel:#121417;--panel2:#1a1d21;--line:#2a2e34;--line2:#23272c;--fg:#edece8;--mut:#8e939a;--ac:#e5484d;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--cmp:#e2459b;--grey:#7a8696;
+:root{--bg:#16191c;--panel:#1e2125;--panel2:#272b30;--line:#363b42;--line2:#2e3238;--fg:#e4e2dd;--mut:#9ca1a8;--sel:#3b4148;--ac:#e5484d;--danger:#e5484d;--ok:#3fb56a;--ping:#ff8a1f;--xping:#ffb03b;--live:#ff5f1f;--task:#7c6cff;--cmp:#e2459b;--grey:#7a8696;
 --f-d:'Barlow Condensed','Arial Narrow',sans-serif;--f-b:'Barlow',system-ui,sans-serif;--f-m:'Barlow',system-ui,sans-serif;color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:15px/1.4 var(--f-b);background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums}
 #map{position:fixed;inset:0}
@@ -404,6 +404,17 @@ button.lsw{background:none!important;border:0!important;color:var(--mut)!importa
 .tld{border-radius:10px}.tld .lb{font:500 10px var(--f-b)}
 .ctl .pp{background:var(--fg);color:var(--bg)}
 #chat{border-top:1px solid var(--line)}#chm .m{border-radius:10px}#chm .m.me{background:#262a30}
+/* Kontrast (15.11. abends): Auswahl nicht mehr weiß gefüllt, sondern hellere Fläche mit hellem Rand */
+.seg button.on,.pre button.on,.tiles.t3 .tile.on{background:var(--sel)!important;color:var(--fg)!important;box-shadow:inset 0 0 0 1.5px #c9c6c0}
+.pre button.on b,.tiles.t3 .tile.on b{color:var(--fg)!important}.pre button.on,.tiles.t3 .tile.on span{color:var(--mut)!important}
+.sw.on{background:#c9c6c0}
+/* Unterseiten kompakter */
+.fl{min-height:44px;padding:6px 0;gap:12px}.fl label{font-size:14.5px}.fl small{font-size:12.5px;margin-top:1px}
+.fl.sub{padding-left:14px}
+.num button.n{width:34px;height:34px;font-size:18px}.num input{min-height:34px;width:52px;font-size:15px}.num .u{font-size:12px}
+.sw{width:42px;height:26px}.sw::after{width:20px;height:20px}.sw.on::after{left:19px}
+.lsub{margin-bottom:-4px}.lsub h2{font-size:26px}
+.lrw{min-height:48px}
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="ps"><div id="pb"></div><div id="pf"></div></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
@@ -1935,7 +1946,7 @@ const swt=(k,on,l,sub='',sb)=>`<div class="fl${sb?' sub':''}"><label>${l}${sub?`
 // acc: Zeile in der Einstellungsliste; Antippen öffnet die Unterseite (ui.sub), lobbyUI zeigt dann nur deren Inhalt (SUBP)
 let SUBP=null;
 const acc=(id,icn,title,sum,body,val)=>{if(ui.sub===id)SUBP={t:title,sum,b:body};return `<button class=lrw onclick="subGo('${id}')"><span>${title}</span>${val!=null?`<span class=v>${val}</span>`:''}${ic('chev')}</button>`};
-const subGo=id=>{ui.sub=id;$('ps').scrollTop=0;panel(1)};
+const subGo=id=>{ui.sub=id;panel(1);if(id)$('panel').classList.remove('m','c');else if(typeof pMidSet==='function')pMidSet();$('ps').scrollTop=0};
 const grp=(h,sub,x)=>(h?`<div class=gh><span>${h}</span>${sub?`<small>${sub}</small>`:''}</div>`:'')+`<div class="grp lrws">${x}</div>`;
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
 const shCode=()=>{const t='Blown Cover – Spiel-Code '+code;try{if(navigator.share){navigator.share({title:'Blown Cover',text:t}).catch(()=>{});return}}catch(e){}cpCode()};
@@ -1973,18 +1984,16 @@ function lobbyUI(g,host,me_){
     if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Kompromittierung','Gefangene verraten den Ort ihrer Aufgabe, wenn kein Ersatz frei ist. Der Partner kann sie allein erledigen.');
     if(nT>0)t+=nf('taskR');
     if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut style="padding-top:8px">Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}.</small>`;
-    const rules=[fsOn(g)?'Festsetzen':'',dqOn(g)?'Ausschluss':''].filter(Boolean).join(', ')||'Standard';
     const mo=md(g),list=(mo==='zombie'?grp('','',zAcc(g)):'')
       +`<h3>Modus</h3><div class="tiles t3"><button class="tile ${mo==='survive'?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Durchhalten</span></button><button class="tile ${mo==='mission'?'on':''}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben erfüllen</span></button><button class="tile zt ${mo==='zombie'?'on':''}" onclick="setMode('zombie')"><b>Zombie</b><span>Gefangene jagen mit</span></button></div>
     <div class=zhint>Zonenmitte: roten Punkt auf der Karte ziehen · <button onclick="ctr()">Auf mich</button></div>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})" aria-label="${PRN[d]}, ${d} Minuten"><b>${d}</b>Min</button>`).join('')}</div>
     ${grp('','',balAcc(g))}<div data-mid style="height:0;margin-top:-12px"></div>`
       +grp('','',acc('zone','zone','Zone','',nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'),`${s.r0} → ${s.rMin} m`)
-        +acc('game','clock','Zeit & Pings','',nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen einander','Bei jedem Ping auch die Positionen der Mitspieler',1),`${s.dur} Min · alle ${mmss(s.ping)}`)
+        +acc('game','clock','Zeit & Pings','',nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen einander','Bei jedem Ping auch die Positionen der Mitspieler',1)+`<h3>Signal</h3>`+nf('gw')+swt('dq',dqOn(g),'Ausschluss bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''),`${s.dur} Min · alle ${mmss(s.ping)}`)
         +acc('tasks','home','Aufgaben','',t,nT?String(nT):'keine')+bnAcc(g)
-        +acc('rules','flag','Regeln','',swt('fs',fsOn(g),'Festsetzen','Hunter zwingen einen Hider in '+fsRv(g)+' m zum Stehenbleiben.')+(fsOn(g)?nf('fsR',1)+nf('fsT',1)+`<small class=mut style="padding-top:8px">Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</small>`:'')+swt('dq',dqOn(g),'Ausschluss bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):'')+nf('gw'),rules)
         +acc('tech','gear','Technik','',swt('rp',!!s.rp,'Runde aufzeichnen','Für das Replay am Ende')+`<small class=mut style="padding-top:8px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`+swt('an',!!s.an,'Analyse-Protokoll','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen.'),`Replay ${s.rp?'an':'aus'}`));
-    b+=SUBP?`<div class=lsub><button class=lback onclick="subGo(null)">${ic('chev')} Einstellungen</button><h2>${SUBP.t}</h2></div>${SUBP.b}`:list;
+    if(SUBP)b=''; b+=SUBP?`<div class=lsub><button class=lback onclick="subGo(null)">${ic('chev')} Einstellungen</button><h2>${SUBP.t}</h2></div>${SUBP.b}`:list;
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
     b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p><div>`+R('Modus',{survive:'Untertauchen',mission:'Mission',zombie:'Zombie'}[md(g)]||'Untertauchen')+(zmb(g)?R('Verwandlung',(s.zT??DEF.zT)+' s im '+(s.zR??DEF.zR)+'-m-Kreis')+R('Ping wächst mit der Horde',zPg(g)?'bis '+String(zCap(g)).replace('.',',')+'×':'nein'):'')+(rndOn(g)?R('Teams',rndH(g)+' '+HN(g)+(rndH(g)>1&&zmb(g)?'s':'')+' werden ausgelost'):'')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' → '+s.rMin+' m')+R('Ping alle',mmss(s.ping))+R('Headstart',s.head+' Min')+R('Dead Drops · Meetings',(s.ddN||0)+' · '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Festsetzen',fsOn(g)?fsRv(g)+' m · '+fsTv(g)/1000+' s':'aus')+R('Kompromittierung',s.tsol?'an':'aus')+R('Hider sehen einander',hpOn(g)?'ja':'nein')+R('Ausschluss bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus')+'</div>';
@@ -2016,7 +2025,7 @@ function bnAcc(g){const s=g.s,D_=bnDefs(g),sv=md(g)!=='mission';
   const tile=k=>{const d=D_[k];return `<button class="tile bnt${d.on?'':' off'}${d.wide?' wide':''}" onclick="bnShow('${k}')" aria-label="${d.n} einstellen"><span class=bnr>${ic(d.i)}<span class=bns>${d.sd==='both'?BNS.hi+BNS.hu:BNS[d.sd]}</span></span><b>${d.n}</b><span>${d.on?d.src:'Nicht im Spiel: '+d.why}</span>${d.on?`<span class=bnv>${d.val}</span>`:''}</button>`};
   const n=['imm','sat','live','ping','bm'].filter(k=>D_[k].on).length,hb=hbOn(g);
   const b=(sv?'':swt('bon',s.bon!==false,'Belohnungen für Dead Drop und Meeting','Aus: Aufgaben bringen nur den Missionserfolg'))
-    +`<h3>Hider</h3><div class=tiles>${tile('imm')+tile('sat')}</div><h3>Hunter</h3><div class=tiles>${tile('live')+tile('ping')}</div><h3>Beide Seiten</h3><div class=tiles>${tile('bm')}</div>`
+    +`<h3>Hider</h3><div class=tiles>${tile('imm')+tile('sat')}</div><h3>Hunter</h3><div class=tiles>${tile('live')+tile('ping')}</div>`+swt('fs',fsOn(g),'Festsetzen','Hunter zwingen einen Hider in '+fsRv(g)+' m zum Stehenbleiben.')+(fsOn(g)?nf('fsR',1)+nf('fsT',1)+`<small class=mut style="padding-top:6px">Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</small>`:'')+`<h3>Beide Seiten</h3><div class=tiles>${tile('bm')}</div>`
     +`<button class="rl bnhb" onclick="bnShow('hb')"><span>Hunter-Boni</span><small>${hb?`Vorrat ${s.hbN||2} · Wartezeit ${s.hbC||0} s`:'aus'} ${ic('chev')}</small></button>`;
   return acc('bon','gift','Boni',`${n} von 5 im Spiel`,b,n+' von 5')}
 function bnShow(k){ui.bn=k;bnSync()}
