@@ -8,11 +8,12 @@ with app() as (pg,ev,errs):
       uid='u1';pos={lat:47.069,lng:15.4385};lastFix=Date.now()})()""")
     ev("join('K7QF')");pg.wait_for_timeout(600)
     ev("window.__k=setInterval(()=>{const p=__T.games.K7QF.players;for(const u in p)p[u].ts=Date.now();lastFix=Date.now()},500)")
-    ev("tabGo('lt','set')");ev("ui.adv=true;ui.open.tasks=1;ui.open.bon=1;panel(1)")
+    ev("tabGo('lt','set')");ev("ui.sub='tasks';panel(1)")
     ev("G.s.ddN=1;__T.games.K7QF.s.ddN=1;__T.games.K7QF.s.mtN=1;notify()");pg.wait_for_timeout(500)
     ev("$('panel').classList.remove('m')")
     pb=ev("$('pb').innerText");
     assert 'Belohnung: Satellitenbild und Hunter-Radar' in pb and 'Belohnung: jeder wählt Hunter-Radar' in pb and 'Belohnung: Immunität für Platz 1 und 2' in pb, pb[:900]
+    ev("ui.sub='bon';panel(1)");pg.wait_for_timeout(300);pb=ev("$('pb').innerText")
     assert 'Hunter-Boni' in pb and 'Satellitenbild-Dauer' not in pb and 'Radar-Radius' not in pb
     tiles=ev("[...document.querySelectorAll('.bnt')].map(b=>b.querySelector('b').innerText+'|'+b.classList.contains('off'))");print(tiles)
     assert len(tiles)==5 and all(t.endswith('false') for t in tiles)

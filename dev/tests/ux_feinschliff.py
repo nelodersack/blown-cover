@@ -20,13 +20,13 @@ def shot(pg,n):pg.screenshot(path=OUT+'/ux_'+n+'.png')
 # 1 Lobby: Spalten, Wechseln, Einstellungsliste
 with app(390,844) as (pg,ev,errs):
     game(ev,'u1','lobby');go(ev,pg);ev("$('panel').classList.remove('m','c')");pg.wait_for_timeout(400)
-    r=ev("[...document.querySelectorAll('.lcol')].map(c=>c.querySelectorAll('.lchip').length)");print('Spalten',r);assert r==[2,4]
-    assert ev("!!document.querySelector('.lchip.me')") and ev("document.querySelector('.lsw').textContent").startswith('+ Zu den Hidern')
+    r=ev("[...document.querySelectorAll('.lcol')].map(c=>c.querySelectorAll('.lp').length)");print('Spalten',r);assert r==[2,4]
+    assert ev("!!document.querySelector('.lp.me')") and ev("document.querySelector('.lsw').textContent").startswith('Zu den Hidern')
     shot(pg,'lobby')
     ev("document.querySelector('.lsw').click()");pg.wait_for_timeout(400);assert ev("__T.games.K7QF.players.u1.role")=='hider'
     ev("tabGo('lt','set')");pg.wait_for_timeout(300)
-    n=ev("document.querySelectorAll('.grp .acc.li').length");print('Listenzeilen',n);assert n>=7
-    d=ev("(()=>{const b=document.querySelector('.grp .acc.li>button'),c=b.querySelector('.chv');return b.getBoundingClientRect().right-c.getBoundingClientRect().right})()");print('Pfeil-Abstand rechts',d);assert d<30
+    n=ev("document.querySelectorAll('.grp .lrw').length");print('Listenzeilen',n);assert n>=7
+    d=ev("(()=>{const b=document.querySelector('.grp .lrw'),c=b.querySelector('.ic:last-child');return b.getBoundingClientRect().right-c.getBoundingClientRect().right})()");print('Pfeil-Abstand rechts',d);assert d<30
     ev("$('ps').scrollTop=400");shot(pg,'einstellungen')
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]
 

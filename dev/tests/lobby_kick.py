@@ -12,7 +12,7 @@ def lobby(ev,me):
 with app(390,844) as (pg,ev,errs):
     lobby(ev,'u1');pg.wait_for_timeout(900)
     ev("tabGo('lt','players')");pg.wait_for_timeout(300)
-    pg.click("button.lchip[aria-label^='Lena']");pg.wait_for_timeout(300)
+    pg.click("button.lp[aria-label^='Lena']");pg.wait_for_timeout(300)
     t=ev("document.getElementById('dlg').innerText");print(t.replace('\n',' | '));assert 'Aus der Lobby entfernen' in t and 'Zum Host machen' in t
     pg.screenshot(path=OUT+'/kick_menue.png')
     pg.click("#dlg [data-bi='1']");pg.wait_for_timeout(300)
@@ -20,7 +20,7 @@ with app(390,844) as (pg,ev,errs):
     pg.click("#dlo");pg.wait_for_timeout(600)
     assert ev("!G.players.u2") and ev("!(G.cols||{})[1]") and ev("!!G.players.u3"),ev("JSON.stringify(G.players)")
     # Abbrechen lässt alles, wie es ist
-    pg.click("button.lchip[aria-label^='Max']");pg.wait_for_timeout(300);pg.click("#dlc");pg.wait_for_timeout(300)
+    pg.click("button.lp[aria-label^='Max']");pg.wait_for_timeout(300);pg.click("#dlc");pg.wait_for_timeout(300)
     assert ev("!!G.players.u3") and not ev("!!document.getElementById('dlg')")
     assert not [e for e in errs if 'PE:' in e],errs
 with app(390,844) as (pg,ev,errs):
