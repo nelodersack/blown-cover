@@ -22,7 +22,8 @@ with app(390,844) as (pg,ev,errs):
     shot(pg,'lobby_spieler')
     ev("tabGo('lt','set')");ev("ui.open.tasks=1;panel(1)");pg.wait_for_timeout(300);shot(pg,'lobby_modus')
     ev("ui.sub='zmb';panel(1)");pg.wait_for_timeout(300)
-    z=ev("document.getElementById('pb').textContent");assert 'Verwandlungszeit' in z and 'Verwandlungsradius' in z and 'Ping-Deckel' in z,z[:500]
+    z=ev("document.getElementById('pb').textContent");assert 'Kreis warten' in z and 'Ping wächst' in z and 'Höchstens' in z,z[:500]
+    ev("edGo('zT')");pg.wait_for_timeout(200);assert 'Verwandlungszeit' in ev("document.getElementById('pb').textContent")
     ev("setS('zC',2.5,1.5,5);setS('zR',40,20,100);setS('zT',30,10,600)");pg.wait_for_timeout(300)
     assert ev("G.s.zC")==2.5 and ev("G.s.zR")==40 and ev("G.s.zT")==30
     ev("stp('zC',-1)");pg.wait_for_timeout(300);assert ev("G.s.zC")==2.0,ev("G.s.zC")

@@ -420,6 +420,61 @@ button.lsw{background:none!important;border:0!important;color:var(--mut)!importa
 .seg button,.pre button,.tiles.t3 .tile{border:0!important;border-radius:7px!important}
 .seg button.on,.pre button.on,.tiles.t3 .tile.on{box-shadow:inset 0 0 0 1px #c9c6c0}
 #fa,#fz{background:var(--panel)}
+/* §CSS-EINST-SEITEN Unterseiten der Einstellungen: Bild/Zeitstrahl (mzv), Sätze mit Werten (mzs, Chip mzc, Regler mzp), große Zahlen (mzb), Karten (mzk),
+   Aufgaben-Zeitstrahl (mztl), Boni wie im Spiel (mzi, Einstellbereich mzsh), Balancing-Regler (mzd, mzcmp), Zombie-Ablauf (mzf) */
+.mzlead{color:var(--mut);font-size:14px;line-height:1.4;margin:-6px 0 0}
+.mzv{width:100%;height:auto;display:block}.mzv .t1{fill:var(--fg);font:600 15px var(--f-b)}.mzv .t2{fill:var(--mut);font:400 12px var(--f-b)}.mzv .t3{fill:var(--fg);font:500 11.5px var(--f-b)}
+.mzleg{display:flex;flex-wrap:wrap;gap:4px 16px;font:500 13px var(--f-b);color:var(--mut)}.mzleg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.mz2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mzb{background:var(--panel2);border-radius:10px;padding:10px 12px;display:grid;gap:2px;min-width:0}.mzb small{font:500 12.5px var(--f-b);color:var(--mut)}
+.mzb .r{display:flex;align-items:center;justify-content:space-between;gap:6px}.mzb b{font:700 28px/1.05 var(--f-d);white-space:nowrap}.mzb b span{font:500 13px var(--f-b);color:var(--mut);margin-left:3px}
+.mzb .pm{display:flex;gap:4px}
+.mzb button.n,.mzn button.n{width:30px!important;height:30px;min-height:0!important;padding:0!important;margin:0!important;border:0;border-radius:7px!important;background:var(--sel)!important;color:var(--fg)!important;font:500 18px var(--f-b)!important;display:grid;place-items:center}
+.mzk{background:var(--panel2);border-radius:10px;padding:12px 14px;display:grid;gap:8px}.mzk h4{margin:0;font:700 17px/1.1 var(--f-d)}.mzk.tl{gap:4px;padding:10px 12px}
+.mzk .fl{border-bottom:0;padding:4px 0;min-height:40px}
+.mzs{margin:0;font:500 15.5px/2 var(--f-b);color:var(--fg)}.mzs.s{font-size:14px;line-height:1.9;color:var(--mut)}
+button.mzc{display:inline-block!important;width:auto!important;min-height:0!important;margin:0 1px!important;padding:0 9px!important;line-height:27px;border:0!important;border-radius:7px!important;background:var(--sel)!important;color:var(--fg)!important;font:600 14.5px var(--f-b)!important;vertical-align:baseline}
+button.mzc.on{box-shadow:inset 0 0 0 1.5px #c9c6c0}
+.mzp{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:6px}
+.mzp button.n{width:46px!important;height:42px;min-height:0!important;margin:0!important;padding:0!important;border:0;border-radius:8px!important;background:var(--panel2)!important;color:var(--fg)!important;font:500 22px var(--f-b)!important;display:grid;place-items:center;flex:none}
+.mzp>div{flex:1;display:grid;justify-items:center;min-width:0}.mzp input{width:100%;max-width:150px;text-align:center;background:none;border:0;margin:0;min-height:0;padding:0;font:700 24px var(--f-d);-moz-appearance:textfield}
+.mzp input::-webkit-outer-spin-button,.mzp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.mzp small{font:500 12px var(--f-b);color:var(--mut);text-align:center}
+.mztl{display:grid;grid-template-columns:46px 1fr;gap:0 10px}
+.mzl{text-align:right;padding-top:12px;position:relative}.mzl::after{content:'';position:absolute;right:-15px;top:19px;width:8px;height:8px;border-radius:50%;background:var(--mut);box-shadow:0 0 0 3px var(--panel)}
+.mzl .mzc{line-height:24px;padding:0 6px!important;font-size:13px!important}.mzl0{font:600 13px var(--f-b);color:var(--mut);display:inline-block;padding-top:4px}
+.mztc{border-left:2px solid var(--line);padding:5px 0 5px 14px;display:grid;gap:6px}
+.mzt{background:var(--panel2);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:30px 1fr auto;gap:4px 12px;align-items:center}
+.mzt .q{width:30px;height:30px;border-radius:8px;background:var(--task);display:grid;place-items:center;color:#fff}.mzt .q .ic{width:16px;height:16px}
+.mzt b{font:600 15px var(--f-b)}.mzt small{grid-column:2/4;font:400 12.5px/1.35 var(--f-b);color:var(--mut)}.mzt small.rw{color:#b9b1ff}.mzt .sw{justify-self:end}
+.mzt.off{background:none;border:1px dashed var(--line)}.mzt.off b{color:var(--mut)}.mzt.off .q{background:none;border:1.5px dashed var(--line);color:var(--mut)}
+.mzn{display:flex;align-items:center;gap:6px}.mzn b{min-width:16px;text-align:center}
+button.mza{width:auto!important;min-height:0!important;margin:0!important;padding:6px 10px!important;border:0;border-radius:7px!important;background:var(--sel)!important;color:var(--fg)!important;font:600 13.5px var(--f-b)!important}
+.mzh{display:flex;align-items:baseline;justify-content:space-between}.mzh h3{margin:0}.mzh small{color:var(--mut);font-size:13px}
+.mzg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!important;min-height:0!important;margin:0!important;padding:4px 0!important;background:none!important;border:0!important;color:var(--fg)!important;font:inherit!important;text-align:center}
+.mzi .o{width:56px;height:56px;border-radius:50%;border:2px solid #4fb3f0;color:#4fb3f0;display:grid;place-items:center;background:var(--panel);position:relative}.mzi .o .ic{width:24px;height:24px}
+.mzi .o.tri{border:0;border-radius:0;background:none}.mzi .o.tri svg.t{position:absolute;inset:0;width:100%;height:100%}.mzi .o.tri .ic{position:relative;margin-top:12px;width:20px;height:20px}
+.mzi b{font:600 13px/1.2 var(--f-b)}.mzi small{font:500 12px var(--f-b);color:var(--mut);margin-top:-3px}
+.mzi.off .o{border-color:var(--line);color:var(--mut)}.mzi.off .o.tri svg.t path{stroke:var(--line)}.mzi.off b{color:var(--mut)}
+.mzi.sel .o{box-shadow:0 0 0 3px var(--panel),0 0 0 4.5px #c9c6c0}.mzi.sel .o.tri{box-shadow:none}.mzi.sel b{text-decoration:underline;text-underline-offset:3px}
+.mzsh{background:var(--panel2);border-radius:10px;padding:10px 14px;display:grid;gap:4px;position:relative;margin-top:2px}
+.mzsh::before{content:'';position:absolute;top:-6px;left:var(--x,50%);width:12px;height:12px;background:var(--panel2);transform:rotate(45deg)}
+.mzsh .fl{border-bottom:1px solid var(--line2)}.mzsh .fl:last-child{border-bottom:0}
+.mzro{display:flex;align-items:center;gap:8px;font:600 16px var(--f-b)}.mzro svg{width:14px;height:14px}.mzro span{color:var(--mut);font-weight:500;margin:0 2px}
+.mzd{display:grid;gap:6px;padding:0 4px}.mzd .tr{position:relative;height:40px;margin:0 14px}
+.mzd .bar{position:absolute;left:0;right:0;top:18px;height:4px;border-radius:2px;background:linear-gradient(90deg,#3fb56a,var(--line) 40%,var(--line) 60%,#e5484d)}
+.mzd button.st{position:absolute;top:6px;width:28px!important;height:28px;min-height:0!important;margin:0 0 0 -14px!important;padding:0!important;border-radius:50%!important;border:0!important;background:none!important;display:grid;place-items:center}
+.mzd button.st::after{content:'';width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--line)}
+.mzd button.st.on::after{width:26px;height:26px;border:0;background:var(--fg);box-shadow:0 2px 8px #0008}
+.mzd .lb{display:flex;justify-content:space-between;font:500 12.5px var(--f-b);color:var(--mut)}.mzd .lb b{color:var(--fg);font-weight:600}
+.mzcmp{display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;align-items:baseline;font:500 14.5px var(--f-b)}
+.mzcmp span{color:var(--mut)}.mzcmp s{color:var(--mut);font-size:13.5px}.mzcmp b{font-weight:700}.mzcmp i{font-style:normal;color:var(--mut);grid-column:2/4;justify-self:end}
+.mzok{margin:0;font:600 15px var(--f-b);color:var(--ok)}
+.mzf{display:grid;grid-template-columns:1fr 14px 1fr 14px 1fr;align-items:center;gap:4px}
+.mzf .n{background:var(--panel2);border-radius:10px;padding:10px 6px;display:grid;justify-items:center;gap:4px;text-align:center;min-height:118px;align-content:center;min-width:0}
+.mzf .n svg{width:30px;height:30px}.mzf .n>b{font:600 13px var(--f-b)}.mzf .n small{font:500 12px/1.5 var(--f-b);color:var(--mut)}.mzf .n .mzc{font-size:13px!important;line-height:24px}
+.mzf .a{color:var(--mut);text-align:center;font:500 18px var(--f-b)}.mzf .n.z{box-shadow:inset 0 0 0 1.5px #58c322}
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="ps"><div id="pb"></div><div id="pf"></div></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
@@ -1916,31 +1971,21 @@ function balCalc(s,H,X,k,pure){const T=s.dur||30,r50=v=>Math.round(v/50)*50,r10=
   if(!ui.balRoll||ui.balRoll.n!==n){let dd=0,mt=0;if(n===1){if(Math.random()<.5)dd=1;else mt=1}else if(n>=2){dd=mt=1;for(let i=2;i<n;i++)if(Math.random()<.5)dd++;else mt++}ui.balRoll={n,dd,mt}}
   return{o,n,dd:ui.balRoll.dd,mt:ui.balRoll.mt}}
 // Zombie-Einstellungen (nur im Zombie-Modus, direkt unter den Modus-Kacheln)
-function zAcc(g){const s=g.s,zt=s.zT??DEF.zT,zr=s.zR??DEF.zR,pg=zPg(g),zc=zCap(g),ze=zEarly(g),mm=v=>v%60?v+' s':v/60+' Min';
-  const sum=`Verwandlung ${mm(zt)} im ${zr}-m-Kreis · Ping ${pg?'wächst bis '+String(zc).replace('.',',')+'×':'fest'}`;
-  const t=`<small class=mut style="padding:2px 0 6px">Wer gefangen wird, wird Zombie, muss aber erst am Fangort warten. Erst danach darf er fangen.</small>`
-    +nf('zT')+nf('zR')
-    +swt('zP',pg,'Ping wächst mit der Horde','Je mehr Zombies und je weniger Hider, desto seltener der Ping')+(pg?nf('zC',1):'')
-    +swt('zB',ze,'Zeitbonus nur für frühe Zombies','Den Zeitbonus bekommt nur, wer zur Bonus-Minute schon Zombie ist');
-  return acc('zmb','skull','Zombie',sum,t,mm(zt)+' · '+zr+' m')}
+function zAcc(g){const s=g.s,zt=s.zT??DEF.zT,zr=s.zR??DEF.zR,mm=v=>v%60?v+' s':v/60+' Min';
+  return acc('zmb','skull','Zombie','',pgZmb(g),mm(zt)+' · '+zr+' m')}
 function balAcc(g){const s=g.s,{H,X}=balRoster(),k=ui.balK==null?2:ui.balK;
-  if(!H||!X)return acc('bal','bal','Balancing','Braucht mindestens 1 '+HN(g)+' und 1 Hider','<small class=mut>Sobald es '+HNP(g)+' und Hider gibt, kann das Balancing die Werte an eure Besetzung anpassen.</small>','—');
+  if(!H||!X)return acc('bal','bal','Balancing','','<p class=mzlead>Sobald es '+HNP(g)+' und Hider gibt, passt das Balancing die Werte an eure Besetzung an.</p>','—');
   const c=balCalc(s,H,X,k),o=c.o,sv=md(g)!=='mission',dd=s.ddN||0,mt=s.mtN||0;
   const tOk=dd+mt===c.n&&(c.n<2||(dd>=1&&mt>=1)),same=Object.keys(o).every(q=>s[q]===o[q])&&tOk&&(!sv||!!s.shOn);
   const moved=ui.balLast&&(ui.balLast.H!==H||ui.balLast.X!==X);
-  const seg=`<div class=seg style="width:100%">${BALN.map((x,i)=>`<button class="${i===k?'on':''}" style="flex:1;padding:6px 0" aria-label="${x}" onclick="ui.balK=${i};panel(1)">${['◀◀','◀','●','▶','▶▶'][i]}</button>`).join('')}</div>
-    <div class="row sp sm mut" style="margin-top:6px"><span style="flex:none">Hider-freundlich</span><b style="flex:none;color:var(--fg)">${BALN[k].replace('Sehr ','Sehr ')}</b><span style="flex:none;text-align:right">Hunter-freundlich</span></div>`;
-  const R=(a,v0,v1)=>`<div class=rl><span>${a}</span><small>${v0===v1?v1:`<span class=mut style="text-decoration:line-through">${v0}</span> → <b style="color:var(--fg)">${v1}</b>`}</small></div>`;
-  let b=`<p class="sm mut" style="margin:6px 0 8px">Passt „${PRN[s.dur]||s.dur+' Min'}“ an eure Besetzung an: <b style="color:var(--fg)">${H} ${H===1?HN(g):HNP(g)} · ${X} Hider</b></p>`+seg;
-  if(same)b+=`<div class=card style="margin-top:10px"><div class="row sp"><span class="chip ok" style="flex:none">✓ Angewendet</span><small class=mut style="flex:none">${H} ${H===1?HN(g):HNP(g)} · ${X} Hider</small></div><small class=mut>Einzelne Werte kannst du in den anderen Einstellungen weiter von Hand ändern.</small></div>`;
-  else{b+=`<div class=card style="margin-top:10px">${moved?`<div class="row sp"><span class="chip or" style="flex:none">Besetzung geändert</span><small class=mut style="flex:none">angewendet für ${ui.balLast.H} · ${ui.balLast.X}</small></div>`:`<div class=hd>Vorschau</div>`}<div>`
-      +R('Startradius',s.r0+' m',o.r0+' m')+R('Mindestradius',s.rMin+' m',o.rMin+' m')+R('Schrumpfen',`${sstp(s)} m alle ${s.shrink} Min`,`${o.step} m alle ${o.shrink} Min`)
-      +R('Headstart',s.head+' Min',o.head+' Min')+R('Ping alle',s.ping+' s',o.ping+' s')+R('Immunität',(s.imm||0)+' s',o.imm+' s')
-      +R('Hunter-Boni',`${s.hbN||0} · ${s.hbC||0} s / ${s.hbL||0} s`,`${o.hbN} · ${o.hbC} s / ${o.hbL} s`)
-      +(sv?R('Safehouse',s.shOn?'an':'aus','an'):'')+R('Dead Drops',String(dd),String(c.dd))+R('Meetings',String(mt),String(c.mt))
-      +`</div><small class=mut>Hunter-Boni: Vorrat · Wartezeit nach Fang / Live-Dauer. Dead Drop und Meeting werden zufällig verteilt, ab 2 Aufgaben kommt jede mindestens einmal vor.</small></div>`
-      +`<button style="margin-top:10px" onclick="balGo()">${moved?'Neu anwenden':'Balancing anwenden'}</button>`}
-  return acc('bal','bal','Balancing',same?'Angewendet · '+BALN[k]:`Für ${H} ${H===1?HN(g):HNP(g)} · ${X} Hider anpassen`,b,same?'✓ '+BALN[k]:`<span class=balw><i></i>an ${H} ${H===1?HN(g):HNP(g)} · ${X} Hider anpassen</span>`)}
+  const ros=`<div class=mzro>${SHP(1,'transparent')}${H} ${H===1?HN(g):HNP(g)} <span>gegen</span> ${SHP(0,'transparent')}${X} Hider</div>`;
+  const dial=`<div class=mzd><div class=tr><span class=bar></span>${BALN.map((x,i)=>`<button class="st${i===k?' on':''}" style="left:${i*25}%" onclick="ui.balK=${i};panel(1)" aria-label="${x}"></button>`).join('')}</div><div class=lb><span>Hider</span><b>${BALN[k]}</b><span>${HNP(g)}</span></div></div>`;
+  const rows=[['Zone',s.r0+' m',o.r0+' m'],['Mindestradius',s.rMin+' m',o.rMin+' m'],['Schrumpfen',`${sstp(s)} m · ${s.shrink} Min`,`${o.step} m · ${o.shrink} Min`],['Headstart',s.head+' Min',o.head+' Min'],['Ping',mmss(s.ping),mmss(o.ping)],['Immunität',mmss(s.imm||0),mmss(o.imm)],
+    ['Hunter-Boni',`${s.hbN||0} · ${mmss(s.hbC||0)} · ${mmss(s.hbL||0)}`,`${o.hbN} · ${mmss(o.hbC)} · ${mmss(o.hbL)}`]].concat(sv?[['Safehouse',s.shOn?'an':'aus','an']]:[],[['Dead Drops',String(dd),String(c.dd)],['Meetings',String(mt),String(c.mt)]]);
+  const cmp=`<div class=mzcmp>${rows.map(([a,v0,v1])=>`<span>${a}</span>${v0===v1?`<i>${v1}</i>`:`<s>${v0}</s><b>${v1}</b>`}`).join('')}</div><small class=mut>Hunter-Boni: Vorrat · Wartezeit · Live-Dauer. Dead Drop und Meeting werden zufällig verteilt.</small>`;
+  let b=ros+dial+card(same?'Übernommen':'Das ändert sich',cmp)+`<p class=mzlead>Ziel: Beide Seiten gewinnen etwa gleich oft. Die Stufe verschiebt das in eine Richtung.</p>`;
+  b+=same?`<p class=mzok>✓ Übernommen für ${H} · ${X}</p>`:(moved?`<small style="color:var(--xping)">Besetzung geändert, übernommen war ${ui.balLast.H} · ${ui.balLast.X}</small>`:'')+`<button onclick="balGo()">${moved?'Neu übernehmen':'Übernehmen'}</button>`;
+  return acc('bal','bal','Balancing','',b,same?'✓ '+BALN[k]:`<span class=balw><i></i>an ${H} ${H===1?HN(g):HNP(g)} · ${X} Hider anpassen</span>`)}
 function balGo(){if(!G||G.host!==uid||G.status!=='lobby')return;const{H,X}=balRoster();if(!H||!X)return;const k=ui.balK==null?2:ui.balK,c=balCalc(G.s,H,X,k);
   const u=Object.assign({},c.o,{ddN:c.dd,mtN:c.mt});if(md(G)!=='mission')u.shOn=true;if(G.s.hk)Object.assign(u,hkDef(Object.assign({},G.s,u)));
   db.ref(`games/${code}/s`).update(u).then(()=>{ui.balLast={H,X};ui.balRoll=null;toast('Balancing angewendet');panel(1)}).catch(e=>toast('Konnte nicht speichern: '+(e&&e.code||e)))}
@@ -1951,7 +1996,7 @@ const swt=(k,on,l,sub='',sb)=>`<div class="fl${sb?' sub':''}"><label>${l}${sub?`
 // acc: Zeile in der Einstellungsliste; Antippen öffnet die Unterseite (ui.sub), lobbyUI zeigt dann nur deren Inhalt (SUBP)
 let SUBP=null;
 const acc=(id,icn,title,sum,body,val)=>{if(ui.sub===id)SUBP={t:title,sum,b:body};return `<button class=lrw onclick="subGo('${id}')"><span>${title}</span>${val!=null?`<span class=v>${val}</span>`:''}${ic('chev')}</button>`};
-const subGo=id=>{ui.sub=id;panel(1);if(id)$('panel').classList.remove('m','c');else if(typeof pMidSet==='function')pMidSet();$('ps').scrollTop=0};
+const subGo=id=>{ui.sub=id;ui.ed=null;panel(1);if(id)$('panel').classList.remove('m','c');else if(typeof pMidSet==='function')pMidSet();$('ps').scrollTop=0};
 const grp=(h,sub,x)=>(h?`<div class=gh><span>${h}</span>${sub?`<small>${sub}</small>`:''}</div>`:'')+`<div class="grp lrws">${x}</div>`;
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
 const shCode=()=>{const t='Blown Cover – Spiel-Code '+code;try{if(navigator.share){navigator.share({title:'Blown Cover',text:t}).catch(()=>{});return}}catch(e){}cpCode()};
@@ -1981,22 +2026,14 @@ function lobbyUI(g,host,me_){
       +`<small class=lnote>Tippe auf dich, um deine Farbe zu ändern.${host?' Tippe auf andere, um sie zu verwalten.':''}</small>`;
   }else if(host){
     const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,nT=(sv?(s.shOn?1:0):1)+(s.ddN||0)+(s.mtN||0)+(s.hk?1:0);
-    const bo=bonOn(g),rw=x=>`<span class=rw>Belohnung: ${x}</span>`;
-    let t=nfl('ddN','Dead Drops',bo?rw('Satellitenbild und Hunter-Radar, per Zufall verteilt'):'')+((s.ddN||0)>0?nf('ddT',1):'')+nfl('mtN','Meetings',bo?rw('jeder wählt Hunter-Radar oder Satellitenbild'):'')+((s.mtN||0)>0?nf('mtT',1):'');
-    if(sv)t+=swt('shOn',!!s.shOn,'Safehouse',rw('Immunität für Platz 1 und 2'))+(s.shOn?nf('shT',1):'');
-    else t+=nf('evT');
-    t+=`<div class=fl><label>Terminal<small>Hider hacken ein Terminal und sehen dann die Hunter. Scheitern sie, bekommen die Hunter ein Sperrgebiet.</small></label><button class="sw ${s.hk?'on':''}" role=switch aria-checked="${!!s.hk}" aria-label="Terminal" onclick="setHk(${s.hk?0:1})"></button></div>`+(s.hk?['hkS','hkZ','hkT','hkR','hkN','ozR'].map(q=>nf(q,1)).join(''):'');
-    if(((s.ddN||0)+(s.mtN||0))>0)t+=swt('tsol',!!s.tsol,'Kompromittierung','Gefangene verraten den Ort ihrer Aufgabe, wenn kein Ersatz frei ist. Der Partner kann sie allein erledigen.');
-    if(nT>0)t+=nf('taskR');
-    if(((s.ddN||0)+(s.mtN||0))>0&&2*((s.ddN||0)+(s.mtN||0))>=nh)t+=`<small class=mut style="padding-top:8px">Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}.</small>`;
     const mo=md(g),list=(mo==='zombie'?grp('','',zAcc(g)):'')
       +`<h3>Modus</h3><div class="tiles t3"><button class="tile ${mo==='survive'?'on':''}" onclick="setMode('survive')"><b>Untertauchen</b><span>Durchhalten</span></button><button class="tile ${mo==='mission'?'on':''}" onclick="setMode('mission')"><b>Mission</b><span>Aufgaben erfüllen</span></button><button class="tile zt ${mo==='zombie'?'on':''}" onclick="setMode('zombie')"><b>Zombie</b><span>Gefangene jagen mit</span></button></div>
     <div class=zhint>Zonenmitte: roten Punkt auf der Karte ziehen · <button onclick="ctr()">Auf mich</button></div>
     <h3>Dauer</h3><div class=pre>${[30,60,90,120].map(d=>`<button class="${s.dur===d?'on':''}" onclick="setPre(${d})" aria-label="${PRN[d]}, ${d} Minuten"><b>${d}</b>Min</button>`).join('')}</div>
     ${grp('','',balAcc(g))}<div data-mid style="height:0;margin-top:-12px"></div>`
-      +grp('','',acc('zone','zone','Zone','',nf('r0')+nf('rMin')+nf('step')+nf('shrink',1)+nf('head')+nf('ot')+nf('pen'),`${s.r0} → ${s.rMin} m`)
-        +acc('game','clock','Zeit & Pings','',nf('dur')+nf('ping')+swt('hp',hpOn(g),'Hider sehen einander','Bei jedem Ping auch die Positionen der Mitspieler',1)+`<h3>Signal</h3>`+nf('gw')+swt('dq',dqOn(g),'Ausschluss bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit möglich')+(dqOn(g)?nf('gd',1):''),`${s.dur} Min · alle ${mmss(s.ping)}`)
-        +acc('tasks','home','Aufgaben','',t,nT?String(nT):'keine')+bnAcc(g)
+      +grp('','',acc('zone','zone','Zone','',pgZone(g),`${s.r0} → ${s.rMin} m`)
+        +acc('game','clock','Zeit & Pings','',pgZeit(g),`${s.dur} Min · alle ${mmss(s.ping)}`)
+        +acc('tasks','home','Aufgaben','',pgTasks(g),nT?String(nT):'keine')+bnAcc(g)
         +acc('tech','gear','Technik','',swt('rp',!!s.rp,'Runde aufzeichnen','Für das Replay am Ende')+`<small class=mut style="padding-top:8px">Jedes Handy speichert seinen eigenen Weg und teilt ihn bei Spielende. Mit der nächsten Runde wird alles vom Server gelöscht.</small>`+swt('an',!!s.an,'Analyse-Protokoll','Nur für Tests: Nach der Runde kannst du eine Analyse-Datei herunterladen.'),`Replay ${s.rp?'an':'aus'}`));
     if(SUBP)b=''; b+=SUBP?`<div class=lsub><button class=lback onclick="subGo(null)">${ic('chev')} Einstellungen</button><h2>${SUBP.t}</h2></div>${SUBP.b}`:list;
   }else{
@@ -2026,13 +2063,8 @@ function bnDefs(g){const s=g.s,sv=md(g)!=='mission',bo=bonOn(g),tk=(s.ddN||0)+(s
       f:()=>nfl('bmR','Radius','0 = auto')+nfl('bmT','Dauer','0 = auto')+aut+(hb?nfl('hbT','Hider-Radar kommt nach','Zeitbonus für die Hunter, 0 = aus'):'')},
     hb:{i:'hunter',n:'Hunter-Boni',sd:'hu',on:true,src:'',val:'',d:'Nach jedem Fang wählt der Hunter Live-Standort oder Extra-Ping. Dazu kommt das Hider-Radar als Zeitbonus.',
       f:()=>swt('hbOn',hb,'Hunter-Boni',hb?'an':'aus')+(hb?nfl('hbN','Vorrat','So viele Boni auf einmal')+nfl('hbC','Wartezeit','Bis ein neuer Bonus einsatzbereit ist'):'')}}}
-function bnAcc(g){const s=g.s,D_=bnDefs(g),sv=md(g)!=='mission';
-  const tile=k=>{const d=D_[k];return `<button class="tile bnt${d.on?'':' off'}${d.wide?' wide':''}" onclick="bnShow('${k}')" aria-label="${d.n} einstellen"><span class=bnr>${ic(d.i)}<span class=bns>${d.sd==='both'?BNS.hi+BNS.hu:BNS[d.sd]}</span></span><b>${d.n}</b><span>${d.on?d.src:'Nicht im Spiel: '+d.why}</span>${d.on?`<span class=bnv>${d.val}</span>`:''}</button>`};
-  const n=['imm','sat','live','ping','bm'].filter(k=>D_[k].on).length,hb=hbOn(g);
-  const b=(sv?'':swt('bon',s.bon!==false,'Belohnungen für Dead Drop und Meeting','Aus: Aufgaben bringen nur den Missionserfolg'))
-    +`<h3>Hider</h3><div class=tiles>${tile('imm')+tile('sat')}</div><h3>Hunter</h3><div class=tiles>${tile('live')+tile('ping')}</div>`+swt('fs',fsOn(g),'Festsetzen','Hunter zwingen einen Hider in '+fsRv(g)+' m zum Stehenbleiben.')+(fsOn(g)?nf('fsR',1)+nf('fsT',1)+`<small class=mut style="padding-top:6px">Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</small>`:'')+`<h3>Beide Seiten</h3><div class=tiles>${tile('bm')}</div>`
-    +`<button class="rl bnhb" onclick="bnShow('hb')"><span>Hunter-Boni</span><small>${hb?`Vorrat ${s.hbN||2} · Wartezeit ${s.hbC||0} s`:'aus'} ${ic('chev')}</small></button>`;
-  return acc('bon','gift','Boni',`${n} von 5 im Spiel`,b,n+' von 5')}
+function bnAcc(g){const D_=bnDefs(g),n=['imm','sat','live','ping','bm'].filter(k=>D_[k].on).length;
+  return acc('bon','gift','Boni','',pgBon(g),n+' von 5')}
 function bnShow(k){ui.bn=k;bnSync()}
 function bnClose(){ui.bn=null;const e=$('bnd');if(e)e.remove()}
 function bnSync(){const k=ui.bn;let e=$('bnd');if(!k||!G||G.status!=='lobby'||G.host!==uid){if(e)e.remove();ui.bn=null;return}
@@ -2042,6 +2074,85 @@ function bnSync(){const k=ui.bn;let e=$('bnd');if(!k||!G||G.status!=='lobby'||G.
     +(d.src?`<div class=rl><span>${d.on?'Woher':'Nicht im Spiel'}</span><small>${d.on?d.src:d.why}</small></div>`:'')
     +`<div class=bnf>${d.f?d.f():'<small class=mut>Dieser Bonus hat keine Einstellungen.</small>'}</div><button onclick="bnClose()">Fertig</button></div>`)}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.bn)bnClose()});
+// §EINST-SEITEN Unterseiten der Einstellungen mit eigenem Layout (15.11.): Bild/Zeitstrahl oben, Sätze mit antippbaren Werten
+// (Chip chp → großer Regler pop darunter, offener Wert in ui.ed), große Zahlen big, Karten card. Jede Einstellung aus FD hat hier ihren Platz.
+const sv_=k=>G.s[k]??DEF[k]??hkDef(G.s)[k];
+const fv=(k,v=sv_(k))=>{const u=FD[k]?FD[k][4]:'';if(u==='s')return v>=60?mmss(v):v+' s';if(u==='Min')return v+' Min';if(u==='m')return v+' m';if(u==='×')return String(v).replace('.',',')+'×';return String(v)};
+const edGo=k=>{ui.ed=ui.ed===k?null:k;panel(1)};
+const chp=(k,txt)=>`<button class="mzc${ui.ed===k?' on':''}" onclick="edGo('${k}')" aria-label="${FD[k]?FD[k][0]:k} ändern">${txt??fv(k)}</button>`;
+const pop=(k,hint='',always)=>{if(!always&&ui.ed!==k)return'';const f=FD[k],v=sv_(k);
+  return `<div class=mzp><button class=n onclick="stp('${k}',-1)" aria-label="${f[0]} weniger">−</button><div><input type=number inputmode=numeric value="${v}" min=${f[1]} max=${f[2]} step=${f[3]} onchange="setS('${k}',this.value,${f[1]},${f[2]})" aria-label="${f[0]}"><small>${f[4]==='s'&&v>=60?mmss(v)+' · ':f[4]&&f[4]!=='s'?f[4]+' · ':''}${hint||f[0]}</small></div><button class=n onclick="stp('${k}',1)" aria-label="${f[0]} mehr">+</button></div>`};
+const big=(k,l)=>{const f=FD[k],v=sv_(k);return `<div class=mzb><small>${l||f[0]}</small><div class=r><b>${v}<span>${f[4]}</span></b><span class=pm><button class=n onclick="stp('${k}',-1)" aria-label="${f[0]} weniger">−</button><button class=n onclick="stp('${k}',1)" aria-label="${f[0]} mehr">+</button></span></div></div>`};
+const card=(h,x,cls='')=>`<div class="mzk ${cls}">${h?`<h4>${h}</h4>`:''}${x}</div>`;
+const swb=(k,on,fn)=>`<button class="sw ${on?'on':''}" role=switch aria-checked="${on}" aria-label="${k}" onclick="${fn}"></button>`;
+
+function pgZone(g){const s=g.s,z=zoneSeq(s),n=z.length-1,end=(s.head||0)+n*s.shrink,walk=Math.round(2*s.r0/80),cx=180,cy=100,R=90,sc=R/s.r0,rm=s.rMin*sc;
+  let rings='';const every=Math.max(1,Math.ceil(n/6));for(let i=every;i<n;i+=every)rings+=`<circle cx="${cx}" cy="${cy}" r="${(z[i]*sc).toFixed(1)}" fill="none" stroke="#e5484d" stroke-opacity=".25"/>`;
+  const svg=`<svg class=mzv viewBox="0 0 360 200" role=img aria-label="Zone von ${s.r0} m auf ${s.rMin} m"><circle cx="${cx}" cy="${cy}" r="${R}" fill="#e5484d" fill-opacity=".08" stroke="#e5484d" stroke-width="2"/>${rings}
+    <circle cx="${cx}" cy="${cy}" r="${rm.toFixed(1)}" fill="#e5484d" fill-opacity=".1" stroke="#e4e2dd" stroke-width="1.5" stroke-dasharray="5 4"/><line x1="${cx}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="#e4e2dd" stroke-opacity=".45"/><circle cx="${cx}" cy="${cy}" r="3" fill="#e4e2dd"/>
+    <text x="${cx+R+6}" y="${cy-5}" class=t1>${s.r0} m</text><text x="${cx+R+6}" y="${cy+12}" class=t2>Start</text><text x="${cx-rm-8}" y="${cy+4}" text-anchor="end" class=t1>${s.rMin} m</text><text x="${cx-rm-8}" y="${cy+20}" text-anchor="end" class=t2>Ende</text></svg>`;
+  return svg+`<div class=mzleg style="justify-content:center"><span>Quer durch: ${walk} Min zu Fuß</span><span>Kleinste Zone ab Min ${end}</span></div>`
+    +`<div class=mz2>${big('r0','Startradius')}${big('rMin','Mindestradius')}</div>`
+    +card('Schrumpfen',`<p class=mzs>Die Zone wird alle ${chp('shrink')} um ${chp('step')} kleiner.</p>`+pop('shrink',`${n} Schritte bis ${s.rMin} m`)+pop('step',`${n} Schritte bis ${s.rMin} m`))
+    +card('Zone verlassen',`<p class=mzs>Wer draußen ist, wird live gezeigt. ${(s.ot||0)>0?`Nach ${chp('ot')} scheidet er aus`:`Ausscheiden: ${chp('ot','nie')}`}, nach der Rückkehr bleibt er ${chp('pen')} sichtbar.</p>`+pop('ot','Höchstens draußen · 0 = nie')+pop('pen','Sichtbar nach der Rückkehr'))
+    +`<div class=zhint>Zonenmitte: roten Punkt auf der Karte ziehen · <button onclick="ctr()">Auf mich</button></div>`}
+
+function pgZeit(g){const s=g.s,T=s.dur||60,h=s.head||0,p=(s.ping||60)/60,X=m=>10+340*Math.min(1,m/T);let pg=[];for(let t=h+p;t<T&&pg.length<400;t+=p)pg.push(t);
+  const st=T<=30?10:T<=90?15:30;let tk='';for(let m=0;m<=T;m+=st)tk+=`<line x1="${X(m).toFixed(1)}" y1="44" x2="${X(m).toFixed(1)}" y2="50" stroke="#363b42"/><text x="${X(m).toFixed(1)}" y="64" text-anchor="middle" class=t2>${m}′</text>`;
+  const svg=`<svg class=mzv viewBox="0 0 360 70" role=img aria-label="${pg.length} Pings in ${T} Minuten"><defs><pattern id=mzh width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#9ca1a8" stroke-opacity=".55" stroke-width="2"/></pattern></defs>
+    <rect x="10" y="30" width="340" height="8" rx="4" fill="#272b30"/>${h?`<rect x="10" y="30" width="${(X(h)-10).toFixed(1)}" height="8" rx="4" fill="url(#mzh)"/><text x="10" y="18" class=t2>Headstart</text>`:''}
+    ${pg.map(t=>`<circle cx="${X(t).toFixed(1)}" cy="34" r="${pg.length>30?2.5:4.5}" fill="#ff8a1f"/>`).join('')}${tk}</svg>`;
+  return card('',svg+`<div class=mzleg><span><i style="background:#ff8a1f"></i>${pg.length} Pings</span><span><i style="background:#9ca1a8"></i>${h} Min Headstart</span></div>`,'tl')
+    +`<div class=mz2>${big('dur','Dauer')}${big('head','Headstart')}</div>`
+    +card('Pings',pop('ping','Abstand zwischen zwei Pings',1)+swt('hp',hpOn(g),'Hider sehen einander','Bei jedem Ping auch die Mitspieler'))
+    +card('Signal',`<p class=mzs>Ohne GPS warnt die App nach ${chp('gw')}.${dqOn(g)?` Nach ${chp('gd')} scheidet man aus.`:''}</p>`+pop('gw','Warnung ohne Signal nach')+pop('gd','Ausschluss ohne Signal nach')+swt('dq',dqOn(g),'Ausschluss bei Signalverlust','Aus: nur Warnung, Wiedereinstieg jederzeit'))}
+
+function pgTasks(g){const s=g.s,sv=md(g)!=='mission',bo=bonOn(g),T=s.dur||60,it=[],off=[];
+  const rw=x=>bo?`<small class=rw>Belohnung: ${x}</small>`:'';
+  const cnt=k=>`<span class=mzn><button class=n onclick="stp('${k}',-1)" aria-label="weniger">−</button><b>${s[k]||0}</b><button class=n onclick="stp('${k}',1)" aria-label="mehr">+</button></span>`;
+  const add=(t,tk,lab,q,name,ctl,sub,more)=>it.push({t,h:`<div class=mzl>${tk?chp(tk,lab):`<span class=mzl0>${lab}</span>`}</div><div class=mztc><div class=mzt><span class=q>${ic(q)}</span><b>${name}</b>${ctl}${sub}</div>${more||''}</div>`});
+  if((s.ddN||0)>0)add(s.ddT||0,'ddT',(s.ddT||0)+'′','box','Dead Drop',cnt('ddN'),rw('Satellitenbild und Hunter-Radar, per Zufall verteilt'),pop('ddT','Dead Drop ab'));else off.push(['Dead Drop','box',"setS('ddN',1,0,9)"]);
+  if((s.mtN||0)>0)add(s.mtT||0,'mtT',(s.mtT||0)+'′','meet','Meeting',cnt('mtN'),rw('jeder wählt Hunter-Radar oder Satellitenbild'),pop('mtT','Meeting ab'));else off.push(['Meeting','meet',"setS('mtN',1,0,9)"]);
+  if(sv){if(s.shOn)add(s.shT||0,'shT',(s.shT||0)+'′','home','Safehouse',swb('Safehouse',1,"setB('shOn','0')"),rw('Immunität für Platz 1 und 2'),pop('shT','Safehouse ab'));else off.push(['Safehouse','home',"setB('shOn','1')"])}
+  else add(T-(s.evT||0),null,(T-(s.evT||0))+'′','exit','Evakuierung','',`<small>in den letzten ${chp('evT')}</small>`,pop('evT','Evakuierung in den letzten'));
+  if(s.hk)add(sv_('hkS'),'hkS',sv_('hkS')+'′','hack','Terminal',swb('Terminal',1,'setHk(0)'),`<small class=rw>Gelingt der Hack, sehen die Hider die Hunter live. Scheitert er, bekommen die Hunter ein Sperrgebiet.</small>`,
+    `<p class="mzs s">Zone ${chp('hkZ')}, allein ${chp('hkT')} hacken, ${chp('hkN')} Versuche. Gegenüberwachung ${chp('hkR')}, Sperrgebiet ${chp('ozR')}.</p>`+pop('hkS','Terminal ab')+['hkZ','hkT','hkN','hkR','ozR'].map(q=>pop(q)).join(''));
+  else off.push(['Terminal','hack','setHk(1)']);
+  it.sort((a,b)=>a.t-b.t);
+  const nh=Object.values(P()).filter(p=>p.role==='hider'&&!p.w).length,pr=(s.ddN||0)+(s.mtN||0),nT=(sv?(s.shOn?1:0):1)+pr+(s.hk?1:0);
+  return `<p class=mzlead>Wann welche Aufgabe dazukommt. Die Minute antippen, um sie zu verschieben.</p><div class=mztl>${it.map(x=>x.h).join('')}${off.map(([n,q,fn])=>`<div class=mzl><span class=mzl0>—</span></div><div class=mztc><div class="mzt off"><span class=q>${ic(q)}</span><b>${n}</b><button class=mza onclick="${fn}">Hinzufügen</button></div></div>`).join('')}</div>`
+    +(pr>0&&2*pr>=nh?`<small class=mut>Alle ${nh} Hider haben eine Aufgabe. Fällt ein Partner aus, ${s.tsol||!sv?'macht der andere allein weiter':'verfällt die Aufgabe'}.</small>`:'')
+    +(pr>0?swt('tsol',!!s.tsol,'Kompromittierung','Gefangene verraten den Ort ihrer Aufgabe, wenn kein Ersatz frei ist. Der Partner kann sie allein erledigen.'):'')
+    +(nT>0?`<p class="mzs s">Aufgabenorte liegen ${(s.taskR||0)>0?`höchstens ${chp('taskR')}`:chp('taskR','automatisch')} um die Zonenmitte.</p>`+pop('taskR','Aufgabenradius · 0 = automatisch'):'')
+    +(nT>0?`<small class=mut>Die Werte der Belohnungen stellst du unter <b style="color:var(--fg)">Boni</b> ein.</small>`:'')}
+
+const TRIS='<svg class=t viewBox="0 0 56 56"><path d="M28 4 L53 51 L3 51Z" fill="var(--panel)" stroke="#4fb3f0" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+function pgBon(g){const s=g.s,D_=bnDefs(g),sv=md(g)!=='mission',hb=hbOn(g),sel=ui.ed&&ui.ed.startsWith('b:')?ui.ed.slice(2):null;
+  const I=(key,def,icn,tri,label,val)=>{const d=D_[def];return `<button class="mzi${d.on?'':' off'}${sel===key?' sel':''}" onclick="edGo('b:${key}')" aria-label="${label} einstellen"><span class="o${tri?' tri':''}">${tri?TRIS:''}${ic(icn)}</span><b>${label}</b><small>${d.on?val:'aus'}</small></button>`};
+  const SH=(keys,map)=>{const k=keys.find(x=>x===sel);if(!k)return'';const d=D_[map[k]];return `<div class=mzsh style="--x:${16+keys.indexOf(k)*33}%"><p class="mzs s">${d.d}</p>${d.on?'':`<small class=mut>Nicht im Spiel: ${d.why}</small>`}${d.f?d.f():''}</div>`};
+  const hi=['imm','sat','bm1'],hu=['live','ping','bm2'],map={imm:'imm',sat:'sat',bm1:'bm',live:'live',ping:'ping',bm2:'bm'};
+  return (sv?'':swt('bon',s.bon!==false,'Belohnungen für Dead Drop und Meeting','Aus: Aufgaben bringen nur den Missionserfolg'))
+    +`<p class=mzlead>So sehen die Boni im Spiel aus. Antippen zum Einstellen.</p>`
+    +`<div class=mzh><h3>Hider</h3><small>aus Aufgaben</small></div><div class=mzg>${I('imm','imm','shield',0,'Immunität',fmt((s.imm||120)*1000))+I('sat','sat','sat',0,'Satellitenbild',fv('sbT',sbV(s)))+I('bm1','bm','radar',0,'Hunter-Radar',bmRv(s)+' m')}</div>`+SH(hi,map)
+    +`<div class=mzh><h3>Hunter</h3><small>nach jedem Fang</small></div><div class=mzg>${I('live','live','live',1,'Live-Standort',fv('hbL'))+I('ping','ping','extra',1,'Extra-Ping','sofort')+I('bm2','bm','radar',1,'Hider-Radar',(s.hbT||0)>0?'ab Min '+s.hbT:'aus')}</div>`+SH(hu,map)
+    +(hb?`<p class=mzs>Höchstens ${chp('hbN')} Boni auf Vorrat, ein neuer ist nach ${chp('hbC')} bereit.</p>`+pop('hbN','Vorrat')+pop('hbC','Wartezeit nach Fang'):'')
+    +swt('hbOn',hb,'Hunter-Boni','Live-Standort und Extra-Ping nach jedem Fang')
+    +card('',swt('fs',fsOn(g),'Festsetzen','Hunter zwingen einen Hider in der Nähe zum Stehenbleiben.')+(fsOn(g)?`<p class="mzs s">Reichweite ${chp('fsR')}, Stehzeit ${chp('fsT')}. Danach wartet der Hunter so lange wie nach einem Fang. Missglückt der Fang, ist der Hider ½ Immunität geschützt, der nächste Ping fällt aus und er sieht den Hunter live.</p>`+pop('fsR')+pop('fsT'):''))}
+
+function pgZmb(g){const s=g.s,pgr=zPg(g),zc=zCap(g),p0=s.ping||60;
+  const cau='<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="9" fill="#eab308" stroke="#e4e2dd" stroke-width="2"/><path d="M8 8 L22 22 M22 8 L8 22" stroke="#e5484d" stroke-width="2.5"/></svg>',
+    wai='<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#58c322" stroke-width="1.5" stroke-dasharray="3 3"/><circle cx="15" cy="15" r="5" fill="#eab308" stroke="#e4e2dd" stroke-width="1.5"/></svg>',
+    zom='<svg viewBox="0 0 30 30"><path d="M15 3 L27 26 L3 26Z" fill="#eab308" stroke="#7ee04a" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+  let ch='';if(pgr){const all=Object.values(P()).filter(p=>p.role&&!p.w),n=Math.max(3,all.length),H0=Math.max(1,rndOn(g)?rndH(g):all.filter(p=>p.role==='hunter').length||1),X0=Math.max(1,n-H0),pts=[];
+    for(let H=H0;H<n;H++){const X=n-H;pts.push([H,Math.max(30,Math.min(zc*p0,Math.round(p0*Math.sqrt((H/X)/(H0/X0))/10)*10))])}
+    const W=300,mx=zc*p0,px=i=>24+i*(W-48)/Math.max(1,pts.length-1),py=v=>84-60*(v-30)/Math.max(1,mx-30);
+    ch=`<svg class=mzv viewBox="0 0 ${W} 108" role=img aria-label="Ping je Zahl der Zombies"><line x1="18" y1="${py(mx).toFixed(0)}" x2="${W-6}" y2="${py(mx).toFixed(0)}" stroke="#363b42" stroke-dasharray="4 4"/><text x="18" y="${(py(mx)-5).toFixed(0)}" class=t2>Deckel ${String(zc).replace('.',',')}×</text>
+      <path d="M${pts.map((q,i)=>px(i).toFixed(0)+' '+py(q[1]).toFixed(0)).join(' L')}" fill="none" stroke="#58c322" stroke-width="2"/>${pts.map((q,i)=>`<circle cx="${px(i).toFixed(0)}" cy="${py(q[1]).toFixed(0)}" r="3.5" fill="#58c322"/><text x="${px(i).toFixed(0)}" y="${(py(q[1])-8).toFixed(0)}" text-anchor="middle" class=t3>${mmss(q[1])}</text><text x="${px(i).toFixed(0)}" y="102" text-anchor="middle" class=t2>${q[0]}</text>`).join('')}</svg><small class=mut>Ping-Abstand je Zahl der Zombies (${n} Spieler)</small>`}
+  return `<div class=mzf><div class=n>${cau}<b>Gefangen</b><small>am Fangort</small></div><span class=a>›</span><div class=n>${wai}<b>${chp('zT')}</b><small>im ${chp('zR')} Kreis warten</small></div><span class=a>›</span><div class="n z">${zom}<b>Zombie</b><small>jagt mit</small></div></div>`
+    +pop('zT','Verwandlungszeit · wer den Kreis verlässt, beginnt von vorn')+pop('zR','Verwandlungsradius')
+    +card('',swt('zP',pgr,'Ping wächst mit der Horde','Je mehr Zombies und je weniger Hider, desto seltener der Ping')+(pgr?ch+`<p class=mzs>Höchstens ${chp('zC')} der Start-Ping.</p>`+pop('zC','Ping-Deckel (× Start-Ping)'):''))
+    +swt('zB',zEarly(g),'Zeitbonus nur für frühe Zombies','Den Zeitbonus bekommt nur, wer zur Bonus-Minute schon Zombie ist')}
+
 // §SPIEL-PANEL Panel im Spiel (Variante A): Boni als runde Knöpfe (Hider Kreis, Hunter Dreieck), Aufträge als Zeilen (lila Quadrat);
 // Antippen öffnet das Fenster #gd mit Erklärung und Bestätigung (gdShow/gdSync/gdClose). Meeting: Wunsch-Bonus im Fenster wählen und einloggen.
 const gDis=d=>d===null?'–':d>=1000?(d/1000).toFixed(1).replace('.',',')+' km':d+' m';

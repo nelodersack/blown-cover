@@ -1,4 +1,4 @@
-# Test: Lobby-Bereich „Boni“ (Kacheln + Fenster zum Einstellen) und Belohnungs-Hinweise unter Aufgaben
+# Test: Lobby-Unterseite „Boni“ (Symbole wie im Spiel + Einstellbereich darunter) und Belohnungs-Hinweise unter Aufgaben
 import sys,os;sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from harness import app,shot
 with app() as (pg,ev,errs):
@@ -15,25 +15,22 @@ with app() as (pg,ev,errs):
     assert 'Belohnung: Satellitenbild und Hunter-Radar' in pb and 'Belohnung: jeder wählt Hunter-Radar' in pb and 'Belohnung: Immunität für Platz 1 und 2' in pb, pb[:900]
     ev("ui.sub='bon';panel(1)");pg.wait_for_timeout(300);pb=ev("$('pb').innerText")
     assert 'Hunter-Boni' in pb and 'Satellitenbild-Dauer' not in pb and 'Radar-Radius' not in pb
-    tiles=ev("[...document.querySelectorAll('.bnt')].map(b=>b.querySelector('b').innerText+'|'+b.classList.contains('off'))");print(tiles)
-    assert len(tiles)==5 and all(t.endswith('false') for t in tiles)
-    ev("document.querySelector('.bnt.wide').scrollIntoView({block:'center'})");pg.wait_for_timeout(200);shot(pg,'lobby_boni.png')
-    ev("[...document.querySelectorAll('.bnt')].find(b=>/Radar/.test(b.textContent)).click()");pg.wait_for_timeout(300)
-    dt=ev("$('bnd').innerText");print(dt.replace('\n',' | '));assert 'Radius' in dt and 'Dauer' in dt and 'Hider-Radar kommt nach' in dt
+    tiles=ev("[...document.querySelectorAll('.mzi')].map(b=>b.querySelector('b').innerText+'|'+b.classList.contains('off'))");print(tiles)
+    assert len(tiles)==6 and all(t.endswith('false') for t in tiles)
+    shot(pg,'lobby_boni.png')
+    # Antippen öffnet den Einstellbereich direkt darunter
+    ev("[...document.querySelectorAll('.mzi')].find(b=>/Hider-Radar/.test(b.textContent)).click()");pg.wait_for_timeout(300)
+    dt=ev("document.querySelector('.mzsh').innerText");print(dt.replace('\n',' | '));assert 'Radius' in dt and 'Dauer' in dt and 'Hider-Radar kommt nach' in dt
     shot(pg,'lobby_boni_radar.png')
     ev("stp('bmR',1)");pg.wait_for_timeout(500)
-    assert ev("__T.games.K7QF.s.bmR")==5 and ev("$('bnd').querySelector('input').value")=='5'
-    assert '5 m' in ev("document.querySelector('.bnt.wide').innerText")
-    pg.keyboard.press('Escape');pg.wait_for_timeout(200);assert not ev("!!$('bnd')")
-    # Hunter-Boni aus: Kacheln grau, Fenster zeigt Grund
+    assert ev("__T.games.K7QF.s.bmR")==5 and '5 m' in ev("[...document.querySelectorAll('.mzi')].find(b=>/Hunter-Radar/.test(b.textContent)).innerText")
+    # Hunter-Boni aus: Symbole grau, Vorrat-Satz verschwindet
     ev("__T.games.K7QF.s.hbOn=false;notify()");pg.wait_for_timeout(400)
-    assert 'Nicht im Spiel' in ev("[...document.querySelectorAll('.bnt')].find(b=>/Live/.test(b.textContent)).textContent")
-    ev("bnShow('hb')");pg.wait_for_timeout(200);assert 'Vorrat' not in ev("$('bnd').innerText")
-    ev("__T.games.K7QF.s.hbOn=true;notify()");pg.wait_for_timeout(400);assert 'Vorrat' in ev("$('bnd').innerText")
-    ev("bnClose()")
+    assert ev("[...document.querySelectorAll('.mzi')].find(b=>/Live/.test(b.textContent)).classList.contains('off')") and 'Vorrat' not in ev("$('pb').innerText")
+    ev("edGo('b:live')");pg.wait_for_timeout(200);assert 'Nicht im Spiel' in ev("document.querySelector('.mzsh').innerText")
+    ev("__T.games.K7QF.s.hbOn=true;notify()");pg.wait_for_timeout(400);assert 'Vorrat' in ev("$('pb').innerText")
     # Satellitenbild ohne Aufgaben-Belohnung: Modus Mission, bon aus
     ev("__T.games.K7QF.s.mode='mission';__T.games.K7QF.s.bon=false;notify()");pg.wait_for_timeout(400)
-    assert 'Aufgaben-Belohnungen sind aus' in ev("[...document.querySelectorAll('.bnt')].find(b=>/Satelliten/.test(b.textContent)).textContent")
-    # Spielstart schließt Fenster
-    ev("bnShow('imm');__T.games.K7QF.status='running';__T.games.K7QF.startAt=Date.now();notify()");pg.wait_for_timeout(600);assert not ev("!!$('bnd')")
+    ev("ui.ed=null;edGo('b:sat')");pg.wait_for_timeout(200)
+    assert 'Aufgaben-Belohnungen sind aus' in ev("document.querySelector('.mzsh').innerText")
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]
