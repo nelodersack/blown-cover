@@ -2001,7 +2001,9 @@ const acc=(id,icn,title,sum,body,val)=>{if(ui.sub===id)SUBP={t:title,sum,b:body}
 const subGo=id=>{ui.sub=id;ui.ed=null;panel(1);if(id)$('panel').classList.remove('m','c');else if(typeof pMidSet==='function')pMidSet();$('ps').scrollTop=0};
 const grp=(h,sub,x)=>(h?`<div class=gh><span>${h}</span>${sub?`<small>${sub}</small>`:''}</div>`:'')+`<div class="grp lrws">${x}</div>`;
 const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
-const shCode=()=>{const t='Blown Cover – Spiel-Code '+code;try{if(navigator.share){navigator.share({title:'Blown Cover',text:t}).catch(()=>{});return}}catch(e){}cpCode()};
+// Teilen: in der App über BlownNative.share (ab App v0.3.2, die WebView kennt navigator.share nicht), sonst Web-Share; ohne beides kopieren
+const canShare=()=>!!((NB&&typeof NB.share==='function')||navigator.share);
+const shCode=()=>{const t='Blown Cover – Spiel-Code '+code+'\nhttps://blowncover.app/';try{if(NB&&typeof NB.share==='function'){NB.share(t);return}if(navigator.share){navigator.share({title:'Blown Cover',text:t}).catch(()=>{});return}}catch(e){}cpCode()};
 const tabGo=(k,v)=>{ui[k]=v;ui.sub=null;$('ps').scrollTop=0;panel(1)};
 const mmss=v=>v<60?v+' s':Math.floor(v/60)+':'+String(v%60).padStart(2,'0');
 
@@ -2009,7 +2011,7 @@ const gpsBad=()=>!pos||!!gpsErr||Date.now()-lastFix>30000;
 const noGps=(p,k)=>p.w?false:(k===uid?gpsBad():(!p.lat||now()-(p.ts||0)>45000));
 function lobbyUI(g,host,me_){
   const pl=Object.entries(P()),s=g.s,sv=md(g)!=='mission';SUBP=null;
-  const hd=`<div class=lhd><small>Operation</small><h2>${esc(bfName(code,g.rn||0))}</h2><div class=lmeta>Code <b>${esc(code)}</b><button class=lib onclick="cpCode()" aria-label="Code kopieren">${ic('copy')}</button>${navigator.share?`<button class=lib onclick="shCode()" aria-label="Code teilen">${ic('share')}</button>`:''}</div></div>`;
+  const hd=`<div class=lhd><small>Operation</small><h2>${esc(bfName(code,g.rn||0))}</h2><div class=lmeta>Code <b>${esc(code)}</b><button class=lib onclick="cpCode()" aria-label="Code kopieren">${ic('copy')}</button>${canShare()?`<button class=lib onclick="shCode()" aria-label="Code teilen">${ic('share')}</button>`:''}</div></div>`;
   const tabs=`<div class=tabs2><button class="${ui.lt==='players'?'on':''}" onclick="tabGo('lt','players')">Spieler · ${pl.length}</button><button class="${ui.lt==='set'?'on':''}" onclick="tabGo('lt','set')">Einstellungen</button></div>`;
   let b=hd+tabs;
   if(ui.lt==='players'){
