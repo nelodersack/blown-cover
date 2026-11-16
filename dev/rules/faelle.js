@@ -73,4 +73,11 @@ T('Neues Spiel anlegen',true,{},'u9','set','/games/N3WG',{host:'u9',status:'lobb
  T('Zuschauer schreibt im Hider-Chat',false,d,'u9','set','/chats/K7QF/hider/m1',{u:'u9',n:'Gast',t:N,x:'Hallo'});
  const o=base({status:'over',winner:'hider'});o.games.K7QF.players.u9=sp;
  T('Neue Runde: Zuschauer wird Hider',true,o,'u1','update',G,{status:'lobby',startAt:null,winner:null,catches:null,rn:1,'players/u9':{name:'Gast',role:'hider',state:'alive',j:N,w:true}})}
+// Lobby-Chat für alle (Kanal all), nur in der Lobby schreibbar
+{const L=base({status:'lobby',startAt:null,catches:null}),msg={u:'u2',n:'Lena',t:N,x:'Hallo',r:'hider'};
+ T('Lobby-Chat: Spieler schreibt',true,L,'u2','set','/chats/K7QF/all/m1',msg);
+ T('Lobby-Chat: Hunter liest',true,L,'u1','read','/chats/K7QF/all');
+ T('Lobby-Chat: Fremder liest',false,L,'zz','read','/chats/K7QF/all');
+ T('Lobby-Chat: Fremder schreibt',false,L,'zz','set','/chats/K7QF/all/m1',{u:'zz',n:'X',t:N,x:'Hallo'});
+ T('Lobby-Chat: im laufenden Spiel schreiben',false,base(),'u2','set','/chats/K7QF/all/m1',msg)}
 console.log(fail?"\n"+fail+" FALSCH":"\nalle Fälle wie erwartet");process.exit(fail?1:0);

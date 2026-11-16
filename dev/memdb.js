@@ -16,6 +16,11 @@ const R=p=>({
  get(){return Promise.resolve(snap(getp(p)))},once(){return Promise.resolve(snap(getp(p)))},
  on(e,cb){if(e==='value'){__ls.push({p,cb});setTimeout(()=>cb(snap(getp(p))),0)}return cb},
  off(){for(let i=__ls.length-1;i>=0;i--)if(__ls[i].p===p)__ls.splice(i,1)},
- child(c){return R(p+'/'+c)},limitToLast(){return {on(){},off(){}}},push(){return Promise.resolve()}});
+ child(c){return R(p+'/'+c)},
+ // child_added nur für Chats (Lobby-/Team-Chat-Tests); andere Pfade (z. B. ev) bleiben still wie bisher
+ limitToLast(){if(!/^chats\//.test(p))return {on(){},off(){}};const seen=new Set();let l=null;
+  return {on(e,cb){const run=()=>{const o=getp(p)||{};Object.keys(o).sort().forEach(k=>{if(seen.has(k))return;seen.add(k);cb(Object.assign(snap(o[k]),{key:k}))})};
+    l={p:'\u0000'+p,cb:run};__ls.push(l);setTimeout(run,0)},off(){const i=__ls.indexOf(l);if(i>=0)__ls.splice(i,1)}}},
+ push(v){const k='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);rec('set',p+'/'+k,v);setp(p+'/'+k,v);setTimeout(notify,0);return Promise.resolve({key:k})}});
 window.firebase={initializeApp(){},database(){const f={ref:p=>R(p||'')};f.ServerValue={TIMESTAMP:1};return f},auth(){return{setPersistence(){return Promise.resolve()},signInAnonymously(){return new Promise(()=>{})}}}};
 firebase.auth.Auth={Persistence:{SESSION:1}};

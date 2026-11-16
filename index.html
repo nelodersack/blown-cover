@@ -1853,14 +1853,16 @@ function bmOv(p,R,hit){if(!p){if(BM.ov){map.removeLayer(BM.ov);BM.ov=null}return
     BM.ov=L.svgOverlay(e,b,{interactive:false,className:'bmr'}).addTo(map)}else BM.ov.setBounds(b);
   BM.ov.getElement().classList.toggle('hit',!!hit)}
 // §CHAT
-// Chat: Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene Hider lesen alles und schreiben nur in "out"
+// Chat: in der Lobby ein Kanal „all“ für alle (keine Privatnachrichten, Rolle neben dem Namen, bei Auslosen ohne Rolle);
+// ab Spielstart Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene lesen alles und schreiben nur in "out"
 let chSet='',chRefs={},chCur=null,chOpen=false,chUnread=0,chSince=0,dmUn={},chLastDm=null;
-const chName={get hunter(){return HNP(G)},hider:'Hider',out:'Ausgeschieden'};
+const chName={get hunter(){return HNP(G)},hider:'Hider',out:'Ausgeschieden',all:'Alle'};
+const chLobby=()=>!!G&&G.status==='lobby';
 const pairKey=u=>[uid,u].sort().join('_');
-const mates=()=>{const m=P()[uid];return m&&m.role&&!isSpec(m)?Object.keys(P()).filter(k=>k!==uid&&P()[k].role===m.role).sort():[]};
-function chChans(){const m=P()[uid];if(!m||!m.role)return[];return isSpec(m)?['out','hider','hunter']:[m.role]}
+const mates=()=>{const m=P()[uid];return m&&m.role&&!isSpec(m)&&!chLobby()?Object.keys(P()).filter(k=>k!==uid&&P()[k].role===m.role).sort():[]};
+function chChans(){const m=P()[uid];if(!m||!m.role)return[];if(chLobby())return['all'];return isSpec(m)?['out','hider','hunter']:[m.role]}
 const isDm=c=>!!c&&c.startsWith('dm:');
-const chCanWrite=ch=>{const m=P()[uid]||{};return isSpec(m)?ch==='out':(isDm(ch)||ch===m.role)};
+const chCanWrite=ch=>{const m=P()[uid]||{};if(ch==='all')return chLobby();return isSpec(m)?ch==='out':(isDm(ch)||ch===m.role)};
 function chBadge(){const b=$('cbn');b.textContent=chUnread;b.style.display=chUnread?'inline-block':'none'}
 function chShow(ch){chCur=ch;document.querySelectorAll('#chm .chc').forEach(e=>e.classList.toggle('on',e.dataset.ch===ch));
   if(isDm(ch)){chLastDm=ch.slice(3);chUnread=Math.max(0,chUnread-(dmUn[chLastDm]||0));dmUn[chLastDm]=0;chBadge()}
@@ -1868,7 +1870,7 @@ function chShow(ch){chCur=ch;document.querySelectorAll('#chm .chc').forEach(e=>e
 function chTabs(){const cs=chChans(),mt=mates(),dm=isDm(chCur),nm=u=>esc((P()[u]||{}).name||'?'),tot=Object.values(dmUn).reduce((a,b)=>a+b,0);
   if(cs.length>1)$('cht').innerHTML=cs.map(c=>`<button class="s ${c===chCur?'on':'g'}" onclick="chShow('${c}')">${chName[c]}${chCanWrite(c)?'':' 👁'}</button>`).join(' ');
   else{const dmT=mt.includes(chLastDm)?chLastDm:mt[0];
-    $('cht').innerHTML=`<button class="s ${dm?'g':'on'}" onclick="chShow('${cs[0]}')">Team</button>`+(dmT?` <button class="s ${dm?'on':'g'}" onclick="chShow('dm:${dmT}')">Privat${tot&&!dm?' ●':''}</button>`:'')}
+    $('cht').innerHTML=`<button class="s ${dm?'g':'on'}" onclick="chShow('${cs[0]}')">${cs[0]==='all'?'Alle':'Team'}</button>`+(dmT?` <button class="s ${dm?'on':'g'}" onclick="chShow('dm:${dmT}')">Privat${tot&&!dm?' ●':''}</button>`:'')}
   $('chp').innerHTML=dm?mt.map(u=>`<button class="s ${'dm:'+u===chCur?'on':'g'}" onclick="chShow('dm:${u}')">${nm(u)}${dmUn[u]?' ●':''}</button>`).join(' '):'';
   $('chp').style.display=dm?'flex':'none'}
 function chOpenDm(u){chToggle(true);chShow('dm:'+u)}
@@ -1906,14 +1908,14 @@ function chQSync(){const e=$('chq');if(!e)return;const a=chOpen?chQR():[],k=a.jo
   e.innerHTML=a.map((x,i)=>`<button class=qr data-i=${i}>${esc(x)}</button>`).join('');e.style.display=a.length?'flex':'none';
   e.querySelectorAll('button').forEach(b=>b.onclick=()=>chSend(a[+b.dataset.i]))}
 function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&cs.length)?'grid':'none';
-  const key=cs.join()+'|'+mt.join()+'|'+(G.rn||0);if(!code||!cs.length||key===chSet)return;
+  const key=cs.join()+'|'+mt.join()+'|'+(G.rn||0)+'|'+(chLobby()&&rndOn(G)?'r':'');if(!code||!cs.length||key===chSet)return;
   Object.values(chRefs).forEach(r=>r.off());chRefs={};chSet=key;chUnread=0;dmUn={};chBadge();chSince=now()-1000;
   const all=cs.concat(mt.map(u=>'dm:'+u));
-  const me_=P()[uid]||{},emp=c=>isDm(c)?'Privat mit '+((P()[c.slice(3)]||{}).name||'?')+'. Nur ihr beide lest mit.':c==='out'?'Kanal der Ausgeschiedenen. Hier dürfen alle schreiben, die raus sind.':isSpec(me_)?'Noch keine Nachrichten.':'Team-Chat der '+(c==='hunter'?'Hunter. Hider':'Hider. Hunter')+' lesen nicht mit, Ausgeschiedene schon.';
+  const me_=P()[uid]||{},emp=c=>isDm(c)?'Privat mit '+((P()[c.slice(3)]||{}).name||'?')+'. Nur ihr beide lest mit.':c==='all'?'Lobby-Chat für alle. Mit Spielbeginn gibt es getrennte Team-Chats.':c==='out'?'Kanal der Ausgeschiedenen. Hier dürfen alle schreiben, die raus sind.':isSpec(me_)?'Noch keine Nachrichten.':'Team-Chat der '+(c==='hunter'?'Hunter. Hider':'Hider. Hunter')+' lesen nicht mit, Ausgeschiedene schon.';
   $('chm').innerHTML=all.map(c=>`<div class=chc data-ch="${c}" data-e="${esc(emp(c))}"></div>`).join('');
   all.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(chPath(ch)).limitToLast(50);chRefs[ch]=ref;
     ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;if((c.t||0)>=chSince)lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
-      const d=document.createElement('div'),rr_=ch==='out'&&(c.r==='hunter'||c.r==='hider')?c.r:'';d.className='m'+(c.u===uid?' me':'')+(rr_?' r-'+rr_:'');
+      const d=document.createElement('div'),rr_=(ch==='out'||(ch==='all'&&!rndOn(G)))&&(c.r==='hunter'||c.r==='hider')?c.r:'';d.className='m'+(c.u===uid?' me':'')+(rr_?' r-'+rr_:'');
       const n=document.createElement('b');n.textContent=(c.u===uid?'Du':String(c.n||'?'))+(rr_?(rr_==='hunter'?' · Hunter':' · Hider'):'');if(c.u!==uid&&P()[c.u]){const dt=document.createElement('i');dt.className='cd';dt.style.background=colOf(c.u);n.prepend(dt)}
       const x=document.createElement('span');x.textContent=c.x;d.append(n,x);
       const sc=$('chm'),low=sc.scrollHeight-sc.scrollTop-sc.clientHeight<60;box.appendChild(d);
