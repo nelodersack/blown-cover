@@ -922,30 +922,15 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.stat
 // §KARTE Leaflet + MapLibre-Vektorkarte
 const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
 let vt=null;
-// §KARTENSTIL Vorschau von Kartenstilen über blowncover.app/?kartenstil=1…3 (nur zum Vergleichen, ohne Zusatz unverändert).
-// Manuel mag Positron, nur zu wenig Kontrast: drei Positron-Varianten, nur Farben (und etwas breitere Straßen) geändert, Gebäude ohne Kante,
-// Wege, Beschriftungen und Detailmenge bleiben wie bei Positron. KZ = Farben der Spielelemente (unverändert).
+// §KARTENSTIL Vorschau über blowncover.app/?kartenstil=1…3 (nur zum Vergleichen, ohne Zusatz unverändert).
+// Manuels Wunsch: Positron unverändert, nur der Untergrund in drei Stufen dunkler (Wohngebiet-Fläche im gleichen Abstand mit).
 const KST=(()=>{try{const v=+new URLSearchParams(location.search).get('kartenstil');return v>=1&&v<=3?v:0}catch(e){return 0}})();
-const KSD={
- 1:{n:'Positron, etwas kräftiger',bg:'#eff0ec',res:'#e8e9e4',park:'#e0e7dc',wood:'#d9e1d5',water:'#b3c2c9',bld:'#d5d4cc',minor:'#ffffff',major:'#ffffff',cas:'#cfcfcb',path:'#d9d9d5',txt:'#4d4d4d'},
- 2:{n:'Positron, Kontrast',bg:'#e6e7e3',res:'#e1e2dd',park:'#d3ddcd',wood:'#cbd6c4',water:'#a6bac4',bld:'#c4c3ba',minor:'#ffffff',major:'#ffffff',cas:'#c2c2bd',path:'#f6f6f3',txt:'#3a3a3a',rw:1.3},
- 3:{n:'Positron, kühl',bg:'#e0e4e7',res:'#dbdfe2',park:'#cfdacf',wood:'#c6d2c6',water:'#97b1c2',bld:'#bcc4cc',minor:'#ffffff',major:'#ffffff',cas:'#b9c0c6',path:'#f4f6f7',txt:'#35393d',rw:1.3}};
+const KSD={1:{n:'Untergrund etwas dunkler',bg:'#e9eae6',res:'#e1e2dd'},2:{n:'Untergrund dunkler',bg:'#e0e1dc',res:'#d8d9d4'},3:{n:'Untergrund deutlich dunkler',bg:'#d6d7d2',res:'#cecfca'}};
 const KZ={c:'#e5484d',f:.07,nz:'#7a8696',m:'#000',mo:0};
-function ksApply(st,T){const k=T.rw||1;
-  (st.layers||[]).forEach(l=>{const id=l.id,sl=l['source-layer']||'',p=l.paint||(l.paint={});
+function ksApply(st,T){(st.layers||[]).forEach(l=>{const p=l.paint||(l.paint={});
     if(l.type==='background')p['background-color']=T.bg;
-    else if(l.type==='fill'&&sl==='landuse'&&/residential/.test(id))p['fill-color']=T.res;
-    else if(l.type==='fill'&&(sl==='park'||/park/.test(id)))p['fill-color']=T.park;
-    else if(l.type==='fill'&&sl==='landcover'&&/wood|grass/.test(id))p['fill-color']=T.wood;
-    else if(l.type==='fill'&&sl==='water')p['fill-color']=T.water;
-    else if(l.type==='line'&&sl==='waterway')p['line-color']=T.water;
-    else if(l.type==='fill'&&sl==='building'){p['fill-color']=T.bld;p['fill-outline-color']=T.bld}   // keine Kante: Gebäude nur über die Farbe
-    else if(l.type==='line'&&sl==='transportation'&&!/rail|tunnel|subtle/.test(id)){
-      if(/path/.test(id)){p['line-color']=T.path;p['line-opacity']=1}
-      else if(/casing/.test(id))p['line-color']=T.cas;
-      else if(/minor/.test(id)){p['line-color']=T.minor;p['line-opacity']=1;if(k!==1)p['line-width']=['interpolate',['exponential',1.55],['zoom'],13,1.8*k,20,20*k]}
-      else if(/major_inner|motorway_inner/.test(id))p['line-color']=T.major}
-    else if(l.type==='symbol'&&/highway-name-(minor|major)|label_other/.test(id))p['text-color']=T.txt});
+    else if(l.type==='fill'&&l['source-layer']==='landuse'&&/residential/.test(l.id))p['fill-color']=T.res;
+    else if(/pier/.test(l.id))p[l.type==='fill'?'fill-color':'line-color']=T.bg});
   return st}
 // Schild mit Stilname und Weiterschalten (nur in der Vorschau)
 function ksBadge(){if(!KST)return;const d=document.createElement('div');d.id='ksb';
