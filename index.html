@@ -2781,7 +2781,8 @@ function updSync(){const b=$('upb');if(!b)return;const n=!!NB&&updNew(),on=!G&&!
 const updIn=()=>{try{return !!NB&&typeof NB.update==='function'}catch(e){return false}};
 function updGo(){try{if(updIn()){NB.update(APK);toast('Update wird geladen…');return}}catch(e){}location.href=APK}
 async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){}
-  if(c&&c.v&&Date.now()-c.t<3*36e5)UPD=c.v;
+  // Zwischenspeicher nur, solange er etwas Neueres als die installierte App kennt (sonst würde ein frisches Release bis zu 3 h übersehen)
+  const av=appVer();if(c&&c.v&&Date.now()-c.t<3*36e5&&!(av&&!verLt(av,c.v)))UPD=c.v;
   else try{const r=await fetch(REL,{headers:{Accept:'application/vnd.github+json'}});if(r.ok){const j=await r.json(),v=String(j.tag_name||'').replace(/^v/,'');if(/^\d+(\.\d+)*$/.test(v)&&(j.assets||[]).some(a=>a.name==='BlownCover.apk')){UPD=v;LS.updC=JSON.stringify({v,t:Date.now()})}}}catch(e){}
   updSync();
   if(updNew()&&!updAsked&&!G&&!LS.c){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). ${updIn()?'Die App lädt es herunter, danach bestätigst du die Installation.':'Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt.'} Deine Einstellungen bleiben erhalten.`,ok:'Jetzt laden',no:'Später'}))updGo()}}
