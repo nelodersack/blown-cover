@@ -383,9 +383,35 @@ public class GameActivity extends Activity {
         return Uri.parse(url).buildUpon().appendQueryParameter("app", String.valueOf(System.currentTimeMillis())).build().toString();
     }
 
+    /** Hinweis + Ordnerauswahl für die Replay-Freigabe (einmal; „Später“ bzw. Abbruch = nicht erneut fragen). */
+    private void askReplayTree() {
+        ReplayTree.showHint(this, frame, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    startActivityForResult(ReplayTree.pickIntent(), ReplayTree.REQ);
+                } catch (Exception e) {
+                    Diag.log(GameActivity.this, "Replay-Ordner: Auswahl nicht zu öffnen " + e);
+                }
+            }
+        }, new Runnable() {
+            @Override
+            public void run() {
+                ReplayTree.setDeclined(GameActivity.this, true);
+                Diag.log(GameActivity.this, "Replay-Ordner: später");
+            }
+        });
+    }
+
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
+        if (req == ReplayTree.REQ) {
+            // Website darf die Liste neu laden (optional: window.bcReplaysChanged)
+            if (ReplayTree.onResult(this, res, data) && web != null)
+                web.evaluateJavascript("window.bcReplaysChanged&&bcReplaysChanged()", null);
+            return;
+        }
         if (req == REQ_FILE && fileCb != null) {
             Uri[] r = WebChromeClient.FileChooserParams.parseResult(res, data);
             Diag.log(this, "Dateiauswahl: " + (r == null ? "abgebrochen" : r.length + " Datei"));
@@ -730,6 +756,8 @@ public class GameActivity extends Activity {
         public String replays() {
             org.json.JSONArray out = new org.json.JSONArray();
             if (Build.VERSION.SDK_INT < 29) return out.toString();
+            java.util.List<org.json.JSONObject> all = new java.util.ArrayList<>();
+            java.util.Set<String> seen = new java.util.HashSet<>();
             android.database.Cursor c = null;
             try {
                 String[] col = {android.provider.MediaStore.MediaColumns._ID, android.provider.MediaStore.MediaColumns.DISPLAY_NAME,
@@ -751,12 +779,32 @@ public class GameActivity extends Activity {
                     o.put("size", c.getLong(2));
                     o.put("t", c.getLong(3) * 1000L);
                     o.put("dir", rp.startsWith("Download") ? "Downloads" : "Replays");
-                    out.put(o);
+                    if (seen.add(n + "|" + c.getLong(2))) all.add(o);
                 }
             } catch (Exception e) {
                 Diag.log(GameActivity.this, "Replay-Liste FEHLER: " + e);
             } finally {
                 if (c != null) c.close();
+            }
+            // Seit v0.3.8: freigegebener Ordner (SAF) liefert auch von Hand kopierte Replays; Doppelte (Name+Größe) einmal.
+            java.util.List<org.json.JSONObject> tr = new java.util.ArrayList<>();
+            ReplayTree.list(GameActivity.this, tr);
+            for (org.json.JSONObject o : tr) if (seen.add(o.optString("name") + "|" + o.optLong("size"))) all.add(o);
+            java.util.Collections.sort(all, new java.util.Comparator<org.json.JSONObject>() {
+                @Override
+                public int compare(org.json.JSONObject x, org.json.JSONObject y) {
+                    return Long.compare(y.optLong("t"), x.optLong("t"));
+                }
+            });
+            for (org.json.JSONObject o : all) out.put(o);
+            if (ReplayTree.tree(GameActivity.this) == null && !ReplayTree.declined(GameActivity.this) && !ReplayTree.askedNow) {
+                ReplayTree.askedNow = true;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        askReplayTree();
+                    }
+                });
             }
             return out.toString();
         }
@@ -766,7 +814,13 @@ public class GameActivity extends Activity {
         public String readReplay(String id) {
             if (Build.VERSION.SDK_INT < 29 || id == null) return "";
             try {
-                Uri u = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Files.getContentUri("external"), Long.parseLong(id));
+                Uri u;
+                if (id.startsWith("content://")) {
+                    u = Uri.parse(id);
+                    if (!ReplayTree.allowed(GameActivity.this, u)) throw new Exception("nicht im freigegebenen Ordner");
+                } else {
+                    u = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Files.getContentUri("external"), Long.parseLong(id));
+                }
                 java.io.InputStream in = getContentResolver().openInputStream(u);
                 if (in == null) return "";
                 java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();

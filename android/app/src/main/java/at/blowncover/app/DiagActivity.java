@@ -22,6 +22,8 @@ import java.util.Locale;
 
 /** Diagnose (erreichbar über langes Drücken aufs App-Icon): Status, Protokoll, Log teilen, Seitenwahl für Tests. */
 public class DiagActivity extends Activity {
+    private TextView treeInfo;
+
     private final Handler h = new Handler(Looper.getMainLooper());
     private Ui.Item svc, rdy;
     private TextView log;
@@ -88,6 +90,21 @@ public class DiagActivity extends Activity {
         rr.addView(pre, hl);
         rr.addView(hz, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         root.addView(rr, Ui.lp(this, 6));
+
+        // Replay-Ordner (SAF-Freigabe, seit v0.3.8): damit auch kopierte Replays in der Auswahl erscheinen
+        root.addView(Ui.label(this, "Replay-Ordner"), Ui.lp(this, 14));
+        treeInfo = Ui.small(this, ReplayTree.label(this));
+        root.addView(treeInfo, Ui.lp(this, 4));
+        root.addView(Ui.button(this, "Replay-Ordner freigeben", false, true, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    startActivityForResult(ReplayTree.pickIntent(), ReplayTree.REQ);
+                } catch (Exception e) {
+                    Diag.log(DiagActivity.this, "Replay-Ordner: Auswahl nicht zu öffnen " + e);
+                }
+            }
+        }), Ui.lp(this, 6));
 
         root.addView(Ui.label(this, "Protokoll"), Ui.lp(this, 14));
         logScroll = new ScrollView(this);
@@ -185,5 +202,14 @@ public class DiagActivity extends Activity {
     protected void onPause() {
         h.removeCallbacks(tick);
         super.onPause();
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == ReplayTree.REQ) {
+            ReplayTree.onResult(this, res, data);
+            if (treeInfo != null) treeInfo.setText(ReplayTree.label(this));
+        }
     }
 }
