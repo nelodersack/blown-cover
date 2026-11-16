@@ -1117,6 +1117,8 @@ async function rlOpen(){
   let m=[];try{m=(await rlReq('meta','readonly',tx=>tx.objectStore('meta').getAll()))||[]}catch(e){return rvPick()}
   RL.items=m.sort((a,b)=>b.t-a.t).map(x=>({id:x.k,t:x.t,size:x.size,sum:x.sum}));RL.src='idb';RL.on=true;panel(1);$('ps').scrollTop=0}
 function rlClose(){RL.on=false;panel(1)}
+// App v0.3.8 meldet nach erteilter Ordnerfreigabe: Liste neu laden, falls offen
+window.bcReplaysChanged=()=>{if(RL.on&&RL.src==='app'&&!RV)rlOpen()};
 // Zusammenfassung aus der Datei (Format blown-cover-replay v2; ältere über rvConv)
 function rlSum(txt,f){const o=rvConv(JSON.parse(txt)),g=o&&o.game;if(!g||!g.startAt||!o.players)throw 0;
   const s=g.s||{},R0=g.R0||(g.startAt+(s.head||0)*6e4),m=g.end&&g.end>R0?Math.round((g.end-R0)/6e4):(s.dur||null);
