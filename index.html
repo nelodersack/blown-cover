@@ -922,7 +922,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.stat
 // §KARTE Leaflet + MapLibre-Vektorkarte
 const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
 let vt=null;
-// §KARTENSTIL Vorschau über blowncover.app/?kartenstil=1…5 (nur zum Vergleichen, ohne Zusatz unverändert).
+// §KARTENSTIL Standard = Variante 1 (Manuels Wahl 16.11.); Vorschau der Varianten über blowncover.app/?kartenstil=1…5.
 // Manuels Wahl: Positron, Untergrund (alle Flächen außer Straßen/Wasser: Hintergrund, Wohngebiet, Parks, Wald, Anleger) um 14
 // dunkler, Nebenstraßen und Wege weiß. Die fünf Varianten unterscheiden nur die Gebäudefarbe (sollen sich von den Wegen abheben,
 // dabei clean und dezent bleiben).
@@ -949,8 +949,7 @@ function ksBadge(){if(!KST)return;const d=document.createElement('div');d.id='ks
   const b=d.querySelectorAll('button');b[0].onclick=()=>go(KST>1?KST-1:KSN);b[1].onclick=()=>go(KST<KSN?KST+1:1);document.body.appendChild(d)}
 const vtOpt=st=>({fadeDuration:0,pixelRatio:Math.min(window.devicePixelRatio||1,2),maxTileCacheSize:48,style:st,attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'});
 if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search)){const PZ='https://tiles.openfreemap.org/styles/positron';
-  if(!KST)(vt=L.maplibreGL(vtOpt(PZ))).addTo(map);
-  else{map.getContainer().style.background=KSD[KST].bg;fetch(PZ).then(r=>r.json()).then(st=>{(vt=L.maplibreGL(vtOpt(ksApply(st,KSD[KST])))).addTo(map)}).catch(()=>{(vt=L.maplibreGL(vtOpt(PZ))).addTo(map)})}}
+  {const T=KSD[KST||1];map.getContainer().style.background=T.bg;fetch(PZ).then(r=>r.json()).then(st=>{(vt=L.maplibreGL(vtOpt(ksApply(st,T)))).addTo(map)}).catch(()=>{(vt=L.maplibreGL(vtOpt(PZ))).addTo(map)})}}
 if(!L.maplibreGL||/[?&]karte=raster/.test(location.search)){const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
@@ -1284,7 +1283,7 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   f.log.forEach(([t,p,v])=>{const m=/^players\/([^/]+)\/(zt|zb)$/.exec(p);if(m&&v){const q=f.players.find(x=>x.id===m[1]);if(q&&!q[m[2]])q[m[2]]=v}});
   f.players.forEach(p=>{if(p.zt&&p.role==='hider')p.role='hunter'});
   const pl={};f.players.forEach(p=>{pl[p.id]=Object.assign({},p,{state:'alive',sT:null})});
-  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',tr:(()=>{try{return LS.rvTr==='all'?'all':'short'}catch(e){return'short'}})(),open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},tkc:{},raf:0,last:0,zm:0,zt:{}};f.players.forEach(p=>{if(p.zt)RV.zt[p.id]=p.zt});
+  RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',tr:(()=>{try{return ['all','off'].includes(LS.rvTr)?LS.rvTr:'short'}catch(e){return'short'}})(),open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},tkc:{},raf:0,last:0,zm:0,zt:{}};f.players.forEach(p=>{if(p.zt)RV.zt[p.id]=p.zt});
   const sc=rvScan(f,pl);RV.fin=sc.final;RV.bms=sc.ev.filter(e=>e.bm).map(e=>({p:e.bm,t0:e.t,t1:e.t+bmTv(f.game.s)*1000}));RV.bmo={};const catches=sc.ev.filter(e=>e.k==='catch').map(e=>({t:e.t,hider:e.hider,hunter:e.hunter}));
   RV.st=rvStats(f,pl,catches);const nm=k=>esc((pl[k]||{}).name||'?');
   RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',hu:1,i:'knapp',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
@@ -1296,7 +1295,6 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:KZ.c,weight:2,fillOpacity:KZ.f,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
   f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
-    L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
     RV.ln[p.id]={c:[],s:[],k:-1,o:{color:c,weight:3,opacity:.85,interactive:false}}});
   map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
   $('res').style.display='none';rotMode(true);panel(1);$('panel').classList.add('m');pMidSet();setTimeout(()=>{if(RV){pMidSet();rvFit(1)}},260);rvDraw()}
@@ -1376,7 +1374,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       lv=!out&&rl==='hider'&&(Object.values((S.live||{})[p.id]||{}).some(u=>u>t)||q.out===true||(q.revealUntil||0)>t||(()=>{const hk=(S.tasks||{}).hk,oz=hk&&hk.oz,op=oz?ozPhase(g.s,oz,t):null;return !!(op&&op.p==='on'&&!im&&pos_&&!pos_[2]&&rvD(pos_,[oz.lat,oz.lng])<=(g.s.ozR||75))})());
     if(!RV.zm){let lo=0,hi=a.length;while(lo<hi){const m=(lo+hi)>>1;if(a[m][0]<=t)lo=m+1;else hi=m}
       const key=lo+(pos_&&!pos_[2]?':'+Math.round(pos_[0]*1e5)+','+Math.round(pos_[1]*1e5):'');
-      if(RV.lnI[p.id]!==key){RV.lnI[p.id]=key;const hd=pos_&&!pos_[2]?pos_:null;
+      if(RV.tr!=='off'&&RV.lnI[p.id]!==key){RV.lnI[p.id]=key;const hd=pos_&&!pos_[2]?pos_:null;
         if(RV.tr==='all')rvLn(RV.ln[p.id],a,lo,hd);else{let i0=lo;while(i0>0&&a[i0-1][0]>=t-RVTR)i0--;const pts=a.slice(i0,lo).map(x=>[x[1],x[2]]);if(hd)pts.push([hd[0],hd[1]]);
           const L_=RV.ln[p.id];if(L_.sh)L_.sh.setLatLngs(pts);else if(pts.length)L_.sh=L.polyline(pts,L_.o).addTo(RV.L)}}}
     const k=out||!pos_||pos_[2]?'stale':rl==='hunter'?'hunter':'hider',key=k+(im?'i':'')+(lv?'l':'');
@@ -1436,7 +1434,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${(f.round||0)+1}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}${tabs}
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class="t${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=rvzs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;--c:${RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
-     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':'5 Min'}</b></span>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
+     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'off':RV.tr==='off'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':RV.tr==='off'?'aus':'5 Min'}</b></span>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`}
   else{const st=RV.st,nm=k=>esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
