@@ -43,6 +43,7 @@ Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beend
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
 Die App lädt immer die Live-Seite, seit v0.3.1 unter **https://blowncover.app/** (die alte Adresse nelodersack.github.io/blown-cover/ leitet dorthin weiter und bleibt ebenfalls in der App). Links zu anderen Seiten öffnen sich im normalen Browser. Die App-Anbindung steckt seit v0.2.6 direkt in `index.html` (im Browser ohne Wirkung).
+Seit v0.3.6 landen Replays in **Dokumente/Blown Cover/Replays** und Analysen in **Dokumente/Blown Cover/Analysen** (vorher „Downloads“); „Replay abspielen“ öffnet die Dateiauswahl direkt dort.
 Seit v0.3.4 veröffentlicht jeder Build auf `android-app` ein GitHub-Release (Tag `v<versionName>`, Datei `BlownCover.apk`); **versionName muss dafür jedes Mal steigen**, sonst bricht der Schritt ab (gleiche Version = Datei wird ersetzt). Die Website bietet in der App das Update an; `BlownNative.update(url)` lädt die APK und öffnet den Installer (einmalig „Apps aus dieser Quelle installieren“ erlauben).
 Seit v0.3.3 öffnen Einladungslinks (https://blowncover.app/CODE) direkt die App (Android App Links; bestätigt über `/.well-known/assetlinks.json`, Test: App-Info → „Standardmäßig öffnen“). Der SHA-256-Fingerabdruck steht in jedem Build in der Zusammenfassung des Actions-Laufs.
 Seit v0.3.2 öffnet „Code teilen“ in der Lobby das Android-Teilen-Menü (WhatsApp usw.).

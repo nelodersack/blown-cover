@@ -61,6 +61,8 @@ public class GameActivity extends Activity {
     private static final int REQ_FILE = 7;
     private long loadStart;
     private String loadedUrl;
+    /** Eigener Ordner für Replays und Analysen (MediaStore, ohne Speicherrecht, seit v0.3.6). */
+    static final String DIR = "Documents/Blown Cover";
     private FrameLayout frame;
     private ReadyDialog ready;
     /** Hat der Spieler in dieser Sitzung schon auf „Spielen“ getippt (bzw. war alles bereit)? */
@@ -135,7 +137,7 @@ public class GameActivity extends Activity {
         web.addJavascriptInterface(new Bridge(), "BlownNative");
 
         // Downloads (z. B. „Analysedaten herunterladen“): WebView speichert blob:-Links nicht selbst.
-        // Inhalt per JS aus der Seite holen und über BlownNative.saveFile() in „Downloads“ ablegen.
+        // Inhalt per JS aus der Seite holen und über BlownNative.saveFile() in „Dokumente/Blown Cover“ ablegen (seit v0.3.6).
         web.setDownloadListener(new android.webkit.DownloadListener() {
             @Override
             public void onDownloadStart(String url, String ua, String disp, String mime, long len) {
@@ -228,10 +230,18 @@ public class GameActivity extends Activity {
                 if (fileCb != null) fileCb.onReceiveValue(null);
                 fileCb = cb;
                 try {
-                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    // Seit v0.3.6: Dateiauswahl startet im Ordner „Dokumente/Blown Cover/Replays“ (einzige Dateiauswahl der Seite = Replay).
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
                     i.setType("*/*");
-                    startActivityForResult(Intent.createChooser(i, "Datei wählen"), REQ_FILE);
+                    i.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, android.provider.DocumentsContract.buildDocumentUri(
+                            "com.android.externalstorage.documents", "primary:" + DIR + "/Replays"));
+                    try {
+                        startActivityForResult(i, REQ_FILE);
+                    } catch (Exception e1) {
+                        Intent g = new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*");
+                        startActivityForResult(Intent.createChooser(g, "Datei wählen"), REQ_FILE);
+                    }
                     Diag.log(GameActivity.this, "Dateiauswahl geöffnet");
                     return true;
                 } catch (Exception e) {
@@ -682,7 +692,7 @@ public class GameActivity extends Activity {
             });
         }
 
-        /** Speichert eine Datei der Seite (Text) in „Downloads“ (ab Android 10), sonst Teilen-Menü. */
+        /** Speichert eine Datei der Seite (Text) in „Dokumente/Blown Cover/…“ (ab Android 10), sonst Teilen-Menü. */
         /** App-Update ohne Browser (seit v0.3.4): lädt die APK aus den GitHub-Releases und öffnet den Installer. */
         @JavascriptInterface
         public void update(final String url) {
@@ -714,6 +724,14 @@ public class GameActivity extends Activity {
             });
         }
 
+        /** Zielordner (relativ zum Speicher) nach Dateiname: Replays, Analysen, sonst direkt „Blown Cover“. */
+        private String saveDir(String n) {
+            String l = n.toLowerCase(java.util.Locale.ROOT);
+            if (l.startsWith("blowncover_replay")) return DIR + "/Replays";
+            if (l.startsWith("blowncover_analyse")) return DIR + "/Analysen";
+            return DIR;
+        }
+
         @JavascriptInterface
         public void saveFile(final String name, final String mime, final String content) {
             final String n = (name == null || name.trim().isEmpty()) ? "blowncover_download" : name.replaceAll("[\\\\/:*?\"<>|]", "_");
@@ -722,23 +740,26 @@ public class GameActivity extends Activity {
                 if (Build.VERSION.SDK_INT >= 29) {
                     android.content.ContentResolver cr = getContentResolver();
                     android.content.ContentValues v = new android.content.ContentValues();
-                    v.put(android.provider.MediaStore.Downloads.DISPLAY_NAME, n);
-                    v.put(android.provider.MediaStore.Downloads.MIME_TYPE, m);
-                    v.put(android.provider.MediaStore.Downloads.IS_PENDING, 1);
-                    Uri u = cr.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
-                    if (u == null) throw new Exception("kein Speicherplatz in Downloads");
+                    // Seit v0.3.6: eigener Ordner „Dokumente/Blown Cover“, Replays und Analysen in Unterordnern.
+                    final String rel = saveDir(n);
+                    v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, n);
+                    v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, m);
+                    v.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, rel + "/");
+                    v.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1);
+                    Uri u = cr.insert(android.provider.MediaStore.Files.getContentUri("external"), v);
+                    if (u == null) throw new Exception("Datei nicht anlegbar in " + rel);
                     java.io.OutputStream o = cr.openOutputStream(u);
                     if (o == null) throw new Exception("Datei nicht beschreibbar");
                     o.write(content.getBytes("UTF-8"));
                     o.close();
                     v.clear();
-                    v.put(android.provider.MediaStore.Downloads.IS_PENDING, 0);
+                    v.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0);
                     cr.update(u, v, null, null);
-                    Diag.log(GameActivity.this, "Download gespeichert: Downloads/" + n + " (" + content.length() / 1024 + " KB)");
+                    Diag.log(GameActivity.this, "Download gespeichert: " + rel + "/" + n + " (" + content.length() / 1024 + " KB)");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            android.widget.Toast.makeText(GameActivity.this, "Gespeichert in „Downloads“:\n" + n, android.widget.Toast.LENGTH_LONG).show();
+                            android.widget.Toast.makeText(GameActivity.this, "Gespeichert in „" + rel.replace("Documents/", "Dokumente/") + "“:\n" + n, android.widget.Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
