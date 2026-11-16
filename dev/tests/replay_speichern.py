@@ -19,7 +19,10 @@ with app(init=MK,width=412,height=915) as (pg,ev,errs):
     shot(pg,'replay_zuletzt_leer.png')
     ev("rlClose()")
     ev(f"(async()=>{{await rlIdbPut(mkRep('K7QF',2,{T}-86400000,42,'hider',2));await rlIdbPut(mkRep('Q2XY',1,{T}-3600000,25,'hunter',2));}})()");pg.wait_for_timeout(600)
-    ev(f"rpSave(mkRep('K7QF',2,{T}-86400000,42,'hider',2),0)");pg.wait_for_timeout(600)   # gleiches Spiel nochmal → nicht doppelt, nach oben
+    ev("window.__dl=0;rpDl=()=>{__dl++};0")
+    ev(f"rpSave(mkRep('K7QF',2,{T}-86400000,42,'hider',2),0)");pg.wait_for_timeout(600)
+    ev(f"rpSave(mkRep('K7QF',2,{T}-86400000,42,'hider',2),1)");pg.wait_for_timeout(300)
+    print('Browser-Download:',ev("__dl"),ev("$('toast').innerText"));assert ev("__dl")==1 and 'schon gespeichert' in ev("$('toast').innerText")   # gleiches Spiel nochmal → nicht doppelt, nach oben
     ev("rlOpen()");pg.wait_for_timeout(600)
     rows=ev(ROWS);print('liste:',rows)
     assert rows.count('||')==1 and rows.startswith(ev("rlDate(%d-86400000)"%T)) and ev("bfName('K7QF',2)") in rows.split(' || ')[0]

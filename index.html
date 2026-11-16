@@ -1140,12 +1140,13 @@ async function rlPlay(i){const f=RL.items[i];if(!f)return;let t='';
   else{try{const r=await rlReq('data','readonly',tx=>tx.objectStore('data').get(f.id));t=r&&r.txt||''}catch(e){}}
   if(!t)return toast('Datei nicht lesbar');let o;try{o=JSON.parse(t)}catch(e){return toast('Datei nicht lesbar')}
   rvLoad(o);if(RV&&RL.src==='idb'){rlIdbPut(o);f.t=Date.now();RL.items.splice(i,1);RL.items.unshift(f)}}
-// Nach der Runde speichern: App → Datei in Dokumente/Blown Cover/Replays (je Runde nur, wenn mehr Wege da sind als beim letzten
-// Speichern; Merker LS rpS:<code>_<rn>), Browser → IndexedDB. hand=1: Knopf „Als Datei speichern“ (Browser: Download)
+// Nach der Runde speichern (rpView und Knopf „Als Datei speichern“): Datei – App in Dokumente/Blown Cover/Replays, Browser in
+// Downloads –, je Runde nur, wenn mehr Wege da sind als beim letzten Speichern (Merker LS rpS:<code>_<rn>); im Browser zusätzlich
+// in „Zuletzt abgespielt“ (IndexedDB, nicht in der App). hand=1: Knopf, meldet „schon gespeichert“.
 const rpN=f=>Object.values(f.tracks||{}).filter(t=>t&&t.length).length;
 function rpSave(f,hand){if(!f)return;const k='rpS:'+f.code+'_'+f.round,n=rpN(f);
-  if(NB){let o=0;try{o=+LS[k]||0}catch(e){}if(o&&n<=o){if(hand)toast('Replay ist schon gespeichert');return}try{LS[k]=n}catch(e){}rpDl();return}
-  if(hand)rpDl();else rlIdbPut(f)}
+  if(!hand)rlIdbPut(f);
+  let o=0;try{o=+LS[k]||0}catch(e){}if(o&&n<=o){if(hand)toast('Replay ist schon gespeichert');return}try{LS[k]=n}catch(e){}rpDl()}
 // Einheitliche Form: game, players (id,name,role,col), tracks, log [[t,pfad,wert]]. Analyse-Dateien und ältere Replays werden umgewandelt.
 function rvConv(o){
   if(o&&o.format==='blown-cover-replay'&&o.log)return o;
