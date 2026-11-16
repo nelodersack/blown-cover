@@ -286,7 +286,7 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .tlo .t{position:absolute;top:7.5px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;pointer-events:none}.tlo .t.sq{border-radius:2px}.tlo .t.hu{border-radius:0;width:8px;height:7px;margin-left:-4px;clip-path:polygon(50% 0,100% 100%,0 100%)}.tlo .win{position:absolute;top:1px;height:20px;border:1.5px solid var(--fg);border-radius:6px;background:#edece81a;pointer-events:none;box-sizing:border-box}
 .tld{position:relative;height:64px;border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;touch-action:none;cursor:grab}.tld .st{position:absolute;top:0;bottom:0;left:0;will-change:transform;pointer-events:none}
 .tld .bar{position:absolute;left:0;right:0;top:25px;height:4px;background:#2a2e34}.tld .ev{position:absolute;top:16px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--bg);border:2px solid var(--c);color:var(--c);display:grid;place-items:center;box-sizing:border-box}.tld .ev .ic{width:12px;height:12px;stroke-width:2.4}.tld .ev.sq{border-radius:7px}.tld .ev.hu{border:0;background:none;width:28px;height:25px;margin-left:-14px;top:12px;align-content:end;padding-bottom:4px}.tld .ev.hu .tri{position:absolute;inset:0;width:100%;height:100%}.tld .ev.hu .ic{position:relative;width:11px;height:11px}.rvch .ci{display:grid}
-.tld .pg{position:absolute;top:20px;width:2px;height:14px;margin-left:-1px;border-radius:1px;background:#5c6168}.tld .zs{position:absolute;top:14px;width:3px;height:26px;margin-left:-1.5px;border-radius:1.5px;background:#5c6168}
+.tld .pg{position:absolute;top:20px;width:2px;height:14px;margin-left:-1px;border-radius:1px;background:#5c6168}.tld .rvzs{position:absolute;top:14px;width:3px;height:26px;margin-left:-1.5px;border-radius:1.5px;background:#5c6168}
 .tld .mt{position:absolute;bottom:17px;width:1px;height:4px;background:#3a3f46}.tld .mt.b{height:7px;background:#5c6168}.tld .lb{position:absolute;bottom:3px;transform:translateX(-50%);font:500 10px var(--f-m);color:var(--mut);white-space:nowrap}
 .tld .ph{position:absolute;top:5px;bottom:18px;width:2px;margin-left:-1px;background:var(--fg);border-radius:1px;pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
 .rvch{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -14px;padding:0 14px}.rvch::-webkit-scrollbar{display:none}.rvch .chip{flex:none}.rvch .rvtr{border-style:dashed}.rvch .chip{cursor:pointer;user-select:none;-webkit-user-select:none}.rvch .chip i{width:8px;height:8px;border-radius:50%;display:inline-block}.rvch .chip b{color:var(--fg);font-weight:600}.rvch .chip.off{opacity:.4}
@@ -309,6 +309,9 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #upb .ic{width:22px;height:22px}
 #upb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ping);border:2px solid var(--bg)}
 #upb.new i{display:block}
+/* Replay-Flug: Markierungen und Zonen während des Flugs ausgeblendet (sonst verpixelt), danach einblenden */
+#map .leaflet-overlay-pane,#map .leaflet-marker-pane{transition:opacity .35s}
+#map.fly .leaflet-overlay-pane,#map.fly .leaflet-marker-pane{opacity:0;transition:opacity .15s}
 /* §CSS-REPLAY-LISTE Liste der gespeicherten Replays (App) */
 .rlh{display:grid;gap:4px;justify-items:start;margin-bottom:6px}
 .rll{display:grid;border-top:1px solid var(--line)}
@@ -1268,9 +1271,19 @@ function rvZs(){if(RV)RV.zm=1}
 function rvZe(){if(RV){RV.zm=0;RV.zr=-1;RV.lnI={};rvDraw()}}
 function rvFocus(lat,lng,z,anim){const ph=Math.min(pVis(),innerHeight*.6);
   // anim: weich vom aktuellen Ausschnitt zur Zone gleiten (beim Öffnen eines Replays)
-  if(anim&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const zz=z!=null?z:map.getZoom(),d=rp(0,ph/2,-ROT),c=map.unproject(map.project([lat,lng],zz).add(L.point(d.x,d.y)),zz);map.flyTo(c,zz,{duration:1.2,easeLinearity:.2});return}
+  if(anim&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const zz=z!=null?z:map.getZoom(),d=rp(0,ph/2,-ROT),c=map.unproject(map.project([lat,lng],zz).add(L.point(d.x,d.y)),zz);
+    rvPre(c,zz);const M=map.getContainer();M.classList.add('fly');
+    map.once('moveend',()=>setTimeout(()=>M.classList.remove('fly'),120));map.flyTo(c,zz,{duration:1.6,easeLinearity:.15});return}
   map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
+// Kacheln am Ziel vorab laden (Vektorkacheln von OpenFreeMap in den Browser-Cache), damit die Karte nach dem Flug sofort steht
+function rvPre(c,z){try{const gl=vt&&vt.getMaplibreMap&&vt.getMaplibreMap(),st=gl&&gl.getStyle();if(!st)return;
+  Object.keys(st.sources).forEach(k=>{const so=gl.getSource(k);if(!so||so.type!=='vector'||!so.tiles)return;const mx=so.maxzoom||14,sz=map.getSize();
+    [0,1,2].forEach(dz=>{const tz=Math.max(0,Math.min(mx,Math.floor(z-1)-dz)),n=Math.pow(2,tz),sc=Math.pow(2,z-1-tz)*512,
+      x0=(c.lng+180)/360*n,y0=(1-Math.log(Math.tan(c.lat*Math.PI/180)+1/Math.cos(c.lat*Math.PI/180))/Math.PI)/2*n,
+      rx=Math.ceil(sz.x/sc/2)+1,ry=Math.ceil(sz.y/sc/2)+1;
+      for(let x=Math.floor(x0)-rx;x<=Math.floor(x0)+rx;x++)for(let y=Math.floor(y0)-ry;y<=Math.floor(y0)+ry;y++){if(y<0||y>=n)continue;
+        fetch(so.tiles[0].replace('{z}',tz).replace('{x}',((x%n)+n)%n).replace('{y}',y),{mode:'cors',credentials:'omit'}).catch(()=>{})}})})}catch(e){}}
 function rvFit(anim){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
   const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)),anim)}
 function rvClose(){if(!RV)return;$('panel').classList.remove('m');if(pRO)pRO.disconnect();cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(!!G);panel(1);if(G){draw();resSync(G)}}
@@ -1388,7 +1401,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     let mt='';for(let m=Math.ceil((RV.T0-g.R0)/6e4);g.R0+m*6e4<=RV.T1;m++){const x=Y(g.R0+m*6e4),b=m%stp===0;mt+=`<span class="mt${b?' b':''}" style="left:${x}%"></span>`+(b?`<span class=lb style="left:${x}%">${m}′</span>`:'')}
     el.innerHTML=`<div class="row sp" style="margin-top:2px"><h2 style="margin:0">Replay</h2><small class=mut style="flex:none">${esc(f.code||'')} · Runde ${(f.round||0)+1}</small></div>${f.code?`<small class=mut style="display:block;margin-top:-6px">Operation ${bfName(f.code,f.round||0)}</small>`:''}${tabs}
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class="t${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;background:${RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
-     <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=zs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;--c:${RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
+     <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=rvzs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;--c:${RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
      <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':'5 Min'}</b></span>${RVF.map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>`}
