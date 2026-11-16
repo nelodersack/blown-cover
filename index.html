@@ -309,6 +309,19 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #upb .ic{width:22px;height:22px}
 #upb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ping);border:2px solid var(--bg)}
 #upb.new i{display:block}
+/* §CSS-REPLAY-LISTE Liste der gespeicherten Replays (App) */
+.rlh{display:grid;gap:4px;justify-items:start;margin-bottom:6px}
+.rll{display:grid;border-top:1px solid var(--line)}
+.rlr{display:grid!important;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;width:100%;min-height:62px;padding:10px 0!important;margin:0!important;background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;color:var(--fg)!important;text-align:left;font:inherit}
+.rlr .d{grid-column:1;font:400 13px var(--f-b);color:var(--mut)}
+.rlr .o{grid-column:1;font:500 16px var(--f-b);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rlr .du{grid-column:2;grid-row:1;justify-self:end;font:400 13px var(--f-b);color:var(--mut)}
+.rlr .w{grid-column:2;grid-row:2;justify-self:end;font:500 14px var(--f-b);display:inline-flex;align-items:center;gap:6px}
+.rlr .w i{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.rlr .w.hu i{background:var(--danger)}.rlr .w.hi i{background:var(--ok)}
+.rlr.ph .o,.rlr.ph .d{color:var(--mut)}.rlr.ph .o{background:var(--line);border-radius:6px;width:60%;height:14px;margin:4px 0}
+.rlr.bad .o{color:var(--mut);font-weight:400}
+.rle{color:var(--mut);font-size:15px;line-height:1.45;padding:18px 0}
 /* §CSS-KLAR Designkonzept „Klar“ (15.11.): eine Fläche, Linien statt Kästen, eine Aktionsfarbe (--ac, nur Hauptknöpfe/Logo),
    Farbe sonst nur mit Bedeutung (Aufgabe lila, Bonus blau, Ping orange, Fang rot). Abstände 4/8/12/16/24/32, Zeilen ≥ 48 px.
    Überschriften Barlow Condensed in normaler Schreibweise; Großbuchstaben nur im HUD und bei Alarm-Kennzeichen. */
@@ -1073,6 +1086,40 @@ function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>
 // ===== Replay: Abspielen =====
 function rvPick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
   i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{rvLoad(JSON.parse(r.result))}catch(e){toast('Diese Datei ist kein Replay')}};r.readAsText(f)};i.click()}
+// §REPLAY-LISTE In der App (Bridge replays/readReplay ab v0.3.7): eigene Liste der gespeicherten Replays statt Dateiauswahl.
+// Zeile: Datum · Uhrzeit, Operationsname, Dauer, Gewinner. Zusammenfassungen im localStorage (rlS, Schlüssel id|size|t), Dateien
+// werden nur einmal und nacheinander gelesen (UI bleibt frei). Ohne Bridge: Dateiauswahl wie bisher.
+const RL={on:false,items:[],busy:false};
+const rlCan=()=>{try{return !!NB&&typeof NB.replays==='function'&&typeof NB.readReplay==='function'}catch(e){return false}};
+const rlKey=f=>f.id+'|'+f.size+'|'+f.t;
+const rlCache=()=>{try{return JSON.parse(LS.rlS||'{}')||{}}catch(e){return{}}};
+function rlOpen(){if(!rlCan())return rvPick();let a=[];try{a=JSON.parse(NB.replays()||'[]')}catch(e){a=[]}
+  RL.items=(Array.isArray(a)?a:[]).filter(f=>f&&f.id!=null&&!/blowncover_analyse_/i.test(f.name||'')).sort((x,y)=>(y.t||0)-(x.t||0));
+  const c=rlCache(),n={};RL.items.forEach(f=>{const k=rlKey(f);if(c[k])n[k]=c[k]});try{LS.rlS=JSON.stringify(n)}catch(e){}
+  RL.on=true;panel(1);$('ps').scrollTop=0;rlFill()}
+function rlClose(){RL.on=false;panel(1)}
+// Zusammenfassung aus der Datei (Format blown-cover-replay v2; ältere über rvConv)
+function rlSum(txt,f){const o=rvConv(JSON.parse(txt)),g=o&&o.game;if(!g||!g.startAt||!o.players)throw 0;
+  const s=g.s||{},R0=g.R0||(g.startAt+(s.head||0)*6e4),m=g.end&&g.end>R0?Math.round((g.end-R0)/6e4):(s.dur||null);
+  return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,w:g.winner||'',z:zmb(g)?1:0}}
+function rlFill(){if(RL.busy)return;const c=rlCache(),f=RL.items.find(x=>!c[rlKey(x)]);if(!f||!RL.on)return;RL.busy=true;
+  setTimeout(()=>{let v;try{const t=NB.readReplay(f.id);if(!t)throw 0;v=rlSum(t,f)}catch(e){v={bad:1}}
+    const c2=rlCache();c2[rlKey(f)]=v;try{LS.rlS=JSON.stringify(c2)}catch(e){}
+    RL.busy=false;const r=document.querySelector(`.rlr[data-k="${CSS.escape(rlKey(f))}"]`);if(r)r.outerHTML=rlRow(f,v);rlFill()},30)}
+const rlDate=t=>{const d=new Date(t),z=n=>String(n).padStart(2,'0'),wd=['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+  return `${wd} ${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()!==new Date().getFullYear()?d.getFullYear():''} · ${z(d.getHours())}:${z(d.getMinutes())}`};
+function rlRow(f,v){const k=esc(rlKey(f)),i=RL.items.indexOf(f);
+  if(!v)return`<button class="rlr ph" data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(f.t)}</span><span class=o></span><span class=du></span><span class=w></span></button>`;
+  if(v.bad)return`<button class="rlr bad" data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(f.t)}</span><span class=o>Datei nicht lesbar</span><span class=du></span><span class=w></span></button>`;
+  const w=v.w==='hunter'?['hu',v.z?'Zombies':'Hunter']:v.w==='hider'?['hi',v.z?'Überlebende':'Hider']:['','Beendet'];
+  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${v.m?v.m+' Min':''}</span><span class="w ${w[0]}"><i></i>${w[1]}</span></button>`}
+function rlHTML(){const c=rlCache();
+  return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>Replays</h2></div>`+
+   (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,c[rlKey(f)])).join('')}</div>`:
+    `<p class=rle>Noch keine Replays gespeichert. Nach einer Runde im Endscreen auf „Replay herunterladen“ tippen, dann erscheint es hier.</p>`)+
+   `<button class=g onclick="rvPick()" style="margin-top:14px">Andere Datei öffnen…</button>`}
+function rlPlay(i){const f=RL.items[i];if(!f)return;let t='';try{t=NB.readReplay(f.id)}catch(e){}
+  if(!t)return toast('Datei nicht lesbar');let o;try{o=JSON.parse(t)}catch(e){return toast('Datei nicht lesbar')}rvLoad(o)}
 // Einheitliche Form: game, players (id,name,role,col), tracks, log [[t,pfad,wert]]. Analyse-Dateien und ältere Replays werden umgewandelt.
 function rvConv(o){
   if(o&&o.format==='blown-cover-replay'&&o.log)return o;
@@ -2320,13 +2367,14 @@ const LOGO='<svg viewBox="0 0 60 60" aria-hidden=true><circle cx="30" cy="30" r=
 const SHP=(hu,c,st='#edece8')=>hu?`<svg class=sh viewBox="0 0 12 12"><path d="M6 1 L11 10.5 L1 10.5Z" fill="${c}" stroke="${st}" stroke-width="1.4" stroke-linejoin="round"/></svg>`:`<svg class=sh viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="${c}" stroke="${st}" stroke-width="1.4"/></svg>`;
 // §PANEL panel() mit Signatur lastSig
 function panel(force){const el=$('pb');updSync();if(RV)return rvPanel();
+  if(!G&&RL.on){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';el.innerHTML=rlHTML();return}
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';
     el.innerHTML=`<div class=logo2>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p class=mut style="font-size:15px;line-height:1.45">${LINKC?`Du wurdest in die Lobby <b style="color:var(--fg)">${esc(LINKC)}</b> eingeladen. Gib deinen Namen ein und tritt bei.`:'Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.'}</p>
   <div class=slb>Dein Name</div><input id=nm placeholder="Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
   ${LINKC?`<input id=cd type=hidden value="${esc(LINKC)}"><button onclick="jn()">Lobby ${esc(LINKC)} beitreten</button>
   <button class=slink onclick="LINKC='';panel()">Stattdessen eigenes Spiel erstellen</button><small id=gs hidden></small>`:`<button id=mkb onclick="mk()">Spiel erstellen</button>
   <div class=slb>Mit Code beitreten</div><div class=sjn><input id=cd placeholder="Code" maxlength=6 aria-label="Code"><button onclick="jn()">Beitreten</button></div>
-  <button class=slink onclick="rvPick()">Replay ansehen</button><small id=gs hidden></small>`}`;return}
+  <button class=slink onclick="rlOpen()">Replay ansehen</button><small id=gs hidden></small>`}`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.entries(g.tasks||{}).map(([id,v])=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null,isMt(id)&&mtD(v)!==null?Math.round(mtD(v)/10):null])]):'';
   const sig=JSON.stringify([g.status,g.status==='lobby'?Object.entries(P()).map(([k,p])=>noGps(p,k)):0,g.s,g.winner,g.host,g.rn,!!g.prev,g.prev&&g.prev.j&&g.prev.j.length,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state,p.w,p.lf,p.col]),g.cols,ui.pal,g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand,tsk,me_.used,(me_.immUntil||0)>t,isSpec(me_)?Object.values(P()).map(p=>[p.used,(p.immUntil||0)>t]):0,g.hb,hbPick,hbLive,hkSig(g,t),BM.id,BM.n,gdK,me_.role==='hunter'&&g.status==='running'?[hbTokens(g,t).length,hbItems(g).filter(([id,i])=>t>=i.av).length,!!bmMine(g,t)]:0,zmb(g)?Object.values(P()).map(p=>[p.zt,p.zd]):0,ZV&&ZV.ph,fsSig(g,t)]);
