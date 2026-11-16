@@ -42,6 +42,8 @@ with app(init=FETCH+"Object.defineProperty(navigator,'userAgent',{get:()=>'Mozil
     print('browser:',ev(vis),'dlg?',ev("!!document.getElementById('dlg')"))
     assert ev(vis).startswith('grid||') and not ev("!!document.getElementById('dlg')")
     shot(pg,'app_update_browser.png')
+    u=ev("updIntent()");print('intent:',u)
+    assert u.startswith('intent://blowncover.app/#Intent;scheme=https;package=at.blowncover.app;S.browser_fallback_url=https%3A%2F%2Fgithub.com') and u.endswith(';end')
 # 4) App mit Bridge update(): kein Browser, Aufruf mit fester Adresse
 with app(init=FETCH+NB('0.3.3').replace("saveFile:()=>{}","saveFile:()=>{},update:u=>{window.__up=u}")) as (pg,ev,errs):
     pg.wait_for_timeout(1500)

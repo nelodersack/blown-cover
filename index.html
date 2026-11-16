@@ -2776,10 +2776,12 @@ const verLt=(a,b)=>{const x=String(a).replace(/^v/,'').split('.').map(n=>parseIn
 const updNew=()=>{const a=appVer();return !!(UPD&&a&&verLt(a,UPD))};
 // sichtbar nur auf dem Startbildschirm: App → nur bei Update (mit Punkt); Android-Browser → immer, sobald ein Release da ist
 function updSync(){const b=$('upb');if(!b)return;const n=!!NB&&updNew(),on=!G&&!RV&&!!UPD&&(NB?n:/Android/i.test(navigator.userAgent));
-  b.style.display=on?'grid':'none';b.classList.toggle('new',n);b.setAttribute('aria-label',n?'App-Update laden (v'+UPD+')':'Blown Cover als Android-App laden')}
+  b.style.display=on?'grid':'none';b.classList.toggle('new',n);b.setAttribute('aria-label',n?'App-Update laden (v'+UPD+')':'Blown Cover als Android-App öffnen oder laden')}
 // App ab Bridge update(url): lädt und installiert selbst (kein externer Browser); sonst Download im Browser
 const updIn=()=>{try{return !!NB&&typeof NB.update==='function'}catch(e){return false}};
-function updGo(){try{if(updIn()){NB.update(APK);toast('Update wird geladen…');return}}catch(e){}location.href=APK}
+// Android-Browser: Intent-Link – App installiert → App öffnet sich, sonst lädt der Browser die APK (browser_fallback_url)
+const updIntent=()=>'intent://blowncover.app/#Intent;scheme=https;package=at.blowncover.app;S.browser_fallback_url='+encodeURIComponent(APK)+';end';
+function updGo(){if(!NB&&/Android/i.test(navigator.userAgent)){location.href=updIntent();return}try{if(updIn()){NB.update(APK);toast('Update wird geladen…');return}}catch(e){}location.href=APK}
 async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){}
   // Zwischenspeicher nur, solange er etwas Neueres als die installierte App kennt (sonst würde ein frisches Release bis zu 3 h übersehen)
   const av=appVer();if(c&&c.v&&Date.now()-c.t<3*36e5&&!(av&&!verLt(av,c.v)))UPD=c.v;
