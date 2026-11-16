@@ -5,6 +5,10 @@ on:
   push:
     branches: [android-app]
 
+# Release veröffentlichen (Tag v<versionName>, Asset BlownCover.apk) braucht Schreibrecht.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,6 +57,32 @@ jobs:
       - name: Schlüssel entfernen
         if: always()
         run: rm -f "$RUNNER_TEMP/sideload.jks"
+
+      # Website (App-Update) liest releases/latest und lädt releases/latest/download/BlownCover.apk.
+      - name: Release veröffentlichen
+        if: github.ref == 'refs/heads/android-app'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          VER=$(grep -m1 "versionName" app/build.gradle | sed -E "s/.*'([^']+)'.*/\1/")
+          TAG="v$VER"
+          cp "$(ls app/build/outputs/apk/release/*.apk | head -1)" "$RUNNER_TEMP/BlownCover.apk"
+          LAST=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
+          echo "Version $TAG, bisher neueste Veröffentlichung: ${LAST:-keine}"
+          # versionName muss steigen (nach Zahlen, 0.3.10 > 0.3.9); gleiche Version = Asset ersetzen.
+          if [ -n "$LAST" ] && [ "$LAST" != "$TAG" ] && [ "$(printf '%s\n%s\n' "${LAST#v}" "$VER" | sort -V | tail -1)" != "$VER" ]; then
+            echo "::error::versionName $VER ist nicht größer als $LAST – bitte in app/build.gradle erhöhen."
+            exit 1
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$RUNNER_TEMP/BlownCover.apk" --clobber
+            gh release edit "$TAG" --draft=false --prerelease=false --latest
+          else
+            gh release create "$TAG" "$RUNNER_TEMP/BlownCover.apk" --target "$GITHUB_SHA" \
+              --title "Blown Cover App $VER" --notes "Android-App $VER (Commit ${GITHUB_SHA::7}). Installieren: BlownCover.apk." --latest
+          fi
+          echo "### Release $TAG veröffentlicht" >> "$GITHUB_STEP_SUMMARY"
 
       - name: APK hochladen
         uses: actions/upload-artifact@v5

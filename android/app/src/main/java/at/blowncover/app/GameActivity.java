@@ -548,6 +548,7 @@ public class GameActivity extends Activity {
     protected void onResume() {
         super.onResume();
         web.onResume();
+        Updater.resume(this);
         applyRender();
         web.resumeTimers();
         afterChecksChanged();
@@ -682,6 +683,17 @@ public class GameActivity extends Activity {
         }
 
         /** Speichert eine Datei der Seite (Text) in „Downloads“ (ab Android 10), sonst Teilen-Menü. */
+        /** App-Update ohne Browser (seit v0.3.4): lädt die APK aus den GitHub-Releases und öffnet den Installer. */
+        @JavascriptInterface
+        public void update(final String url) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Updater.start(GameActivity.this, url);
+                }
+            });
+        }
+
         /** Teilen über das Android-Menü (die WebView kennt navigator.share nicht). Seit v0.3.2. */
         @JavascriptInterface
         public void share(final String text) {
