@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "at.blowncover.app",
+    "sha256_cert_fingerprints": ["AB:6A:59:84:82:BC:EA:68:2F:D7:87:2A:3E:CC:5C:A0:85:E3:A6:70:B3:8C:8C:3F:E6:7E:58:10:91:ED:3E:AD"]
+  }
+}]
