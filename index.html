@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Blown Cover">
 <link rel="icon" type="image/png" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Blown Cover</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://*.firebasedatabase.app; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://tiles.openfreemap.org https://server.arcgisonline.com https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; worker-src blob:; child-src blob:; frame-src https://*.firebasedatabase.app; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://*.firebasedatabase.app; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tiles.openfreemap.org https://server.arcgisonline.com; connect-src 'self' https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://tiles.openfreemap.org https://server.arcgisonline.com https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems https://api.github.com; worker-src blob:; child-src blob:; frame-src https://*.firebasedatabase.app; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="vendor/fonts.css">
 <style>
@@ -304,6 +304,10 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .leaflet-tooltip-top{transform-origin:50% calc(100% + 6px)}
 #nb{position:fixed;left:10px;top:calc(156px + env(safe-area-inset-top,0px));z-index:999;display:none;width:40px;height:40px;min-height:0;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--panel) 92%,transparent);place-items:center}#nb svg{width:26px;height:26px;display:block}#nb svg.l{width:22px;height:22px}#nbt{position:fixed;left:58px;top:calc(163px + env(safe-area-inset-top,0px));z-index:1300;display:none;background:color-mix(in srgb,var(--panel) 95%,transparent);color:var(--fg);font:600 12px var(--f-b);padding:6px 10px;border-radius:999px;pointer-events:none}
 
+/* §CSS-UPDATE App-Update/App-Download auf dem Startbildschirm */
+.upd{display:flex;align-items:center;justify-content:center;gap:10px;background:none!important;border:1px solid var(--line)!important;color:var(--fg)!important}
+.upd i{width:9px;height:9px;border-radius:50%;background:var(--ping);box-shadow:0 0 0 3px rgba(255,138,31,.2);flex:none}
+.upd small{color:var(--mut);font-weight:400}
 /* §CSS-KLAR Designkonzept „Klar“ (15.11.): eine Fläche, Linien statt Kästen, eine Aktionsfarbe (--ac, nur Hauptknöpfe/Logo),
    Farbe sonst nur mit Bedeutung (Aufgabe lila, Bonus blau, Ping orange, Fang rot). Abstände 4/8/12/16/24/32, Zeilen ≥ 48 px.
    Überschriften Barlow Condensed in normaler Schreibweise; Großbuchstaben nur im HUD und bei Alarm-Kennzeichen. */
@@ -2318,7 +2322,7 @@ function panel(force){const el=$('pb');if(RV)return rvPanel();
   ${LINKC?`<input id=cd type=hidden value="${esc(LINKC)}"><button onclick="jn()">Lobby ${esc(LINKC)} beitreten</button>
   <button class=slink onclick="LINKC='';panel()">Stattdessen eigenes Spiel erstellen</button><small id=gs hidden></small>`:`<button id=mkb onclick="mk()">Spiel erstellen</button>
   <div class=slb>Mit Code beitreten</div><div class=sjn><input id=cd placeholder="Code" maxlength=6 aria-label="Code"><button onclick="jn()">Beitreten</button></div>
-  <button class=slink onclick="rvPick()">Replay ansehen</button><small id=gs hidden></small>`}`;return}
+  <button class=slink onclick="rvPick()">Replay ansehen</button><div id=updb style="display:grid">${updBtn()}</div><small id=gs hidden></small>`}`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.entries(g.tasks||{}).map(([id,v])=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null,isMt(id)&&mtD(v)!==null?Math.round(mtD(v)/10):null])]):'';
   const sig=JSON.stringify([g.status,g.status==='lobby'?Object.entries(P()).map(([k,p])=>noGps(p,k)):0,g.s,g.winner,g.host,g.rn,!!g.prev,g.prev&&g.prev.j&&g.prev.j.length,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state,p.w,p.lf,p.col]),g.cols,ui.pal,g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand,tsk,me_.used,(me_.immUntil||0)>t,isSpec(me_)?Object.values(P()).map(p=>[p.used,(p.immUntil||0)>t]):0,g.hb,hbPick,hbLive,hkSig(g,t),BM.id,BM.n,gdK,me_.role==='hunter'&&g.status==='running'?[hbTokens(g,t).length,hbItems(g).filter(([id,i])=>t>=i.av).length,!!bmMine(g,t)]:0,zmb(g)?Object.values(P()).map(p=>[p.zt,p.zd]):0,ZV&&ZV.ph,fsSig(g,t)]);
@@ -2762,9 +2766,24 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(w){endLock=t+4000;db.ref('games/'+code).update({status:'over',winner:w}).catch(()=>{})}}
   $('hud').innerHTML=zx(h);panel()},1000);
 
+// §UPDATE App-Version prüfen (GitHub Releases): in der App bei älterer Version Dialog beim Öffnen + Knopf mit orangem Punkt auf dem
+// Startbildschirm (nie in Lobby/Spiel); Android-Browser: dezenter Link „Als Android-App laden“. Neueste Version höchstens alle 3 h abfragen.
+const APK='https://github.com/nelodersack/blown-cover/releases/latest/download/BlownCover.apk',REL='https://api.github.com/repos/nelodersack/blown-cover/releases/latest';
+let UPD=null,updAsked=false;
+const appVer=()=>{try{return NB&&NB.info?String(JSON.parse(NB.info()).ver||''):''}catch(e){return''}};
+const verLt=(a,b)=>{const x=String(a).replace(/^v/,'').split('.').map(n=>parseInt(n)||0),y=String(b).replace(/^v/,'').split('.').map(n=>parseInt(n)||0);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return(x[i]||0)<(y[i]||0)}return false};
+const updNew=()=>{const a=appVer();return !!(UPD&&a&&verLt(a,UPD))};
+function updBtn(){if(!UPD)return'';if(NB)return updNew()?`<button class=upd onclick="updGo()"><i></i>App-Update laden <small>v${esc(UPD)}</small></button>`:'';
+  return /Android/i.test(navigator.userAgent)?`<button class=slink onclick="updGo()">Blown Cover als Android-App laden</button>`:''}
+function updGo(){location.href=APK}
+async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){}
+  if(c&&c.v&&Date.now()-c.t<3*36e5)UPD=c.v;
+  else try{const r=await fetch(REL,{headers:{Accept:'application/vnd.github+json'}});if(r.ok){const j=await r.json(),v=String(j.tag_name||'').replace(/^v/,'');if(/^\d+(\.\d+)*$/.test(v)&&(j.assets||[]).some(a=>a.name==='BlownCover.apk')){UPD=v;LS.updC=JSON.stringify({v,t:Date.now()})}}}catch(e){}
+  const ub=$('updb');if(ub)ub.innerHTML=updBtn();
+  if(updNew()&&!updAsked&&!G&&!LS.c){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt. Deine Einstellungen bleiben erhalten.`,ok:'Jetzt laden',no:'Später'}))updGo()}}
 // §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
-panel();
+panel();setTimeout(updCheck,1500);
 setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
