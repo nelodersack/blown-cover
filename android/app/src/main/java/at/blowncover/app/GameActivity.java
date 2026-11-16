@@ -724,6 +724,69 @@ public class GameActivity extends Activity {
             });
         }
 
+        /** Liste der Replays, die die App selbst gespeichert hat (Dokumente/Blown Cover/Replays + ältere in Download),
+         *  neueste zuerst, als JSON: [{id,name,size,t,dir}]. Für den Replay-Auswahlbildschirm der Website (seit v0.3.7). */
+        @JavascriptInterface
+        public String replays() {
+            org.json.JSONArray out = new org.json.JSONArray();
+            if (Build.VERSION.SDK_INT < 29) return out.toString();
+            android.database.Cursor c = null;
+            try {
+                String[] col = {android.provider.MediaStore.MediaColumns._ID, android.provider.MediaStore.MediaColumns.DISPLAY_NAME,
+                        android.provider.MediaStore.MediaColumns.SIZE, android.provider.MediaStore.MediaColumns.DATE_MODIFIED,
+                        android.provider.MediaStore.MediaColumns.RELATIVE_PATH};
+                String sel = android.provider.MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ? AND ("
+                        + android.provider.MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ? OR "
+                        + android.provider.MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?)";
+                String[] args = {"blowncover_replay%", DIR + "/Replays%", "Download%"};
+                c = getContentResolver().query(android.provider.MediaStore.Files.getContentUri("external"), col, sel, args,
+                        android.provider.MediaStore.MediaColumns.DATE_MODIFIED + " DESC");
+                while (c != null && c.moveToNext()) {
+                    String n = c.getString(1);
+                    if (n == null || !n.toLowerCase(java.util.Locale.ROOT).endsWith(".json")) continue;
+                    String rp = c.getString(4) == null ? "" : c.getString(4);
+                    org.json.JSONObject o = new org.json.JSONObject();
+                    o.put("id", String.valueOf(c.getLong(0)));
+                    o.put("name", n);
+                    o.put("size", c.getLong(2));
+                    o.put("t", c.getLong(3) * 1000L);
+                    o.put("dir", rp.startsWith("Download") ? "Downloads" : "Replays");
+                    out.put(o);
+                }
+            } catch (Exception e) {
+                Diag.log(GameActivity.this, "Replay-Liste FEHLER: " + e);
+            } finally {
+                if (c != null) c.close();
+            }
+            return out.toString();
+        }
+
+        /** Inhalt eines Replays aus replays() (id), "" bei Fehler. Seit v0.3.7. */
+        @JavascriptInterface
+        public String readReplay(String id) {
+            if (Build.VERSION.SDK_INT < 29 || id == null) return "";
+            try {
+                Uri u = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Files.getContentUri("external"), Long.parseLong(id));
+                java.io.InputStream in = getContentResolver().openInputStream(u);
+                if (in == null) return "";
+                java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[64 * 1024];
+                int n;
+                try {
+                    while ((n = in.read(buf)) > 0) {
+                        b.write(buf, 0, n);
+                        if (b.size() > 30 * 1024 * 1024) throw new Exception("Datei zu groß");
+                    }
+                } finally {
+                    in.close();
+                }
+                return b.toString("UTF-8");
+            } catch (Exception e) {
+                Diag.log(GameActivity.this, "Replay lesen FEHLER (" + id + "): " + e);
+                return "";
+            }
+        }
+
         /** Zielordner (relativ zum Speicher) nach Dateiname: Replays, Analysen, sonst direkt „Blown Cover“. */
         private String saveDir(String n) {
             String l = n.toLowerCase(java.util.Locale.ROOT);
