@@ -24,7 +24,7 @@
 #hud .hp small{font:600 9.5px/1.3 var(--f-b);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 #hud .hp.hot{background:#ff8a1f;color:#1a0d00;animation:hpPulse 1.6s ease-in-out infinite}#hud .hp.hot small{color:#3d2200}
 @keyframes hpPulse{50%{background:#ffa64d}}@media (prefers-reduced-motion:reduce){#hud .hp.hot{animation:none}}
-#panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:56vh;display:flex;flex-direction:column;background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);transition:transform .2s,max-height .2s;padding-bottom:env(safe-area-inset-bottom,0px)}
+#panel{position:fixed;left:0;right:0;bottom:0;z-index:1000;max-height:56vh;display:flex;flex-direction:column;background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);transition:transform .25s ease,max-height .25s ease,height .25s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
 #panel.tall{max-height:80vh}#panel.c{transform:translateY(calc(100% - 34px))}#panel.m{transform:translateY(var(--mid,0px))}#panel.m #ps::after{content:'';display:block;height:var(--pad,0px)}
 #ph{padding:10px 0 8px;cursor:grab;touch-action:none;flex:none}#ph i{display:block;width:44px;height:5px;border-radius:3px;background:#3a3f46;margin:0 auto}
 #ps{overflow:auto;flex:1;min-height:0;overscroll-behavior:contain}
@@ -318,6 +318,7 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .rlr .du{grid-column:2;grid-row:1;justify-self:end;font:400 13px var(--f-b);color:var(--mut)}
 .rlr .w{grid-column:2;grid-row:2;justify-self:end;display:inline-flex;align-items:center}
 .rlr .w .sh{width:15px;height:15px}
+.rlr .w .wt{font:400 13px var(--f-b);color:var(--mut)}
 .rlr.ph .o,.rlr.ph .d{color:var(--mut)}.rlr.ph .o{background:var(--line);border-radius:6px;width:60%;height:14px;margin:4px 0}
 .rlr.bad .o{color:var(--mut);font-weight:400}
 .rle{color:var(--mut);font-size:15px;line-height:1.45;padding:18px 0}
@@ -1091,7 +1092,7 @@ function rvPick(){const i=document.createElement('input');i.type='file';i.accept
 const RL={on:false,items:[],busy:false,src:''},RLMAX=30;
 const rlCan=()=>{try{return !!NB&&typeof NB.replays==='function'&&typeof NB.readReplay==='function'}catch(e){return false}};
 const rlIdbOk=()=>{try{return !NB&&!!window.indexedDB}catch(e){return false}};
-const rlKey=f=>f.id+'|'+f.size+'|'+f.t;
+const rlKey=f=>'2|'+f.id+'|'+f.size+'|'+f.t;   // 2 = Zusammenfassung mit geplanter Dauer p
 const rlCache=()=>{try{return JSON.parse(LS.rlS||'{}')||{}}catch(e){return{}}};
 // IndexedDB (nur Browser)
 let rlDB=null;
@@ -1116,7 +1117,7 @@ function rlClose(){RL.on=false;panel(1)}
 // Zusammenfassung aus der Datei (Format blown-cover-replay v2; ältere über rvConv)
 function rlSum(txt,f){const o=rvConv(JSON.parse(txt)),g=o&&o.game;if(!g||!g.startAt||!o.players)throw 0;
   const s=g.s||{},R0=g.R0||(g.startAt+(s.head||0)*6e4),m=g.end&&g.end>R0?Math.round((g.end-R0)/6e4):(s.dur||null);
-  return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,w:g.winner||'',z:zmb(g)?1:0}}
+  return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,p:s.dur||null,w:g.winner||'',z:zmb(g)?1:0}}
 function rlFill(){if(RL.busy||RL.src!=='app')return;const c=rlCache(),f=RL.items.find(x=>!c[rlKey(x)]);if(!f||!RL.on)return;RL.busy=true;
   setTimeout(()=>{let v;try{const t=NB.readReplay(f.id);if(!t)throw 0;v=rlSum(t,f)}catch(e){v={bad:1}}
     const c2=rlCache();c2[rlKey(f)]=v;try{LS.rlS=JSON.stringify(c2)}catch(e){}
@@ -1129,7 +1130,11 @@ function rlRow(f,v){const k=esc(rlKey(f)),i=RL.items.indexOf(f);
   // Gewinner als gewohnte Form: Dreieck = Hunter/Zombies (Zombie grün), Kreis = Hider
   const w=v.w==='hunter'?SHP(1,v.z?'#58c322':'#9ca1a8','#e4e2dd'):v.w==='hider'?SHP(0,'#9ca1a8','#e4e2dd'):'';
   const wl=v.w==='hunter'?(v.z?'Zombies':'Hunter')+' gewinnen':v.w==='hider'?(v.z?'Überlebende':'Hider')+' gewinnen':'';
-  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${v.m?v.m+' Min':''}</span><span class=w title="${wl}" aria-label="${wl}">${w}</span></button>`}
+  // ohne Gewinner: Text statt Form (Host hat beendet = abgebrochen)
+  const wt=w?'':`<span class=wt>${v.w==='host'?'Abgebrochen':'Beendet'}</span>`;
+  // Dauer: gespielt / geplant, wenn kürzer gespielt wurde
+  const du=v.m&&v.p&&v.m<v.p?`${v.m} / ${v.p} Min`:(v.m||v.p)?`${v.m||v.p} Min`:'';
+  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${du}</span><span class=w title="${wl}" aria-label="${wl}">${w||wt}</span></button>`}
 function rlHTML(){const c=rlCache(),app=RL.src==='app';
   return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>${app?'Replays':'Zuletzt abgespielt'}</h2></div>`+
    (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,app?c[rlKey(f)]:f.sum)).join('')}</div>`:
@@ -1257,14 +1262,17 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
     L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
     RV.ln[p.id]={c:[],s:[],k:-1,o:{color:c,weight:3,opacity:.85,interactive:false}}});
   map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
-  $('res').style.display='none';rotMode(true);panel(1);$('panel').classList.add('m');pMidSet();setTimeout(()=>{if(RV){pMidSet();rvFit()}},260);rvFit();rvDraw()}
+  $('res').style.display='none';rotMode(true);panel(1);$('panel').classList.add('m');pMidSet();setTimeout(()=>{if(RV){pMidSet();rvFit(1)}},260);rvDraw()}
 // Während eines Zooms keine Linien/Kreise neu berechnen, sonst passen sie nicht zur gerade skalierten Ebene
 function rvZs(){if(RV)RV.zm=1}
 function rvZe(){if(RV){RV.zm=0;RV.zr=-1;RV.lnI={};rvDraw()}}
-function rvFocus(lat,lng,z){const ph=Math.min(pVis(),innerHeight*.6);map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
+function rvFocus(lat,lng,z,anim){const ph=Math.min(pVis(),innerHeight*.6);
+  // anim: weich vom aktuellen Ausschnitt zur Zone gleiten (beim Öffnen eines Replays)
+  if(anim&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const zz=z!=null?z:map.getZoom(),d=rp(0,ph/2,-ROT),c=map.unproject(map.project([lat,lng],zz).add(L.point(d.x,d.y)),zz);map.flyTo(c,zz,{duration:1.2,easeLinearity:.2});return}
+  map.setView([lat,lng],z!=null?z:map.getZoom(),{animate:false});
   const d=rp(0,ph/2,-ROT);map.panBy([d.x,d.y],{animate:false})}
-function rvFit(){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
-  const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)))}
+function rvFit(anim){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Math.max(160,Math.min(innerWidth,innerHeight-ph)-40);
+  const z=Math.log2(156543.03*Math.cos(g.c.lat*Math.PI/180)*av/(2*g.s.r0));rvFocus(g.c.lat,g.c.lng,Math.min(18,Math.max(12,z)),anim)}
 function rvClose(){if(!RV)return;$('panel').classList.remove('m');if(pRO)pRO.disconnect();cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(!!G);panel(1);if(G){draw();resSync(G)}}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players,code:RV.f.code,rn:RV.f.round};
@@ -2003,7 +2011,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
 const pAnc=()=>{const pb=$('pb');if(!pb)return null;if(RV)return RV.tab==='map'?pb.querySelector('.ctl'):null;return G&&G.status==='lobby'?pb.querySelector('[data-mid]'):null};
 // Anker-Lage im Inhalt unabhängig vom Scrollstand messen (sonst wird der Versatz bei gescrolltem Menü größer als das Panel und es verschwindet);
 // Versatz höchstens so groß, dass oben mindestens 120 px Panel sichtbar bleiben
-const pMid=()=>{const P_=$('panel'),k=pAnc();if(!k)return 0;const H=P_.offsetHeight,ps=$('ps');
+const pMid=()=>{const P_=$('panel'),k=pAnc();if(!k)return 0;const H=P_._h1||P_.offsetHeight,ps=$('ps');
   const m=Math.round(H-(k.getBoundingClientRect().bottom-P_.getBoundingClientRect().top+(ps?ps.scrollTop:0)+12));return m>40?Math.min(m,Math.max(0,H-120)):0};
 // In der Mitte bekommt der Scrollbereich #ps unten so viel Abstand, dass sich der verdeckte Teil des Menüs in den sichtbaren Bereich scrollen lässt
 const pMidSet=()=>{const P_=$('panel'),pb=$('pb'),pf=$('pf');P_.style.setProperty('--pad','0px');const m0=pMid();
@@ -2393,7 +2401,14 @@ function runUI(g,me_,t,host,run){
 const LOGO='<svg viewBox="0 0 60 60" aria-hidden=true><circle cx="30" cy="30" r="27" fill="none" stroke="#e5484d" stroke-width="4"/><circle cx="30" cy="30" r="18" fill="none" stroke="#8e939a" stroke-width="2" stroke-dasharray="4 4"/><circle cx="30" cy="30" r="9" fill="none" stroke="#ff8a1f" stroke-width="4"/><circle cx="30" cy="30" r="3" fill="#ff8a1f"/></svg>';
 const SHP=(hu,c,st='#edece8')=>hu?`<svg class=sh viewBox="0 0 12 12"><path d="M6 1 L11 10.5 L1 10.5Z" fill="${c}" stroke="${st}" stroke-width="1.4" stroke-linejoin="round"/></svg>`:`<svg class=sh viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="${c}" stroke="${st}" stroke-width="1.4"/></svg>`;
 // §PANEL panel() mit Signatur lastSig
-function panel(force){const el=$('pb');updSync();if(RV)return rvPanel();
+// Höhenwechsel des Panels weich (Inhalt wechselt → Höhe gleitet statt zu springen); _h1 = Zielhöhe für pMid während der Bewegung
+function panel(force){const P_=$('panel');if(!P_||RV&&RV.play||matchMedia('(prefers-reduced-motion: reduce)').matches)return panel0(force);
+  // max-height (tall) springt beim Messen sofort auf den neuen Wert, die Höhe gleitet dann von h0 nach h1
+  const h0=P_.offsetHeight;P_.style.transition='transform .25s ease,height .25s ease';P_.style.height='';const r=panel0(force),h1=P_.offsetHeight;
+  if(Math.abs(h1-h0)<3){if(P_._h1)P_.style.height=P_._h1+'px';else P_.style.transition='';return r}
+  P_.style.height=h0+'px';void P_.offsetHeight;P_._h1=h1;P_.style.height=h1+'px';clearTimeout(P_._ht);
+  P_._ht=setTimeout(()=>{P_.style.height='';P_.style.transition='';P_._h1=0},300);return r}
+function panel0(force){const el=$('pb');updSync();if(RV)return rvPanel();
   if(!G&&RL.on){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';el.innerHTML=rlHTML();return}
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';
     el.innerHTML=`<div class=logo2>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p class=mut style="font-size:15px;line-height:1.45">${LINKC?`Du wurdest in die Lobby <b style="color:var(--fg)">${esc(LINKC)}</b> eingeladen. Gib deinen Namen ein und tritt bei.`:'Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.'}</p>
