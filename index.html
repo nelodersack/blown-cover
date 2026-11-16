@@ -312,6 +312,10 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 /* Replay-Flug: Markierungen und Zonen während des Flugs ausgeblendet (sonst verpixelt), danach einblenden */
 #map .leaflet-overlay-pane,#map .leaflet-marker-pane{transition:opacity .35s}
 #map.fly .leaflet-overlay-pane,#map.fly .leaflet-marker-pane{opacity:0;transition:opacity .15s}
+/* §CSS-KARTENSTIL Schild der Kartenstil-Vorschau */
+#ksb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1300;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;color:var(--fg);font:500 13px var(--f-b);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#ksb button{width:32px!important;height:32px;min-height:0!important;padding:0!important;margin:0!important;background:var(--panel2)!important;border:0!important;border-radius:8px!important;color:var(--fg)!important;font-size:18px}
+#ksb span{padding:0 6px;white-space:nowrap}
 /* §CSS-REPLAY-LISTE Liste der gespeicherten Replays (App) */
 .rlh{display:grid;gap:4px;justify-items:start;margin-bottom:6px}
 .rll{display:grid;border-top:1px solid var(--line)}
@@ -918,8 +922,45 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&G&&G.stat
 // §KARTE Leaflet + MapLibre-Vektorkarte
 const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([47.5,14.5],7);
 let vt=null;
-if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search))(vt=L.maplibreGL({fadeDuration:0,pixelRatio:Math.min(window.devicePixelRatio||1,2),maxTileCacheSize:48,style:'https://tiles.openfreemap.org/styles/positron',attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'})).addTo(map);
-else{const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+// §KARTENSTIL Vorschau neuer Kartenstile über blowncover.app/?kartenstil=1…5 (nur zum Vergleichen, ohne Zusatz unverändert).
+// Grundlage ist OpenFreeMap „positron“; Farben je Rolle (Hintergrund, Wohngebiet, Grün, Wasser, Gebäude, Wege, Straßen, Schrift)
+// werden ersetzt. KZ = Farben der Spielelemente (Zone, nächste Zone, Abdunkeln außerhalb der Zone).
+const KST=(()=>{try{const v=+new URLSearchParams(location.search).get('kartenstil');return v>=1&&v<=5?v:0}catch(e){return 0}})();
+const KSD={
+ 1:{n:'Hell, kontrastreich',bg:'#eceae6',res:'#e7e4df',park:'#dbe5d1',wood:'#d2dec7',water:'#b7cde0',bld:'#c3bdb3',bldo:'#a39c91',minor:'#ffffff',major:'#ffffff',mw:'#fdf6e6',cas:'#bdb7ae',path:'#7e7870',rail:'#b0aaa2',txt:'#4f4b45',halo:'#ffffff',z:{c:'#e5484d',f:.05,nz:'#6b7480',m:'#3a3a3a',mo:.10}},
+ 2:{n:'Graphit (dunkel)',bg:'#1b1e22',res:'#1e2226',park:'#1d2921',wood:'#1b271e',water:'#14273a',bld:'#30363d',bldo:'#454c55',minor:'#454b53',major:'#5d646d',mw:'#6e757e',cas:'#25292e',path:'#9aa1a9',rail:'#3d4249',txt:'#a3a8ae',halo:'#1b1e22',z:{c:'#ff5a5f',f:.07,nz:'#a3abb5',m:'#000000',mo:.38}},
+ 3:{n:'Agentenblau',bg:'#0e1a29',res:'#112030',park:'#10282a',wood:'#0f2527',water:'#08131f',bld:'#16283c',bldo:'#2f5878',minor:'#284763',major:'#3a6890',mw:'#4a7ea8',cas:'#0e1a29',path:'#6d9cc2',rail:'#23405a',txt:'#8fb4d3',halo:'#0e1a29',z:{c:'#ff6a4d',f:.07,nz:'#8fb4d3',m:'#000000',mo:.35}},
+ 4:{n:'Stadtplan',bg:'#f2eee4',res:'#eee7d9',park:'#cde2bc',wood:'#b9d5a5',water:'#a5c9e6',bld:'#dfcdb0',bldo:'#c2aa85',minor:'#ffffff',major:'#fbe29b',mw:'#f5bf74',cas:'#c9bda8',path:'#a87b4f',rail:'#a59a8a',txt:'#463d32',halo:'#f2eee4',z:{c:'#d6303a',f:.05,nz:'#6b6252',m:'#2a2418',mo:.10}},
+ 5:{n:'Schwarzplan',bg:'#e8e8e6',res:'#e8e8e6',park:'#dde4d8',wood:'#d6dfd0',water:'#cad8e3',bld:'#383b40',bldo:'#383b40',minor:'#ffffff',major:'#ffffff',mw:'#ffffff',cas:'#d0d0cc',path:'#5f636a',rail:'#9a9ca0',txt:'#2e3135',halo:'#ffffff',z:{c:'#e5484d',f:.06,nz:'#5f636a',m:'#000000',mo:.14}}};
+const KZ=KST?KSD[KST].z:{c:'#e5484d',f:.07,nz:'#7a8696',m:'#000',mo:0};
+function ksApply(st,T){const iz=(a,b,c,d)=>['interpolate',['linear'],['zoom'],13,a,15,b,17,c,19,d];
+  (st.layers||[]).forEach(l=>{const id=l.id,sl=l['source-layer']||'',p=l.paint||(l.paint={});
+    if(l.type==='background')p['background-color']=T.bg;
+    else if(l.type==='fill'&&sl==='landuse'&&/residential/.test(id))p['fill-color']=T.res;
+    else if(l.type==='fill'&&(sl==='park'||/park/.test(id)))p['fill-color']=T.park;
+    else if(l.type==='fill'&&sl==='landcover'&&/wood|grass/.test(id))p['fill-color']=T.wood;
+    else if(l.type==='fill'&&sl==='water')p['fill-color']=T.water;
+    else if(l.type==='line'&&sl==='waterway')p['line-color']=T.water;
+    else if(l.type==='fill'&&sl==='building'){p['fill-color']=T.bld;p['fill-outline-color']=T.bldo;p['fill-opacity']=1}
+    else if(l.type==='line'&&sl==='transportation'){
+      if(/path/.test(id)){p['line-color']=T.path;p['line-dasharray']=[2,1.4];p['line-width']=iz(.8,1.2,1.8,2.6)}
+      else if(/rail/.test(id))p['line-color']=T.rail;
+      else if(/casing/.test(id))p['line-color']=T.cas;
+      else if(/minor/.test(id)){p['line-color']=T.minor;p['line-width']=iz(1,3,7,14)}
+      else if(/motorway/.test(id))p['line-color']=T.mw;
+      else if(/major|pier/.test(id))p['line-color']=T.major}
+    else if(l.type==='symbol'){if('text-color' in p||l.layout&&l.layout['text-field']){p['text-color']=T.txt;p['text-halo-color']=T.halo}}});
+  return st}
+// Schild mit Stilname und Weiterschalten (nur in der Vorschau)
+function ksBadge(){if(!KST)return;const d=document.createElement('div');d.id='ksb';
+  const go=v=>{const u=new URL(location.href);u.searchParams.set('kartenstil',v);location.href=u.toString()};
+  d.innerHTML=`<button aria-label="Vorheriger Stil">‹</button><span>${KST}/5 · ${esc(KSD[KST].n)}</span><button aria-label="Nächster Stil">›</button>`;
+  const b=d.querySelectorAll('button');b[0].onclick=()=>go(KST>1?KST-1:5);b[1].onclick=()=>go(KST<5?KST+1:1);document.body.appendChild(d)}
+const vtOpt=st=>({fadeDuration:0,pixelRatio:Math.min(window.devicePixelRatio||1,2),maxTileCacheSize:48,style:st,attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'});
+if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search)){const PZ='https://tiles.openfreemap.org/styles/positron';
+  if(!KST)(vt=L.maplibreGL(vtOpt(PZ))).addTo(map);
+  else{map.getContainer().style.background=KSD[KST].bg;fetch(PZ).then(r=>r.json()).then(st=>{(vt=L.maplibreGL(vtOpt(ksApply(st,KSD[KST])))).addTo(map)}).catch(()=>{(vt=L.maplibreGL(vtOpt(PZ))).addTo(map)})}}
+if(!L.maplibreGL||/[?&]karte=raster/.test(location.search)){const E='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
 const lay=L.layerGroup().addTo(map);
@@ -1262,7 +1303,7 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   zsTimes(g.s,g.R0,g.end).forEach(([t,r])=>sc.ev.push({t,k:'zone',x:'Zone schrumpft: jetzt '+r+' m'+(r<=g.s.rMin?' (Endgröße)':'')}));
   RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);RV.aT=null;
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
-  RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:'#e5484d',weight:2,fillOpacity:.05,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
+  RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:KZ.c,weight:2,fillOpacity:KZ.f,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
   f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
     L.polyline(a.map(x=>[x[1],x[2]]),{color:c,weight:2,opacity:.22,interactive:false}).addTo(RV.L);
     RV.ln[p.id]={c:[],s:[],k:-1,o:{color:c,weight:3,opacity:.85,interactive:false}}});
@@ -2691,8 +2732,10 @@ setInterval(()=>{if(pendD&&Date.now()-mvT>1500){mvg=false;pendD=false;draw()}},1
 function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;reop=null;lay.clearLayers();if(RV){redrawing=false;return}
   if(!G){redrawing=false;lgSync();return}
   const g=G,t=now(),r=Rad(g,t),m=P()[uid]||{},c0=[g.c.lat,g.c.lng];
-  const z=L.circle(c0,{radius:r,color:'#e5484d',fillColor:'#e5484d',fillOpacity:.07,weight:2}).addTo(lay);
-  const nr=Math.max(g.s.rMin,r-sstp(g.s));if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:'#7a8696',weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
+  if(KZ.mo){const pts=[],R_=r/111320,cl=Math.cos(c0[0]*Math.PI/180);for(let i=0;i<72;i++){const a=i/72*2*Math.PI;pts.push([c0[0]+R_*Math.sin(a),c0[1]+R_*Math.cos(a)/cl])}
+    L.polygon([[[89,-179],[89,179],[-89,179],[-89,-179]],pts],{stroke:false,fillColor:KZ.m,fillOpacity:KZ.mo,interactive:false}).addTo(lay)}
+  const z=L.circle(c0,{radius:r,color:KZ.c,fillColor:KZ.c,fillOpacity:KZ.f,weight:2}).addTo(lay);
+  const nr=Math.max(g.s.rMin,r-sstp(g.s));if(g.status==='running'&&g.startAt&&r>g.s.rMin&&nr<r)L.circle(c0,{radius:nr,color:KZ.nz,weight:2,dashArray:'6 6',fill:false,opacity:.85,interactive:false}).addTo(lay);
   const key=r+(g.host===uid?'':c0.join());
   if(!fitted||(g.status==='lobby'&&key!==lastKey)){fitted=1;lastKey=key;fitZ(z.getBounds())}
   if(g.status==='lobby'&&g.host===uid){
@@ -2898,6 +2941,6 @@ async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){
 // §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
-panel();setTimeout(updCheck,1500);
+panel();setTimeout(updCheck,1500);ksBadge();
 setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
