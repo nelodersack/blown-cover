@@ -316,9 +316,8 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .rlr .d{grid-column:1;font:400 13px var(--f-b);color:var(--mut)}
 .rlr .o{grid-column:1;font:500 16px var(--f-b);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rlr .du{grid-column:2;grid-row:1;justify-self:end;font:400 13px var(--f-b);color:var(--mut)}
-.rlr .w{grid-column:2;grid-row:2;justify-self:end;font:500 14px var(--f-b);display:inline-flex;align-items:center;gap:6px}
-.rlr .w i{width:8px;height:8px;border-radius:50%;background:var(--mut)}
-.rlr .w.hu i{background:var(--danger)}.rlr .w.hi i{background:var(--ok)}
+.rlr .w{grid-column:2;grid-row:2;justify-self:end;display:inline-flex;align-items:center}
+.rlr .w .sh{width:15px;height:15px}
 .rlr.ph .o,.rlr.ph .d{color:var(--mut)}.rlr.ph .o{background:var(--line);border-radius:6px;width:60%;height:14px;margin:4px 0}
 .rlr.bad .o{color:var(--mut);font-weight:400}
 .rle{color:var(--mut);font-size:15px;line-height:1.45;padding:18px 0}
@@ -1111,8 +1110,10 @@ const rlDate=t=>{const d=new Date(t),z=n=>String(n).padStart(2,'0'),wd=['So','Mo
 function rlRow(f,v){const k=esc(rlKey(f)),i=RL.items.indexOf(f);
   if(!v)return`<button class="rlr ph" data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(f.t)}</span><span class=o></span><span class=du></span><span class=w></span></button>`;
   if(v.bad)return`<button class="rlr bad" data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(f.t)}</span><span class=o>Datei nicht lesbar</span><span class=du></span><span class=w></span></button>`;
-  const w=v.w==='hunter'?['hu',v.z?'Zombies':'Hunter']:v.w==='hider'?['hi',v.z?'Überlebende':'Hider']:['','Beendet'];
-  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${v.m?v.m+' Min':''}</span><span class="w ${w[0]}"><i></i>${w[1]}</span></button>`}
+  // Gewinner als gewohnte Form: Dreieck = Hunter/Zombies (Zombie grün), Kreis = Hider
+  const w=v.w==='hunter'?SHP(1,v.z?'#58c322':'#9ca1a8','#e4e2dd'):v.w==='hider'?SHP(0,'#9ca1a8','#e4e2dd'):'';
+  const wl=v.w==='hunter'?(v.z?'Zombies':'Hunter')+' gewinnen':v.w==='hider'?(v.z?'Überlebende':'Hider')+' gewinnen':'';
+  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${v.m?v.m+' Min':''}</span><span class=w title="${wl}" aria-label="${wl}">${w}</span></button>`}
 function rlHTML(){const c=rlCache();
   return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>Replays</h2></div>`+
    (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,c[rlKey(f)])).join('')}</div>`:

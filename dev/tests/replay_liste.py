@@ -26,9 +26,11 @@ with app(init=BR%(json.dumps(json.dumps(LIST)),json.dumps(FILES)),width=412,heig
     rows=ev(ROWS);print('gefüllt:',rows)
     assert rows.count('||')==3, 'Analyse-Datei darf nicht erscheinen'
     r=rows.split(' || ')
-    assert 'Zombies' in r[0] and '27 Min' in r[0], r[0]
+    lab=ev("[...document.querySelectorAll('.rlr .w')].map(w=>(w.getAttribute('aria-label')||'')+':'+(w.querySelector('path')?'D':w.querySelector('circle')?'K':'-')).join(',')");print('gewinner:',lab)
+    assert lab=='Zombies gewinnen:D,:-,Hunter gewinnen:D,Hider gewinnen:K', lab
+    assert '27 Min' in r[0], r[0]
     assert 'Datei nicht lesbar' in r[1], r[1]
-    assert 'Hunter' in r[2] and '60 Min' in r[2] and 'Hider' in r[3] and '42 Min' in r[3]
+    assert '60 Min' in r[2] and '42 Min' in r[3]
     assert ev("bfName('K7QF',2)") in r[3]
     shot(pg,'replay_liste.png')
     n=ev("__reads");print('gelesen:',n)
