@@ -1,0 +1,3 @@
+# GitHub Pages (Jekyll): Entwicklerdateien nicht veröffentlichen, .well-known (Android App Links) schon.
+exclude: [dev, CLAUDE.md, CHANGELOG.md, _config.yml]
+include: [.well-known]

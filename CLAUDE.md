@@ -25,7 +25,7 @@ JS in Dateireihenfolge:
 | §REPLAY-AUFNAHME | `RP`, `rpLog`, `rpSnap`, `rpBuild`, `rpDl` |
 | §REPLAY | `rv*`: `rvConv`, `rvScan` (Ereignisse), `rvStats`, `rvDraw`, `rvTaskShow`, `rvPanel`; Zeitleiste „Lupe“: `rvWin`/`rvWA` (Ausschnitt), `rvDrag` (Detailspur, Schwung `RV.fl`; Spurbreite gecacht in `RV.cw` – in `rvDraw` nie Layout lesen), `rvScrub` (Übersicht), Filter `rvHide`/`rvVis`; Radar-Kreise `rvBm`; Spuren `RV.tr` short/all über `rvTr` (`RVTR` = 5 Min); Rolle zur Zeit t `rvRole(p,t)` (Zombie), `RV.zt` |
 | §GPS | `startGPS` (Sprungfilter `onFix0`/`jf` vor `onFix`: > 10 m/s erst nach Bestätigung, Protokoll `gj`), `write` |
-| §JOIN | `mk` (Spiel erstellen), `join`, `appReady` |
+| §JOIN | `mk` (Spiel erstellen), `jn`, `join` (Lobby → Hider; läuft schon → Zuschauer mit `role:'spec'`/`state:'spec'`, schreibt keinen Standort; vorbei → „Lobby ist bereits geschlossen“), `appReady`. Einladungslink `blowncover.app/CODE`: `404.html` leitet auf `?c=CODE`, `LINKC` (in §STATE gelesen) zeigt den Einladungs-Startbildschirm; `LINK(code)` für Teilen/Kopieren |
 | §DIALOG | `dlg({t,x,…})` – alle Dialoge im App-Design, nie `alert/confirm`; Zusatzknöpfe `btns:[{l,v,bad,ic}]` (Ergebnis `v`), `ok:null` = nur Abbrechen |
 | §FARBWAHL, §MARKER | Spielerfarbe; eigene Kartenmarker `mk*`, `drawMarks` |
 | §LOBBY-AKTIONEN | `setRole`, `setS(k,v,min,max)` (rundet auf den Feldschritt), Spieler-Menü des Hosts `plMenu`/`kick`/`toHost`, `setMode` (`zoneFit`), Auslosen `rndOn`/`rndH`/`setRnd`, `giveUp`, `leaveGame`, `newRound`, Spielstart `st` |
@@ -52,7 +52,7 @@ Eine neue Marke bekommt eine eigene Zeile `// §NAME kurze Beschreibung` (CSS: `
 
 ## Datenmodell (Firebase)
 - `games/$code`: `host`, `status` (lobby|running|over), `startAt`, `winner`, `c` {lat,lng} (Zonenmitte), `rn` (Rundennummer), `prev`, `chk`
-  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig); pS (ausfallender Ping nach missglücktem „Fang starten“)
+  - `s` Einstellungen (siehe unten). `players/$uid`: name, role (hunter|hider|spec = Zuschauer per Link, nur im laufenden Spiel; neue Runde macht ihn zum Hider; `isPl(p)` = echte Spieler), state (alive|caught|dq|safe|…), lat, lng, ts, j, col, out, revealUntil, immUntil, used, sT, lf, w, oa; Zombie: zt (verwandelt), zs, zb (von wem), zl (Fangort), zd (Wartezeit fertig); pS (ausfallender Ping nach missglücktem „Fang starten“)
   - `catches/$hider` {hunter,t,status,why}, `hb/$hunter/$bonus`, `live/$hider/$hunter`, `xp/$id` (Extra-Ping), `fz/$hider` {h,t} („Fang starten“), `ev/$id` {t,x,u} (Meldungen an alle; `u:'hk'` = Hacking-System)
   - `tasks/$tid`: `sh` (Safehouse), `ev` (Evakuierung), Dead Drops/Meetings (`isDd(id)`; `sol` allein, `ex` verfallen, `cmp` Ort verraten), `hk` (Hacking: `t0`, `loc`, `rr:0`, `at/<n>` Versuche, `res`, `cm`, `oz`; `a` ist bei Dead Drop belegt, darum heißt der Versuchsknoten `at`)
 - `fzp/$code/$uid` {t,ok,a}: Ergebnis „Fang starten“, nur für den Hider selbst lesbar
@@ -83,6 +83,9 @@ Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`
 - **Nach jeder Repo-Änderung:** einen Eintrag in `CHANGELOG.md` anhängen und sofort `claude/UEBERGABE_App.md` im Projekt aktualisieren (Commit-Stand, Offen). Vorher die aktuelle Fassung lesen, weil andere Chats die Datei auch schreiben.
 - APK bauen und auf dem Gerät testen macht Manuel. Kein Android-SDK in der Umgebung (javac gegen android.jar aus `Sable/android-platforms`).
 - Commit-Nachrichten auf Deutsch.
+
+## Website-Dateien
+`404.html` (Einladungslink-Umleitung), `CNAME` (Domain), `_config.yml` (Jekyll: `dev/`, `CLAUDE.md`, `CHANGELOG.md` werden nicht veröffentlicht; `.well-known/` schon, für Android App Links). Neue Entwicklerdateien dort in `exclude` eintragen.
 
 ## Zweige
 `main` (live), `android-app` (App, `android/`, Workflow baut APK als Artifact `BlownCover-APK`), `db-rules` (nur `database.rules.json`). Signaturschlüssel liegen nur in den GitHub-Secrets.

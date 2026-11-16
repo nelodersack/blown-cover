@@ -58,4 +58,19 @@ T('Neues Spiel anlegen',true,{},'u9','set','/games/N3WG',{host:'u9',status:'lobb
 {const d=base({status:'lobby',startAt:null,catches:null});const S=(k,v,w)=>T('Einstellung '+k+'='+v,w,d,'u1','set',G+'/s/'+k,v);
  S('zT',60,true);S('zR',30,true);S('zC',2.5,true);S('zP',false,true);S('zB',false,true);S('fs',true,true);S('fsR',40,true);S('fsT',40,true);S('rnd',true,true);S('tsol',true,true);S('tsol',1,false);S('rH',2,true);S('mode','zombie',true);S('zC',9,false);S('mode','x',false);
  T('Einstellung durch Nicht-Host',false,d,'u2','set',G+'/s/zT',60)}
+// Zuschauer über Einladungslink (Spiel läuft schon)
+{const sp={name:'Gast',role:'spec',state:'spec',j:N};
+ T('Zuschauer tritt laufendem Spiel bei',true,base(),'u9','set',G+'/players/u9',sp);
+ T('Zuschauer für anderen anlegen',false,base(),'u1','set',G+'/players/u9',sp);
+ T('Laufendem Spiel als Hider beitreten',false,base(),'u9','set',G+'/players/u9',{name:'Gast',role:'hider',state:'alive',j:N});
+ T('Zuschauer in der Lobby',false,base({status:'lobby',startAt:null,catches:null}),'u9','set',G+'/players/u9',sp);
+ T('Zuschauer nach Spielende',false,base({status:'over'}),'u9','set',G+'/players/u9',sp);
+ const d=base();d.games.K7QF.players.u9=sp;
+ T('Zuschauer macht sich zum Hider',false,d,'u9','set',G+'/players/u9/role','hider');
+ T('Zuschauer macht sich lebendig',false,d,'u9','set',G+'/players/u9/state','alive');
+ T('Zuschauer liest Hider-Chat',true,d,'u9','read',G.replace('/games','/chats')+'/hider');
+ T('Zuschauer schreibt im Ausgeschieden-Chat',true,d,'u9','set','/chats/K7QF/out/m1',{u:'u9',n:'Gast',t:N,x:'Hallo'});
+ T('Zuschauer schreibt im Hider-Chat',false,d,'u9','set','/chats/K7QF/hider/m1',{u:'u9',n:'Gast',t:N,x:'Hallo'});
+ const o=base({status:'over',winner:'hider'});o.games.K7QF.players.u9=sp;
+ T('Neue Runde: Zuschauer wird Hider',true,o,'u1','update',G,{status:'lobby',startAt:null,winner:null,catches:null,rn:1,'players/u9':{name:'Gast',role:'hider',state:'alive',j:N,w:true}})}
 console.log(fail?"\n"+fail+" FALSCH":"\nalle Fälle wie erwartet");process.exit(fail?1:0);

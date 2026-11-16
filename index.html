@@ -634,7 +634,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     anomalies:an,highlights:hl.map(x=>[x[1],x[2]]),players,timeline:tl.map(x=>[x.t,rel(x.t),x.by.join(','),x.k,x.d]),tracks,finalState:gg};
   let s=JSON.stringify(out);Object.entries(al).forEach(([k,a])=>{s=s.split(k).join(a)});return s}
 async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten werden gesammelt…');
-  try{const need=Object.entries(P()).filter(([k,p])=>!p.lf&&p.role).map(e=>e[0]);let v={};
+  try{const need=Object.entries(P()).filter(([k,p])=>!p.lf&&isPl(p)).map(e=>e[0]);let v={};
     for(let i=0;i<10;i++){const sn=await db.ref('analysis/'+code).once('value');v=sn.val()||{};if(need.every(k=>v[k]))break;await new Promise(r=>setTimeout(r,1000))}
     if(!Object.keys(v).length){toast('Noch keine Protokolle empfangen – kurz warten und erneut tippen');return}
     const txt=anBuild(v),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
@@ -647,6 +647,9 @@ let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,zsK=nu
 let wrOld=0,connLost=0,netW=0,lastRcn=0,lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
+// Einladungslink blowncover.app/CODE (404.html leitet auf ?c=CODE um): Code merken, Adresse aufräumen
+let LINKC=(()=>{try{const q=new URLSearchParams(location.search).get('c');if(q!=null){history.replaceState(null,'',location.pathname+location.hash);if(/^[A-Za-z2-9]{4,6}$/.test(q))return q.toUpperCase()}}catch(e){}return''})();
+const isPl=p=>!!p&&(p.role==='hider'||p.role==='hunter'),LINK=c=>'https://blowncover.app/'+c;
 db.ref('.info/serverTimeOffset').on('value',s=>off=s.val()||0);
 db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){connSince=Date.now();connLost=0}else if(!connLost)connLost=Date.now();lg('db',conn?1:0)});
 let lastAck=0,netOkSince=0; // Eigene Verbindung nachweislich ok? (Schutz gegen Fehl-Disqualifikationen aus dem Funkloch)
@@ -669,7 +672,7 @@ function nxt(){if(!nq.length){nB=0;return}nB=1;toast(nq.shift());navigator.vibra
 const CW={far:'Fang abgelehnt: zu weit weg (mehr als 40 m)',stale:'Fang abgelehnt: Standort nicht aktuell'};
 const catchWhy=(p,t)=>(!p||!p.lat||!pos||t-(p.ts||0)>30000||Date.now()-lastFix>30000)?'stale':(D(pos,p)>40?'far':null);
 function buildRes(g){const R0=rs(g),ct=g.catches||{},pl=g.players||{};
-  const l=Object.entries(pl).filter(([k,p])=>p.role).map(([k,p])=>({n:p.name,r:p.role,s:p.state,t:p.sT?p.sT-R0:null,by:p.zt?((pl[p.zb||(ct[k]||{}).hunter]||{}).name||null):p.state==='caught'&&ct[k]&&ct[k].hunter?((pl[ct[k].hunter]||{}).name||null):null,lf:!!p.lf,c:colOf(k),i:inkOf(k),z:p.zt?p.zt-R0:null}));
+  const l=Object.entries(pl).filter(([k,p])=>isPl(p)).map(([k,p])=>({n:p.name,r:p.role,s:p.state,t:p.sT?p.sT-R0:null,by:p.zt?((pl[p.zb||(ct[k]||{}).hunter]||{}).name||null):p.state==='caught'&&ct[k]&&ct[k].hunter?((pl[ct[k].hunter]||{}).name||null):null,lf:!!p.lf,c:colOf(k),i:inkOf(k),z:p.zt?p.zt-R0:null}));
   const T=g.tasks||{};let tn=0,td=0;Object.entries(T).forEach(([id,k])=>{if(!k)return;
     if(isDd(id)||isMt(id)){tn++;if(k.fin||(isDd(id)&&k.pick))td++}else if(id==='sh'){tn++;if(Object.keys(k.in||{}).length)td++}else if(id==='hk'){tn++;if(k.res&&k.res.k==='ok')td++}else if(id==='ev'){tn++;if(Object.values(pl).some(p=>p.state==='safe'))td++}});
   l.sort((a,b)=>(a.t==null?1e12:a.t)-(b.t==null?1e12:b.t));
@@ -1026,13 +1029,13 @@ function rpInit(){const k='rp_'+code+'_'+(G.rn||0);if(RP&&RP.k===k)return;
   RP=o&&o.k===k?o:{k,own:[],seen:{},log:[],snap:null,got:{}};RP.got=RP.got||{};RP.log=RP.log||[];RP.prev=null;RP.up=0;
   try{for(let i=LS.length-1;i>=0;i--){const q=LS.key(i);if(q&&q.indexOf('rp_')===0&&q!==k)LS.removeItem(q)}}catch(e){}}
 function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,log:RP.log,snap:RP.snap,got:RP.got})}catch(e){}}
-function rpOwn(){if(!G||G.status!=='running'||!rpOn(G)||!pos)return;rpInit();const t=now(),o=RP.own,l=o[o.length-1];if(l&&t-l[0]<4000)return;
+function rpOwn(){if(!G||G.status!=='running'||!rpOn(G)||!pos||((G.players||{})[uid]||{}).role==='spec')return;rpInit();const t=now(),o=RP.own,l=o[o.length-1];if(l&&t-l[0]<4000)return;
   o.push([t,+pos.lat.toFixed(5),+pos.lng.toFixed(5),typeof gAcc==='number'?Math.round(gAcc):null])}
 // Spielzustand protokollieren: nur geänderte Werte der relevanten Pfade
 function rpLog(g){const f={},all=rpFlat({tasks:g.tasks,hb:g.hb,live:g.live,xp:g.xp,catches:g.catches,fz:g.fz,players:g.players},'',{});
   for(const p in all)if(RPP.test(p))f[p]=all[p];
   const pv=RP.prev||{},t=now();for(const p in f)if(pv[p]!==f[p])RP.log.push([t,p,f[p]]);for(const p in pv)if(!(p in f))RP.log.push([t,p,null]);RP.prev=f}
-function rpSnap(g){const pl={};Object.entries(g.players||{}).forEach(([k,p])=>{if(p.role)pl[k]={name:p.name,role:p.role,col:p.col,j:p.j||0,state:p.state,sT:p.sT||null,lf:!!p.lf,zt:p.zt||null,zb:p.zb||null}});
+function rpSnap(g){const pl={};Object.entries(g.players||{}).forEach(([k,p])=>{if(isPl(p))pl[k]={name:p.name,role:p.role,col:p.col,j:p.j||0,state:p.state,sT:p.sT||null,lf:!!p.lf,zt:p.zt||null,zb:p.zb||null}});
   return{code,rn:g.rn||0,s:g.s,c:g.c,startAt:g.startAt,end:Math.min(now(),g.startAt+(g.s.head+g.s.dur)*6e4+5000),winner:g.winner||null,players:pl}}
 function rpData(){const g=G;if(!g||!rpOn(g)){if(rpRef&&(!g||g.status!=='over')){rpRef.off();rpRef=null}return}
   if(g.status==='running'){rpInit();rpLog(g);
@@ -1346,7 +1349,7 @@ function startGPS(){if(startGPS.on)return;startGPS.on=1;
   gpsWid=navigator.geolocation.watchPosition(onFix0,
     e=>{gpsErr=e;lg('gps',[e.code,String(e.message||'').slice(0,60)]);const t=Date.now();if(t-gpsTt>15000){gpsTt=t;toast('GPS: '+e.message)}
       if(e.code===1){try{navigator.geolocation.clearWatch(gpsWid)}catch(x){}startGPS.on=0;setTimeout(startGPS,3000)}},{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
-function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G)return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
+function write(f){crs();rpOwn();fmCenter(true);if(!code||!pos||!G||((G.players||{})[uid]||{}).role==='spec')return;const t=Date.now();if(!f&&t-lastW<4000)return;lastW=t;
   if(!wrOld)wrOld=Date.now();
   db.ref(`games/${code}/players/${uid}`).update(G.status==='over'?{ts:now()}:{lat:pos.lat,lng:pos.lng,ts:now()}).then(()=>{wrOld=0;lastAck=Date.now()},()=>{wrOld=0})}
 
@@ -1363,17 +1366,19 @@ async function mk(){if(!appReady(mk))return;me.name=($('nm').value.trim()||'Agen
   const tmo=new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),12000));
   try{await Promise.race([tmo,db.ref('games/'+c).set({host:uid,status:'lobby',c:pos,s:Object.assign({mode:'survive',taskR:0,shOn:true,bon:true,hbOn:true,hbN:2,gw:20,gd:60},preOf(60))})]);const b=$('mkb');if(b)b.textContent='Spiel erstellen'}catch(e){const b=$('mkb');if(b){b.textContent='Spiel erstellen';b.disabled=false}return toast('Keine Verbindung zur Datenbank')}
   join(c)}
-function jn(){if(!appReady(jn))return;me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();join($('cd').value.trim().toUpperCase())}
+function jn(){if(!appReady(jn))return;me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();const c=$('cd').value.trim().toUpperCase();LINKC='';join(c).then(()=>{if(!G)panel()})}
 async function join(c){
   if(!/^[A-Z2-9]{4,6}$/.test(c))return toast('Code unbekannt');
   let st,had;
   try{const [a,b]=await Promise.all([db.ref('games/'+c+'/status').get(),db.ref(`games/${c}/players/${uid}`).get()]);st=a.val();had=b.val()}
   catch(e){return toast('Beitritt nicht möglich')}
-  if(st==null){LS.removeItem('c');return toast('Code unbekannt')}
-  if(st!=='lobby'&&!had){LS.removeItem('c');return toast('Spiel läuft bereits')}
+  if(st==null){LS.removeItem('c');return toast('Lobby nicht gefunden')}
+  if(st==='over'&&!had){LS.removeItem('c');return toast('Lobby ist bereits geschlossen')}
+  const spec=st!=='lobby'&&!had;
   if(had&&had.lf){LS.removeItem('c');return toast('Du hast dieses Spiel verlassen')}
   code=c;LS.c=c;
-  if(!had){let ok=false;const b0=0,pl0={name:me.name||'Agent',role:'hider',state:'alive',j:now()};
+  if(spec){try{await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'spec',state:'spec',j:now()});toast('Das Spiel läuft schon – du schaust zu')}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}}
+  else if(!had){let ok=false;const b0=0,pl0={name:me.name||'Agent',role:'hider',state:'alive',j:now()};
     for(let a=0;a<12&&!ok;a++){const i=(b0+a)%12;try{await db.ref('games/'+c).update({['players/'+uid]:Object.assign({col:i},pl0),['cols/'+i]:uid});ok=true}catch(e){}}
     if(!ok)try{await db.ref(`games/${c}/players/${uid}`).set(pl0)}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}}
   const lost=()=>{if(leaving)return;LS.removeItem('c');toast('Du bist nicht mehr in diesem Spiel');setTimeout(()=>location.reload(),1200)};
@@ -1512,7 +1517,7 @@ function newRound(){const g=G;if(!g)return;const me_=P()[uid]||{};
   if(g.status==='lobby'&&me_.w)return db.ref(`games/${code}/players/${uid}/w`).remove().catch(()=>{});
   if(g.status!=='over')return;
   const u={status:'lobby',startAt:null,winner:null,tasks:null,catches:null,hb:null,live:null,xp:null,ev:null,fz:null,rn:(g.rn||0)+1,prev:{j:JSON.stringify(buildRes(g))}};
-  Object.entries(P()).forEach(([k,p])=>{const r0_=p.zt?'hider':p.role;u['players/'+k]=p.lf?null:(k===uid?{name:p.name,role:r0_,state:'alive',j:p.j||0}:{name:p.name,role:r0_,state:'alive',j:p.j||0,w:true});if(!p.lf&&Number.isInteger(p.col))u['players/'+k].col=p.col});
+  Object.entries(P()).forEach(([k,p])=>{const r0_=p.zt||p.role==='spec'?'hider':p.role;u['players/'+k]=p.lf?null:(k===uid?{name:p.name,role:r0_,state:'alive',j:p.j||0}:{name:p.name,role:r0_,state:'alive',j:p.j||0,w:true});if(!p.lf&&Number.isInteger(p.col))u['players/'+k].col=p.col});
   const ho=P()[g.host];if(!ho||ho.lf){const c=Object.entries(P()).filter(([k,p])=>!p.lf).sort(byJ)[0];if(c)u.host=c[0]}
   db.ref('games/'+code).update(u).then(()=>{db.ref('chats/'+code).remove().catch(()=>{});db.ref('marks/'+code).remove().catch(()=>{});db.ref('rp/'+code).remove().catch(()=>{})}).catch(()=>{})}
 let stP=0,stTm=0;
@@ -2000,10 +2005,10 @@ let SUBP=null;
 const acc=(id,icn,title,sum,body,val)=>{if(ui.sub===id)SUBP={t:title,sum,b:body};return `<button class=lrw onclick="subGo('${id}')"><span>${title}</span>${val!=null?`<span class=v>${val}</span>`:''}${ic('chev')}</button>`};
 const subGo=id=>{ui.sub=id;ui.ed=null;panel(1);if(id)$('panel').classList.remove('m','c');else if(typeof pMidSet==='function')pMidSet();$('ps').scrollTop=0};
 const grp=(h,sub,x)=>(h?`<div class=gh><span>${h}</span>${sub?`<small>${sub}</small>`:''}</div>`:'')+`<div class="grp lrws">${x}</div>`;
-const cpCode=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Code kopiert')).catch(()=>toast('Code: '+code))}catch(e){toast('Code: '+code)}};
-// Teilen: in der App über BlownNative.share (ab App v0.3.2, die WebView kennt navigator.share nicht), sonst Web-Share; ohne beides kopieren
+const cpCode=()=>{const l=LINK(code);try{navigator.clipboard.writeText(l).then(()=>toast('Einladungslink kopiert')).catch(()=>toast(l))}catch(e){toast(l)}};
+// Teilen: in der App über BlownNative.share (ab App v0.3.2, die WebView kennt navigator.share nicht), sonst Web-Share; ohne beides kopieren. Geteilt wird der Einladungslink.
 const canShare=()=>!!((NB&&typeof NB.share==='function')||navigator.share);
-const shCode=()=>{const t='Blown Cover – Spiel-Code '+code+'\nhttps://blowncover.app/';try{if(NB&&typeof NB.share==='function'){NB.share(t);return}if(navigator.share){navigator.share({title:'Blown Cover',text:t}).catch(()=>{});return}}catch(e){}cpCode()};
+const shCode=()=>{const l=LINK(code),t='Komm in meine Blown-Cover-Lobby (Code '+code+'):';try{if(NB&&typeof NB.share==='function'){NB.share(t+'\n'+l);return}if(navigator.share){navigator.share({title:'Blown Cover',text:t,url:l}).catch(()=>{});return}}catch(e){}cpCode()};
 const tabGo=(k,v)=>{ui[k]=v;ui.sub=null;$('ps').scrollTop=0;panel(1)};
 const mmss=v=>v<60?v+' s':Math.floor(v/60)+':'+String(v%60).padStart(2,'0');
 
@@ -2278,7 +2283,7 @@ function gdSync(){let e=$('gd');const g=G,me_=g&&P()[uid];
 // §RUN-UI Panel im Spiel (Hider/Hunter/Zuschauer)
 function runUI(g,me_,t,host,run){
   const c=g.catches&&g.catches[uid],hh=md(g)==='mission'?'Erreiche die Evakuierung, sobald sie erscheint, und lass dich nicht fangen.':zmb(g)?'Bleib in der Zone und halte bis zum Ende durch. Wer gefangen wird, wird zum Zombie.':'Bleib in der Zone und lass dich nicht fangen.';
-  const SPT={caught:'Du wurdest gefangen',dq:'Disqualifiziert (GPS-Signal verloren)',safe:'Du bist in Sicherheit',quit:'Du hast aufgegeben'};
+  const SPT={spec:'Du schaust zu',caught:'Du wurdest gefangen',dq:'Disqualifiziert (GPS-Signal verloren)',safe:'Du bist in Sicherheit',quit:'Du hast aufgegeben'};
   let h='',f='';
   if(isSpec(me_)){
     h=`<div class=strip><h2 style="flex:1">${SPT[me_.state]||'Ausgeschieden'}</h2><button class="s g bfb" onclick="bfShow(1)" aria-label="Briefing anzeigen">${AKTE}Briefing</button></div><small>Du siehst alle live und liest alle Chats mit. Schreiben nur in „Ausgeschieden“.</small>`+specView(g,t);
@@ -2308,11 +2313,12 @@ const SHP=(hu,c,st='#edece8')=>hu?`<svg class=sh viewBox="0 0 12 12"><path d="M6
 // §PANEL panel() mit Signatur lastSig
 function panel(force){const el=$('pb');if(RV)return rvPanel();
   if(!G){$('res').style.display='none';$('panel').classList.add('tall');$('panel').classList.remove('m');pSt='';$('pf').innerHTML='';
-    el.innerHTML=`<div class=logo2>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p class=mut style="font-size:15px;line-height:1.45">Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.</p>
+    el.innerHTML=`<div class=logo2>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p class=mut style="font-size:15px;line-height:1.45">${LINKC?`Du wurdest in die Lobby <b style="color:var(--fg)">${esc(LINKC)}</b> eingeladen. Gib deinen Namen ein und tritt bei.`:'Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.'}</p>
   <div class=slb>Dein Name</div><input id=nm placeholder="Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
-  <button id=mkb onclick="mk()">Spiel erstellen</button>
+  ${LINKC?`<input id=cd type=hidden value="${esc(LINKC)}"><button onclick="jn()">Lobby ${esc(LINKC)} beitreten</button>
+  <button class=slink onclick="LINKC='';panel()">Stattdessen eigenes Spiel erstellen</button><small id=gs hidden></small>`:`<button id=mkb onclick="mk()">Spiel erstellen</button>
   <div class=slb>Mit Code beitreten</div><div class=sjn><input id=cd placeholder="Code" maxlength=6 aria-label="Code"><button onclick="jn()">Beitreten</button></div>
-  <button class=slink onclick="rvPick()">Replay ansehen</button><small id=gs hidden></small>`;return}
+  <button class=slink onclick="rvPick()">Replay ansehen</button><small id=gs hidden></small>`}`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
   const tsk=me_.role==='hider'?JSON.stringify([g.tasks||{},Object.entries(g.tasks||{}).map(([id,v])=>[t>=v.t0,pos?Math.round(D(pos,v.loc)/10):null,isMt(id)&&mtD(v)!==null?Math.round(mtD(v)/10):null])]):'';
   const sig=JSON.stringify([g.status,g.status==='lobby'?Object.entries(P()).map(([k,p])=>noGps(p,k)):0,g.s,g.winner,g.host,g.rn,!!g.prev,g.prev&&g.prev.j&&g.prev.j.length,run,Object.entries(P()).map(([k,p])=>[k,p.name,p.role,p.state,p.w,p.lf,p.col]),g.cols,ui.pal,g.catches&&Object.entries(g.catches).map(([k,c])=>[k,c.status]),cand,tsk,me_.used,(me_.immUntil||0)>t,isSpec(me_)?Object.values(P()).map(p=>[p.used,(p.immUntil||0)>t]):0,g.hb,hbPick,hbLive,hkSig(g,t),BM.id,BM.n,gdK,me_.role==='hunter'&&g.status==='running'?[hbTokens(g,t).length,hbItems(g).filter(([id,i])=>t>=i.av).length,!!bmMine(g,t)]:0,zmb(g)?Object.values(P()).map(p=>[p.zt,p.zd]):0,ZV&&ZV.ph,fsSig(g,t)]);
@@ -2337,7 +2343,7 @@ function bfName(cd,rn){const r=bfRng('op:'+cd+':'+(rn||0)),a=BFA[r()*BFA.length|
 const bfMin=(t,R0)=>{const m=Math.round((t-R0)/6e4);return m<=0?'von Beginn an':'ab Minute '+m};
 const bfEvery=s=>s%60===0?(s===60?'jede Minute':'alle '+s/60+' Minuten'):s<120?'alle '+s+' Sekunden':'alle '+String(Math.round(s/30)/2).replace('.',',')+' Minuten';
 // Liefert {name, hider:{...}, hunter:{...}} – gleiche Eingaben ergeben auf allen Geräten denselben Text
-function bfData(g,cd){const s=g.s,rn=g.rn||0,S='Sektor '+cd,R0=rs(g),pl=Object.values(g.players||{}).filter(p=>p.role&&!p.w),
+function bfData(g,cd){const s=g.s,rn=g.rn||0,S='Sektor '+cd,R0=rs(g),pl=Object.values(g.players||{}).filter(p=>isPl(p)&&!p.w),
     H=pl.filter(p=>p.role==='hunter').length,X=pl.filter(p=>p.role==='hider').length,T=g.tasks||{},ms=md(g)==='mission',D=s.dur,P=bfEvery(s.ping||120),nm=bfName(cd,rn),SB=`<b>${S}</b>`;
   // Feste Texte (Manuel, 31.10.): nur der Operationsname wechselt
   const lageH=`Unsere Tarnung in ${SB} ist aufgeflogen. Die Spionageabwehr hat <b>${H===1?'einen Jäger':H+' Jäger'}</b> auf euch angesetzt.`;
