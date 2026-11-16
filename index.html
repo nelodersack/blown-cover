@@ -708,7 +708,7 @@ function resHTML(r,mode){if(r.m==='zombie')return zResHTML(r,mode);
   return `<h2>${T}</h2>`+bfRes(r)+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')
     +`<div class=rhl>${tile('Hider frei',fr+' / '+hi.length,fr===hi.length?'alle durch':fr?'überlebt':'keiner')}${tile('Fänge',cg.length,top?esc(top[0])+(top[1]>1?' ×'+top[1]:''):'keine')}${r.tk&&r.tk[1]?tile('Aufgaben',r.tk[0]+' / '+r.tk[1],'erledigt'):tile('Hunter',hu.filter(x=>x.s==='alive').length+' / '+hu.length,'bis zum Ende')}</div>`
     +`<div class=rcols><div><small class=rh>Hider</small>${li(hi)}</div><div><small class=rh>Hunter</small>${li(hu)}</div></div>`
-    +(rpOk?`<button class=rpb onclick="rpView()">${ic('play')} Replay ansehen</button><button class="ghost s rps" onclick="rpDl()">Als Datei speichern · ${nrp} von ${need.length} Wegen da</button>`:'')
+    +(rpOk?`<button class=rpb onclick="rpView()">${ic('play')} Replay ansehen</button><button class="ghost s rps" onclick="rpSave(rpBuild(),1)">Als Datei speichern · ${nrp} von ${need.length} Wegen da</button>`:'')
     +`<div class=row>`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button class="${rpOk?'g':''}" onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
 // Endscreen Zombie: Rangliste nach Überlebenszeit (Überlebende oben), Zombies mit Infektionen
 function zResHTML(r,mode){
@@ -727,10 +727,10 @@ function zResHTML(r,mode){
   return `<h2>${T}</h2>`+bfRes(r)+(mode==='prev'?'<small style="display:block;text-align:center">Letzte Runde</small>':'')
     +`<div class=rhl>${tile('Überlebt',fr.length+' / '+orig.length,fr.length===1?'letzter Überlebender':fr.length?'durchgehalten':'keiner')}${tile('Infektionen',inf.length,'Hider umgedreht')}${tile('Meiste Infektionen',top?top[1]+'×':'—',top?esc(top[0]):'keiner')}</div>`
     +`<div class=rcols><div><small class=rh>Rangliste · überlebt bis</small>${li}</div><div><small class=rh>Zombies</small>${zl}</div></div>`
-    +(rpOk?`<button class=rpb onclick="rpView()">${ic('play')} Replay ansehen</button><button class="ghost s rps" onclick="rpDl()">Als Datei speichern · ${nrp} von ${need.length} Wegen da</button>`:'')
+    +(rpOk?`<button class=rpb onclick="rpView()">${ic('play')} Replay ansehen</button><button class="ghost s rps" onclick="rpSave(rpBuild(),1)">Als Datei speichern · ${nrp} von ${need.length} Wegen da</button>`:'')
     +`<div class=row>`+(mode==='prev'?`<button class=g onclick="closeRes()">Schließen</button>`:`<button class="${rpOk?'g':''}" onclick="newRound()">Neue Runde</button><button class=g onclick="leaveGame()">Spiel verlassen</button>`)+`</div>`+(mode==='live'&&G&&G.host===uid&&G.s&&G.s.an?`<div class=row><button class=g onclick="anDl()">Analysedaten herunterladen</button></div>`:'')}
 // Replay direkt aus dem Endscreen öffnen (läuft über der beendeten Runde; „Replay schließen“ führt zurück)
-function rpView(){if(!RP||!RP.snap)return;let f;try{f=JSON.parse(JSON.stringify(rpBuild()))}catch(e){toast('Replay nicht verfügbar');return}rvLoad(f);if(RV)$('res').style.display='none'}
+function rpView(){if(!RP||!RP.snap)return;let f;try{f=JSON.parse(JSON.stringify(rpBuild()))}catch(e){toast('Replay nicht verfügbar');return}rpSave(f,0);rvLoad(f);if(RV)$('res').style.display='none'}
 function resSync(g){const e=$('res'),me_=P()[uid]||{};let r=null;if(RV){e.style.display='none';return}
   if(g.status==='over'){r=buildRes(g)}
   else if(g.status==='lobby'&&me_.w&&g.prev){try{r=JSON.parse(g.prev.j)}catch(x){}}
@@ -1084,24 +1084,40 @@ function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>
 // §REPLAY Abspielen rv* (rvConv, rvScan, rvStats, rvDraw, rvPanel)
 // ===== Replay: Abspielen =====
 function rvPick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';
-  i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{rvLoad(JSON.parse(r.result))}catch(e){toast('Diese Datei ist kein Replay')}};r.readAsText(f)};i.click()}
-// §REPLAY-LISTE In der App (Bridge replays/readReplay ab v0.3.7): eigene Liste der gespeicherten Replays statt Dateiauswahl.
-// Zeile: Datum · Uhrzeit, Operationsname, Dauer, Gewinner. Zusammenfassungen im localStorage (rlS, Schlüssel id|size|t), Dateien
-// werden nur einmal und nacheinander gelesen (UI bleibt frei). Ohne Bridge: Dateiauswahl wie bisher.
-const RL={on:false,items:[],busy:false};
+  i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{let o;try{o=JSON.parse(r.result)}catch(e){return toast('Diese Datei ist kein Replay')}rvLoad(o);if(RV)rlIdbPut(o)};r.readAsText(f)};i.click()}
+// §REPLAY-LISTE Liste der Replays. App (Bridge replays/readReplay ab v0.3.7): gespeicherte Dateien; Zusammenfassungen im localStorage
+// (rlS, Schlüssel id|size|t), Dateien nur einmal und nacheinander gelesen. Browser ohne App: „Zuletzt abgespielt“ in IndexedDB
+// (blowncover/meta+data, höchstens RLMAX, Schlüssel code_rN_startAt). In der App wird nichts in IndexedDB gelegt (sonst doppelt).
+const RL={on:false,items:[],busy:false,src:''},RLMAX=30;
 const rlCan=()=>{try{return !!NB&&typeof NB.replays==='function'&&typeof NB.readReplay==='function'}catch(e){return false}};
+const rlIdbOk=()=>{try{return !NB&&!!window.indexedDB}catch(e){return false}};
 const rlKey=f=>f.id+'|'+f.size+'|'+f.t;
 const rlCache=()=>{try{return JSON.parse(LS.rlS||'{}')||{}}catch(e){return{}}};
-function rlOpen(){if(!rlCan())return rvPick();let a=[];try{a=JSON.parse(NB.replays()||'[]')}catch(e){a=[]}
-  RL.items=(Array.isArray(a)?a:[]).filter(f=>f&&f.id!=null&&!/blowncover_analyse_/i.test(f.name||'')).sort((x,y)=>(y.t||0)-(x.t||0));
-  const c=rlCache(),n={};RL.items.forEach(f=>{const k=rlKey(f);if(c[k])n[k]=c[k]});try{LS.rlS=JSON.stringify(n)}catch(e){}
-  RL.on=true;panel(1);$('ps').scrollTop=0;rlFill()}
+// IndexedDB (nur Browser)
+let rlDB=null;
+const rlDb=()=>rlDB||(rlDB=new Promise((res,rej)=>{try{const r=indexedDB.open('blowncover',1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'k'});if(!d.objectStoreNames.contains('data'))d.createObjectStore('data',{keyPath:'k'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}));
+const rlReq=(st,mode,fn)=>rlDb().then(d=>new Promise((res,rej)=>{const tx=d.transaction(st,mode);let q;tx.oncomplete=()=>res(q&&'result' in q?q.result:undefined);tx.onerror=tx.onabort=()=>rej(tx.error);q=fn(tx)}));
+// Replay merken (Browser): gleiches Spiel überschreibt, ältere über RLMAX fliegen raus
+async function rlIdbPut(o){if(!rlIdbOk()||!o)return;try{const txt=JSON.stringify(o),sum=rlSum(txt,{t:Date.now()}),k=(o.code||'X')+'_r'+(o.round||0)+'_'+(o.game&&o.game.startAt||0);
+  await rlReq(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').put({k,t:Date.now(),size:txt.length,sum});tx.objectStore('data').put({k,txt})});
+  const all=(await rlReq('meta','readonly',tx=>tx.objectStore('meta').getAll()))||[];
+  const old=all.sort((a,b)=>b.t-a.t).slice(RLMAX);if(old.length)await rlReq(['meta','data'],'readwrite',tx=>{old.forEach(m=>{tx.objectStore('meta').delete(m.k);tx.objectStore('data').delete(m.k)})})}catch(e){lg&&lg('rl','idb '+(e&&e.message||e))}}
+async function rlOpen(){
+  if(rlCan()){let a=[];try{a=JSON.parse(NB.replays()||'[]')}catch(e){a=[]}
+    // neueste zuerst; je Spiel (Code + Runde im Dateinamen) nur die neueste Datei
+    const seen={};RL.items=(Array.isArray(a)?a:[]).filter(f=>f&&f.id!=null&&!/blowncover_analyse_/i.test(f.name||'')).sort((x,y)=>(y.t||0)-(x.t||0))
+      .filter(f=>{const m=/blowncover_replay_([A-Z0-9]+_r\d+)_/i.exec(f.name||'');if(!m)return true;if(seen[m[1]])return false;return seen[m[1]]=true});
+    const c=rlCache(),n={};RL.items.forEach(f=>{const k=rlKey(f);if(c[k])n[k]=c[k]});try{LS.rlS=JSON.stringify(n)}catch(e){}
+    RL.src='app';RL.on=true;panel(1);$('ps').scrollTop=0;rlFill();return}
+  if(!rlIdbOk())return rvPick();
+  let m=[];try{m=(await rlReq('meta','readonly',tx=>tx.objectStore('meta').getAll()))||[]}catch(e){return rvPick()}
+  RL.items=m.sort((a,b)=>b.t-a.t).map(x=>({id:x.k,t:x.t,size:x.size,sum:x.sum}));RL.src='idb';RL.on=true;panel(1);$('ps').scrollTop=0}
 function rlClose(){RL.on=false;panel(1)}
 // Zusammenfassung aus der Datei (Format blown-cover-replay v2; ältere über rvConv)
 function rlSum(txt,f){const o=rvConv(JSON.parse(txt)),g=o&&o.game;if(!g||!g.startAt||!o.players)throw 0;
   const s=g.s||{},R0=g.R0||(g.startAt+(s.head||0)*6e4),m=g.end&&g.end>R0?Math.round((g.end-R0)/6e4):(s.dur||null);
   return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,w:g.winner||'',z:zmb(g)?1:0}}
-function rlFill(){if(RL.busy)return;const c=rlCache(),f=RL.items.find(x=>!c[rlKey(x)]);if(!f||!RL.on)return;RL.busy=true;
+function rlFill(){if(RL.busy||RL.src!=='app')return;const c=rlCache(),f=RL.items.find(x=>!c[rlKey(x)]);if(!f||!RL.on)return;RL.busy=true;
   setTimeout(()=>{let v;try{const t=NB.readReplay(f.id);if(!t)throw 0;v=rlSum(t,f)}catch(e){v={bad:1}}
     const c2=rlCache();c2[rlKey(f)]=v;try{LS.rlS=JSON.stringify(c2)}catch(e){}
     RL.busy=false;const r=document.querySelector(`.rlr[data-k="${CSS.escape(rlKey(f))}"]`);if(r)r.outerHTML=rlRow(f,v);rlFill()},30)}
@@ -1114,13 +1130,22 @@ function rlRow(f,v){const k=esc(rlKey(f)),i=RL.items.indexOf(f);
   const w=v.w==='hunter'?SHP(1,v.z?'#58c322':'#9ca1a8','#e4e2dd'):v.w==='hider'?SHP(0,'#9ca1a8','#e4e2dd'):'';
   const wl=v.w==='hunter'?(v.z?'Zombies':'Hunter')+' gewinnen':v.w==='hider'?(v.z?'Überlebende':'Hider')+' gewinnen':'';
   return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${v.m?v.m+' Min':''}</span><span class=w title="${wl}" aria-label="${wl}">${w}</span></button>`}
-function rlHTML(){const c=rlCache();
-  return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>Replays</h2></div>`+
-   (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,c[rlKey(f)])).join('')}</div>`:
-    `<p class=rle>Noch keine Replays gespeichert. Nach einer Runde im Endscreen auf „Replay herunterladen“ tippen, dann erscheint es hier.</p>`)+
+function rlHTML(){const c=rlCache(),app=RL.src==='app';
+  return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>${app?'Replays':'Zuletzt abgespielt'}</h2></div>`+
+   (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,app?c[rlKey(f)]:f.sum)).join('')}</div>`:
+    `<p class=rle>${app?'Noch keine Replays gespeichert. Nach einer Runde im Endscreen „Replay ansehen“ tippen, dann wird es gespeichert und erscheint hier.':'Hier erscheinen die Replays, die du in diesem Browser ansiehst: nach einer Runde über „Replay ansehen“ oder über „Andere Datei öffnen…“. Gespeichert werden die letzten '+RLMAX+'.'}</p>`)+
    `<button class=g onclick="rvPick()" style="margin-top:14px">Andere Datei öffnen…</button>`}
-function rlPlay(i){const f=RL.items[i];if(!f)return;let t='';try{t=NB.readReplay(f.id)}catch(e){}
-  if(!t)return toast('Datei nicht lesbar');let o;try{o=JSON.parse(t)}catch(e){return toast('Datei nicht lesbar')}rvLoad(o)}
+async function rlPlay(i){const f=RL.items[i];if(!f)return;let t='';
+  if(RL.src==='app'){try{t=NB.readReplay(f.id)}catch(e){}}
+  else{try{const r=await rlReq('data','readonly',tx=>tx.objectStore('data').get(f.id));t=r&&r.txt||''}catch(e){}}
+  if(!t)return toast('Datei nicht lesbar');let o;try{o=JSON.parse(t)}catch(e){return toast('Datei nicht lesbar')}
+  rvLoad(o);if(RV&&RL.src==='idb'){rlIdbPut(o);f.t=Date.now();RL.items.splice(i,1);RL.items.unshift(f)}}
+// Nach der Runde speichern: App → Datei in Dokumente/Blown Cover/Replays (je Runde nur, wenn mehr Wege da sind als beim letzten
+// Speichern; Merker LS rpS:<code>_<rn>), Browser → IndexedDB. hand=1: Knopf „Als Datei speichern“ (Browser: Download)
+const rpN=f=>Object.values(f.tracks||{}).filter(t=>t&&t.length).length;
+function rpSave(f,hand){if(!f)return;const k='rpS:'+f.code+'_'+f.round,n=rpN(f);
+  if(NB){let o=0;try{o=+LS[k]||0}catch(e){}if(o&&n<=o){if(hand)toast('Replay ist schon gespeichert');return}try{LS[k]=n}catch(e){}rpDl();return}
+  if(hand)rpDl();else rlIdbPut(f)}
 // Einheitliche Form: game, players (id,name,role,col), tracks, log [[t,pfad,wert]]. Analyse-Dateien und ältere Replays werden umgewandelt.
 function rvConv(o){
   if(o&&o.format==='blown-cover-replay'&&o.log)return o;

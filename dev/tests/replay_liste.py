@@ -55,10 +55,13 @@ with app(init=BR%(json.dumps('[]'),'{}'),width=412,height=915) as (pg,ev,errs):
     assert 'Noch keine Replays' in t and 'Andere Datei öffnen' in t
     shot(pg,'replay_liste_leer.png');e2=errs[:]
 
-# ohne Bridge: Dateiauswahl wie bisher
+# ohne Bridge (Browser): Liste „Zuletzt abgespielt“; ohne IndexedDB: Dateiauswahl wie bisher
 with app() as (pg,ev,errs):
     pg.wait_for_timeout(300)
-    ev("window.__pick=0;const o=rvPick;rvPick=()=>{__pick++};rlOpen()")
-    print('ohne Bridge → Dateiauswahl:',ev("__pick"),'Liste:',ev("RL.on"))
-    assert ev("__pick")==1 and not ev("RL.on")
+    ev("window.__pick=0;rvPick=()=>{__pick++};rlOpen();0");pg.wait_for_timeout(400)
+    print('Browser → Liste:',ev("RL.on"),ev("RL.src"),'Dateiauswahl:',ev("__pick"))
+    assert ev("RL.on") and ev("RL.src")=='idb' and ev("__pick")==0
+    ev("rlClose();Object.defineProperty(window,'indexedDB',{get:()=>undefined});rlOpen();0");pg.wait_for_timeout(300)
+    print('ohne IndexedDB → Dateiauswahl:',ev("__pick"))
+    assert ev("__pick")==1
     print('errors:',errs[:8]+e1+e2)
