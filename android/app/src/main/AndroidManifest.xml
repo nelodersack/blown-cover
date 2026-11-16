@@ -33,6 +33,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Einladungslinks https://blowncover.app/CODE öffnen direkt die App (Android App Links, seit v0.3.3).
+                 Bestätigt wird die Domain über https://blowncover.app/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="blowncover.app" />
+                <data android:scheme="https" android:host="www.blowncover.app" />
+            </intent-filter>
             <!-- Langes Drücken aufs App-Icon: „Diagnose“ -->
             <meta-data
                 android:name="android.app.shortcuts"

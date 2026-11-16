@@ -40,6 +40,16 @@ jobs:
           BC_KEYSTORE_PASSWORD: ${{ secrets.BC_KEYSTORE_PASSWORD }}
         run: gradle --no-daemon assembleRelease
 
+      - name: Signatur-Fingerabdruck (SHA-256, für assetlinks.json)
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          AS=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$AS" verify --print-certs "$APK" | tee "$RUNNER_TEMP/certs.txt"
+          FP=$(grep -m1 'SHA-256 digest' "$RUNNER_TEMP/certs.txt" | awk '{print $NF}' | tr a-f A-F | sed 's/../&:/g;s/:$//')
+          echo "SHA-256 (assetlinks.json): $FP"
+          echo "### Signatur-Fingerabdruck SHA-256" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$FP\`" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Schlüssel entfernen
         if: always()
         run: rm -f "$RUNNER_TEMP/sideload.jks"

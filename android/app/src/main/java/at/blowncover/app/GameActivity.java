@@ -254,10 +254,11 @@ public class GameActivity extends Activity {
         });
 
         LocationService.sink = mySink;
-        loadedUrl = Prefs.url(this);
-        Diag.log(this, "App v" + Prefs.ver(this) + " · Spiel öffnen: " + loadedUrl);
-        // Seite immer frisch laden (GitHub Pages lässt sie sonst bis zu 10 Min im Zwischenspeicher)
-        web.loadUrl(loadedUrl + (loadedUrl.contains("?") ? "&" : "?") + "app=" + System.currentTimeMillis());
+        // Start über einen Einladungslink (blowncover.app/CODE, App Links seit v0.3.3)? Dann den Link laden, sonst die Live-Seite.
+        String link = linkUrl(getIntent());
+        loadedUrl = link != null ? link : Prefs.url(this);
+        Diag.log(this, "App v" + Prefs.ver(this) + " · Spiel öffnen: " + loadedUrl + (link != null ? " (Link)" : ""));
+        web.loadUrl(fresh(loadedUrl));
         h.postDelayed(probeLoop, 30000);
         h.postDelayed(gameWatch, 3000);
 
@@ -344,6 +345,32 @@ public class GameActivity extends Activity {
         super.onNewIntent(i);
         setIntent(i);
         if (i.getBooleanExtra(EXTRA_READY, false)) showReady();
+        // Einladungslink, während die App schon läuft: Link laden (läuft ein Spiel, steigt die Seite danach wieder ein).
+        String link = linkUrl(i);
+        if (link != null && web != null) {
+            loadedUrl = link;
+            Diag.log(this, "Link geöffnet: " + link);
+            web.loadUrl(fresh(link));
+        }
+    }
+
+    /** URL eines App-Links (https://blowncover.app/… bzw. www), sonst null. Einladung /CODE wird direkt zu /?c=CODE
+     *  (spart den Umweg über 404.html, der den Frisch-Lade-Parameter verlieren würde). */
+    static String linkUrl(Intent i) {
+        if (i == null || !Intent.ACTION_VIEW.equals(i.getAction())) return null;
+        Uri u = i.getData();
+        if (u == null || !"https".equals(u.getScheme())) return null;
+        String h = u.getHost();
+        if (!"blowncover.app".equalsIgnoreCase(h) && !"www.blowncover.app".equalsIgnoreCase(h)) return null;
+        String p = u.getPath() == null ? "" : u.getPath();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^/([A-Za-z2-9]{4,6})/?$").matcher(p);
+        if (m.matches()) return Prefs.LIVE + "?c=" + m.group(1).toUpperCase(java.util.Locale.ROOT);
+        return u.toString();
+    }
+
+    /** Seite immer frisch laden (GitHub Pages lässt sie sonst bis zu 10 Min im Zwischenspeicher). */
+    static String fresh(String url) {
+        return Uri.parse(url).buildUpon().appendQueryParameter("app", String.valueOf(System.currentTimeMillis())).build().toString();
     }
 
     @Override
@@ -524,13 +551,6 @@ public class GameActivity extends Activity {
         applyRender();
         web.resumeTimers();
         afterChecksChanged();
-        // Seitenwahl im Diagnose-Bildschirm geändert? Dann die neue Seite laden.
-        String u = Prefs.url(this);
-        if (loadedUrl != null && !u.equals(loadedUrl)) {
-            loadedUrl = u;
-            Diag.log(this, "Seite gewechselt: " + u);
-            web.loadUrl(u);
-        }
     }
 
     @Override
