@@ -648,7 +648,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
     if(zmb(g)){let T=R0,k=0;for(let i=0;i<400;i++){const iv=zIv(g,pl,T);if(T+iv>tEnd)break;T+=iv;k++;H(T,'Ping #'+k+' fällig (planmäßig, Abstand '+Math.round(iv/1000)+' s)')}}
     else for(let k=1;R0+k*pg<=tEnd&&k<400;k++)H(R0+k*pg,'Ping #'+k+' fällig (planmäßig)')}
   hl.sort((a,b)=>a[0]-b[0]);
-  const players=ids.map(k=>{const p=pl[k];return{id:al[k],name:p.name,role:p.role,state:p.state,color:Number.isInteger(p.col)?PALN[p.col]:null,joined:p.j||null,stateTime:p.sT||null,left:!!p.lf,zt:p.zt||null,zb:p.zb?al[p.zb]||null:null,zd:p.zd||null,hasLog:!!L[k],device:(L[k]||{}).dev||null,stats:st[al[k]]||null}});
+  const players=ids.map(k=>{const p=pl[k];return{id:al[k],name:p.name,role:p.role,state:p.state,color:Number.isInteger(p.col)?PALN[p.col%12]:null,joined:p.j||null,stateTime:p.sT||null,left:!!p.lf,zt:p.zt||null,zb:p.zb?al[p.zb]||null:null,zd:p.zd||null,hasLog:!!L[k],device:(L[k]||{}).dev||null,stats:st[al[k]]||null}});
   const tracks={};Object.entries(L).forEach(([k,d])=>tracks[al[k]]=d.sm||[]);
   const gg=JSON.parse(JSON.stringify(g));delete gg.prev;
   const out={format:'blown-cover-analyse',v:1,generated:new Date().toISOString(),code,round:g.rn||0,
@@ -877,12 +877,18 @@ const SV={catch:'<circle cx="6" cy="15" r="4.5"/><circle cx="18" cy="15" r="4.5"
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
 const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0','#8a5a2b','#8e2a3a','#e02fb5','#f28c00','#7b3fe4'],PALN=['Blau','Gelb','Dunkelgrün','Türkis','Schiefer','Grün','Himmelblau','Braun','Bordeaux','Magenta','Orange','Violett'],PALK=PAL.map(h=>{const v=[1,3,5].map(k=>{const c=parseInt(h.substr(k,2),16)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]>.3?'#1a1a1a':'#fff'});
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
-const colI=u=>{const p=P()[u];return p&&Number.isInteger(p.col)&&p.col>=0&&p.col<12?p.col:hsh(u)},colOf=u=>PAL[colI(u)],inkOf=u=>PALK[colI(u)],
-  letOf=u=>esc(String((P()[u]||{}).name||'?').trim().charAt(0).toUpperCase()||'?');
+// Ab 13 Spielern teilen sich je zwei Spieler eine Farbe (Plätze 0–11 und 12–23, Farbe = Platz % 12); unterscheiden über den
+// Buchstaben im Marker. Haben beide denselben Anfangsbuchstaben, zeigen beide zwei Buchstaben („Ma“/„Mi“).
+const NCOL=24,colI=u=>{const p=P()[u];return p&&Number.isInteger(p.col)&&p.col>=0&&p.col<NCOL?p.col%12:hsh(u)},colOf=u=>PAL[colI(u)],inkOf=u=>PALK[colI(u)],
+  nm0=u=>String((P()[u]||{}).name||'?').trim()||'?',
+  letOf=u=>{const n=nm0(u),c=n.charAt(0).toUpperCase(),ci=colI(u),lo=n.toLowerCase(),
+      tw=Object.keys(P()).filter(k=>{const q=P()[k];return k!==u&&q&&!q.lf&&q.role!=='spec'&&colI(k)===ci&&nm0(k).charAt(0).toUpperCase()===c});
+    if(!tw.length)return esc(c);let l=2;tw.forEach(k=>{const o=nm0(k).toLowerCase();while(l<3&&o.slice(0,l)===lo.slice(0,l))l++});
+    return esc(c+n.slice(1,l).toLowerCase())};
 // Verwandelte Zombies: kleiner grüner Punkt am Dreieck (Spiel: P()[pid].zt; Replay: RV.zt[pid] bis zur aktuellen Zeit)
 const zBadge=pid=>RV&&RV.zt?!!(RV.zt[pid]&&RV.t>=RV.zt[pid]):!!(G&&P()[pid]&&P()[pid].zt);
 function shape(k,pid,hid){const sv=b=>`<svg style="overflow:visible" viewBox="0 0 36 36" aria-hidden="true">${b}</svg>`,W='#fff',
-  C=pid?colOf(pid):null,tx=(l,c,y,fs)=>l?`<text x="18" y="${y}" text-anchor="middle" font-family="Barlow Condensed,Barlow,sans-serif" font-weight="700" font-size="${fs}" fill="${c}">${l}</text>`:'',
+  C=pid?colOf(pid):null,tx=(l,c,y,fs)=>l?`<text x="18" y="${y-(l.length>1?1:0)}" text-anchor="middle" font-family="Barlow Condensed,Barlow,sans-serif" font-weight="700" font-size="${l.length>2?Math.round(fs*.65):l.length>1?Math.round(fs*.8):fs}" fill="${c}">${l}</text>`:'',
   L_=pid?letOf(pid):'',I_=pid?inkOf(pid):'#fff';
   if(pid){switch(k){
     case'me':return sv(`<circle cx="18" cy="18" r="14" fill="none" stroke="#1e7cf0" stroke-width="2"/><circle cx="18" cy="18" r="10" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,22,12));
@@ -1294,7 +1300,7 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);RV.aT=null;
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:KZ.c,weight:2,fillOpacity:KZ.f,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
-  f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col:0];
+  f.players.forEach(p=>{const a=RV.sm[p.id],c=PAL[Number.isInteger(p.col)?p.col%12:0];
     RV.ln[p.id]={c:[],s:[],k:-1,o:{color:c,weight:3,opacity:.85,interactive:false}}});
   map.on('zoomstart',rvZs);map.on('zoomend',rvZe);
   $('res').style.display='none';rotMode(true);panel(1);$('panel').classList.add('m');pMidSet();setTimeout(()=>{if(RV){pMidSet();rvFit(1)}},260);rvDraw()}
@@ -1536,13 +1542,20 @@ function colTaken(){const o={},c=(G&&G.cols)||{};Object.entries(c).forEach(([i,u
 async function claimCol(i){const me_=P()[uid]||{},old=Number.isInteger(me_.col)?me_.col:null,u={};
   u['players/'+uid+'/col']=i;u['cols/'+i]=uid;if(old!==null&&old!==i)u['cols/'+old]=null;
   try{await db.ref('games/'+code).update(u);return true}catch(e){return false}}
-async function autoCol(){if(colBusy||!G||G.status!=='lobby')return;colBusy=1;const tk=colTaken(),b=0;
-  try{for(let a=0;a<12;a++){const i=(b+a)%12;if(tk[i]&&tk[i]!==uid)continue;if(await claimCol(i))break}}finally{colBusy=0}}
+// Zuerst eine freie Farbe; sind alle 12 vergeben, den zweiten Platz einer Farbe, deren Inhaber einen anderen Anfangsbuchstaben hat
+async function autoCol(){if(colBusy||!G||G.status!=='lobby')return;colBusy=1;const tk=colTaken(),c0=nm0(uid).charAt(0).toUpperCase(),
+    ini=k=>nm0(k).charAt(0).toUpperCase(),ord=[...Array(12).keys()];
+  const cand=[...ord,...ord.map(i=>i+12).filter(j=>!tk[j-12]||ini(tk[j-12])!==c0),...ord.map(i=>i+12)];
+  try{for(const i of cand){if(tk[i]&&tk[i]!==uid)continue;if(await claimCol(i))break}}finally{colBusy=0}}
 function palTog(){ui.pal=!ui.pal;panel(1)}
-function palPick(i){const tk=colTaken();if(tk[i]&&tk[i]!==uid)return;if(P()[uid]&&P()[uid].col===i)return;claimCol(i).then(ok=>{if(!ok)toast('Farbe bereits vergeben')})}
+function palPick(i){const tk=colTaken();if(tk[i]===uid||tk[i+12]===uid)return;const full=PAL.every((_,k)=>[tk[k],tk[k+12]].some(u=>u&&u!==uid)),j=!tk[i]&&!tk[i+12]?i:full&&!tk[i+12]?i+12:full&&!tk[i]?i:-1;if(j<0)return;
+  claimCol(j).then(ok=>{if(!ok)toast('Farbe bereits vergeben')})}
 function palUI(){const tk=colTaken(),mine=colI(uid);
-  return `<div class=pal><h4>Deine Farbe</h4><div class=g>`+PAL.map((c,i)=>{const o=tk[i]&&tk[i]!==uid,me_=i===mine&&tk[i]===uid;
-    return `<div><b class="${o?'x':''} ${me_?'o':''}" style="background:${c};color:${PALK[i]}" ${o?'':`onclick="palPick(${i})"`} role=button aria-label="${PALN[i]}${o?' (vergeben)':''}">${me_?letOf(uid):(o?letOf(tk[i]):'')}</b><span>${o?'vergeben':PALN[i]}</span></div>`}).join('')+`</div></div>`}
+  // Farbe voll = beide Plätze (i, i+12) belegt; halb belegt (alle 12 schon einmal vergeben) = „zu zweit“ wählbar
+  const full=PAL.every((_,i)=>[tk[i],tk[i+12]].some(u=>u&&u!==uid));
+  return `<div class=pal><h4>Deine Farbe</h4><div class=g>`+PAL.map((c,i)=>{const me_=i===mine&&(tk[i]===uid||tk[i+12]===uid),
+      oth=[tk[i],tk[i+12]].filter(u=>u&&u!==uid),o=!me_&&(oth.length>=2||oth.length===1&&!full),half=!me_&&!o&&oth.length===1;
+    return `<div><b class="${o?'x':''} ${me_?'o':''}" style="background:${c};color:${PALK[i]}" ${o||me_?'':`onclick="palPick(${i})"`} role=button aria-label="${PALN[i]}${o?' (vergeben)':half?' (zu zweit)':''}">${me_?letOf(uid):(oth.length?letOf(oth[0]):'')}</b><span>${o?'vergeben':half?'zu zweit':PALN[i]}</span></div>`}).join('')+`</div></div>`}
 
 // §MARKER Eigene Kartenmarker (mk*, drawMarks)
 let MK={},mkL=null,mkSeen=null,mkMode=null,mkTmp=null,mkBusy=0,hidM=new Set();
@@ -1809,7 +1822,7 @@ const fsSkip=(p,at)=>!!(p&&p.pS)&&Math.abs(p.pS-at)<3000;
 function fsHunterH(g,t){const m=fsHunt(g,t),w=fsWait(g,null,t);let h='';
   if(m){const q=P()[m.h]||{};h+=`<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(m.h)};color:${inkOf(m.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>${esc(q.name||'?')} festgesetzt</b><small style="display:block">Berühren und dann „Fang melden“.</small></div><b class=fzn>${cdT(m.t+fsTv(g),'')}</b></div></div>`}
   return [h,w?`<button class=fsb disabled>${cdT(w,'Wieder in ')}</button>`:`<button class=fsb onclick="fsBtn()">Festsetzen</button>`]}
-function fsCandH(g){return `<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du im Visier?</div><div class=cgr>`+fsCand.filter(k=>P()[k]).map(k=>{const p=P()[k];return `<button class=cgt onclick="fsGo('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b></button>`}).join('')+`</div><small style="text-align:center;display:block">Hausregel: nur bei Sichtkontakt. Kommt nur an, wenn der Hider höchstens ${fsRv(g)} m entfernt ist. Du erfährst nicht, ob es geklappt hat.</small><button class=ghost style="margin:0" onclick="fsCand=null;panel(1)">Abbrechen</button></div>`}
+function fsCandH(g){return `<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du im Visier?</div><div class=cgr>`+fsCand.filter(k=>P()[k]).map(k=>{const p=P()[k];return `<button class=cgt onclick="fsGo('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${letOf(k)}</span><b>${esc(p.name)}</b></button>`}).join('')+`</div><small style="text-align:center;display:block">Hausregel: nur bei Sichtkontakt. Kommt nur an, wenn der Hider höchstens ${fsRv(g)} m entfernt ist. Du erfährst nicht, ob es geklappt hat.</small><button class=ghost style="margin:0" onclick="fsCand=null;panel(1)">Abbrechen</button></div>`}
 function fsHiderH(g,t){const H=FSH;if(!fsOn(g)||!H||!H.ok||!H.a||H.done)return '';const end=H.t0+fsTv(g);if(t>=end)return '';const q=P()[H.h]||{};
   return `<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Bleib stehen</b><small style="display:block">${esc(q.name||'Ein '+HN(g))} hat dich im Visier. Ohne Fang bist du danach frei.</small></div><b class=fzn id=fscd>${fmt(end-t)}</b></div></div>`}
 const fsSig=(g,t)=>{if(!fsOn(g))return 0;const m=fsHunt(g,t);return[fsCand,m&&m.t,!!fsWait(g,null,t),FSH&&[FSH.k,FSH.ok,!!FSH.a,FSH.done,t<FSH.t0+fsTv(g)],FSX&&FSX.until]};
@@ -2435,7 +2448,7 @@ function runUI(g,me_,t,host,run){
       h+=`<div class="card cwt"><div class=row style="align-items:center;gap:10px"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(P()[k].name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Warte auf ${esc(P()[k].name)}</b><small style="display:block">Ohne Antwort gilt der Fang automatisch.</small></div><b class=cwn>${cdT(c.t+30000,'')}</b></div></div>`});
     const fsx=run&&fsOn(g)&&!zl_?fsHunterH(g,t):null;if(fsx)h+=fsx[0];
     if(run&&fsx&&fsCand&&!cand.length)h+=fsCandH(g);else
-    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(p.name||'?')[0].toUpperCase())}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:(zl_?`<button class=g disabled>Fang melden</button><small style="text-align:center;display:block">Noch in Verwandlung.</small>`:(fsx?`<div class=fsrow><button onclick="cc()">Fang melden</button>${fsx[1]}</div><small style="text-align:center;display:block">„Fang melden“ nach dem Berühren. „Festsetzen“ nur bei Sichtkontakt: zwingt den Hider in ${fsRv(g)} m zum Stehenbleiben.</small>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`));
+    if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${letOf(k)}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:(zl_?`<button class=g disabled>Fang melden</button><small style="text-align:center;display:block">Noch in Verwandlung.</small>`:(fsx?`<div class=fsrow><button onclick="cc()">Fang melden</button>${fsx[1]}</div><small style="text-align:center;display:block">„Fang melden“ nach dem Berühren. „Festsetzen“ nur bei Sichtkontakt: zwingt den Hider in ${fsRv(g)} m zum Stehenbleiben.</small>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`));
     else h+=`<small>Warte auf das Ende des Headstarts.</small>`;
     if(run&&hbOn(g))h+=gBonHu(g,t);
     if(run){const L_=hkHunterCard(g,t,me_);if(L_)h+=`<div class=gsec><h3>Lage</h3></div>`+L_}}

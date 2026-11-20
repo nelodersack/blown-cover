@@ -46,7 +46,8 @@ T('Entkommen: Hider setzt Schutz + Ping-Ausfall',true,base(),'u3','update',G+'/p
 T('Ping-Ausfall durch anderen',false,base(),'u1','set',G+'/players/u3/pS',N+90000);
 // Kick, Host
 {const d=base({status:'lobby',startAt:null,catches:null});
- T('Host entfernt Spieler',true,d,'u1','update',G,{'players/u3':null,'cols/2':null});T('Nicht-Host entfernt Spieler',false,d,'u2','update',G,{'players/u3':null,'cols/2':null});
+ T('Host entfernt Spieler',true,d,'u1','update',G,{'players/u3':null,'cols/2':null});
+ T('Farbe zweiter Platz (Slot 14)',true,d,'u3','update',G,{'players/u3/col':14,'cols/14':'u3','cols/2':null});T('Farbe Slot 24 ungültig',false,d,'u3','update',G,{'players/u3/col':24,'cols/24':'u3'});T('Nicht-Host entfernt Spieler',false,d,'u2','update',G,{'players/u3':null,'cols/2':null});
  T('Host-Übernahme, Host 79 s still',false,(()=>{const x=JSON.parse(JSON.stringify(d));x.games.K7QF.players.u1.ts=N-79000;return x})(),'u2','set',G+'/host','u2');
  T('Host-Übernahme, Host 81 s still',true,(()=>{const x=JSON.parse(JSON.stringify(d));x.games.K7QF.players.u1.ts=N-81000;return x})(),'u2','set',G+'/host','u2')}
 // Aufgabe geht allein weiter: jeder Mitspieler darf sol + cmp setzen (wie ex), cmp nur als Wahrheitswert
