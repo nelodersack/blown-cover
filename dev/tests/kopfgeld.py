@@ -30,8 +30,8 @@ with app(width=412,height=915) as (pg,ev,errs):
     ev("__T.games.KOPF.players.u7.col=1;notify()");pg.wait_for_timeout(200);ev("uid='u7';G=__T.games.KOPF;tmCheck()");pg.wait_for_timeout(400);ev("uid='u0';panel(1)");pg.wait_for_timeout(200)
     c7=ev("__T.games.KOPF.players.u7.col");print('Hider mit Teamfarbe → neu:',c7);assert c7 not in (0,1,2)
     # nur der Chef sieht Name/Farbe-Knöpfe an seinem Team
-    print('Knöpfe als Chef von Team 1:',ev("document.querySelectorAll('.ltm')[0].querySelectorAll('.lib').length"),'bei Team 2:',ev("document.querySelectorAll('.ltm')[1].querySelectorAll('.lib').length"))
-    assert ev("document.querySelectorAll('.ltm')[0].querySelectorAll('.lib').length")==2 and ev("document.querySelectorAll('.ltm')[1].querySelectorAll('.lib').length")==0
+    print('Knöpfe als Chef von Team 1:',ev("document.querySelectorAll('.tmk2')[0].querySelectorAll('.lib').length"),'bei Team 2:',ev("document.querySelectorAll('.tmk2')[1].querySelectorAll('.lib').length"))
+    assert ev("document.querySelectorAll('.tmk2')[0].querySelectorAll('.lib').length")==2 and ev("document.querySelectorAll('.tmk2')[1].querySelectorAll('.lib').length")==0
     ev("tmPalTog(1)");pg.wait_for_timeout(200);shot(pg,'kopfgeld_lobby.png')
     ev("tmColPick(1,1)");pg.wait_for_timeout(200);print('fremde Teamfarbe:',ev("$('toast').innerText"));assert 'anderes Team' in ev("$('toast').innerText")
     ev("tmColPick(1,5)");pg.wait_for_timeout(300);print('neue Farbe Team 1:',ev("tmCols(G)[1]"));assert ev("tmCols(G)[1]")==5

@@ -195,7 +195,7 @@ button.rl.bnhb{background:none;border:0;border-top:1px solid var(--line2);border
 .gdst{font:500 12px var(--f-m);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 9px;white-space:nowrap}
 button.ggo{background:var(--task);color:#fff;border:0;border-radius:10px;padding:8px 12px;font:600 13px var(--f-b);min-height:0;width:auto!important;margin:0}
 .gbons{display:flex;gap:10px;overflow-x:auto;padding:2px 0 4px}
-button.gb{display:grid;justify-items:center;gap:4px;width:76px!important;flex:none;background:none;border:0;padding:0;margin:0;min-height:0;color:var(--fg);font:500 12px/1.2 var(--f-b);text-align:center}button.gb small{color:var(--mut);font-size:11px}
+button.gb{display:grid;justify-items:center;gap:4px;width:76px!important;hyphens:manual;overflow-wrap:break-word;flex:none;background:none;border:0;padding:0;margin:0;min-height:0;color:var(--fg);font:500 12px/1.2 var(--f-b);text-align:center}button.gb small{color:var(--mut);font-size:11px}
 .gci{position:relative;width:50px;height:50px;border-radius:50%;border:2px solid #4fb3f0;color:#4fb3f0;display:grid;place-items:center;background:var(--bg);flex:none}.gci .ic{width:22px;height:22px}
 .gci.off{border-color:var(--line);color:var(--mut)}.gci.tri{border:0;border-radius:0;background:none}.gci.tri svg.t{position:absolute;inset:0;width:100%;height:100%}.gci.tri .ic{position:relative;margin-top:9px;width:18px;height:18px}.gci.tri.off{color:var(--mut)}
 .gnew{position:absolute;top:-4px;right:-6px;background:var(--ok);color:#04150a;font:700 10px var(--f-b);border-radius:999px;padding:2px 6px}
@@ -445,11 +445,21 @@ button.lsw{background:none!important;border:0!important;color:var(--mut)!importa
 .seg button,.pre button,.tiles.t3 .tile{border:0!important;border-radius:7px!important}
 .seg button.on,.pre button.on,.tiles.t3 .tile.on{box-shadow:inset 0 0 0 1px #c9c6c0}
 #fa,#fz{background:var(--panel)}
-/* §CSS-KOPFGELD Teamfelder in der Lobby, Endscreen */
+/* §CSS-KOPFGELD Lobby: Agenturen als Karten mit Farbstreifen; Endscreen */
 .tiles.t4{grid-template-columns:repeat(2,1fr)}
-.ltms{display:flex;flex-direction:column;gap:10px;min-width:0}.ltm h4 .tmn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ltm h4 .lib{width:26px;height:26px;min-height:0;padding:0;margin:0 2px}.ltm h4 .tmc i{display:block;width:14px;height:14px;border-radius:50%;margin:auto}
-.lp .tmk{margin-left:6px;opacity:.8}.lp .tmk .ic{width:14px;height:14px}.tpal{margin:6px 0 8px}
+.ltms{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tmsec{font:600 12px var(--f-b);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:6px 0 -2px}
+.tmk2{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--tc,var(--line));border-radius:10px;padding:10px 12px 6px;min-width:0}
+.tmk2.me{border-color:var(--tc);border-left-width:4px}
+.tmk2.hid{border-left-color:var(--line);padding-top:12px}.tmk2.hid .lcol h4{font:700 17px/1.1 var(--f-d)}
+.tmh{display:flex;align-items:center;gap:10px;padding:0 0 8px}
+.tmsh svg{width:22px;height:22px;display:block}
+.tmt{flex:1;min-width:0}.tmt b{display:block;font:700 19px/1.15 var(--f-d);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmt small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.tmh .lib{width:30px;height:30px;min-height:0;padding:0;margin:0}.tmh .tmc i{display:block;width:14px;height:14px;border-radius:50%;margin:auto}
+.tmm2{border-top:1px solid var(--line);padding-left:8px}.tmm2 .lp{min-height:40px;font-size:14px}.tmm2 .lp:last-child{border-bottom:0!important}
+.lp .tmk{margin-left:6px;opacity:.8}.lp .tmk .ic{width:14px;height:14px}.tpal{margin:2px 0 8px}
+button.tmj{display:block;width:100%;margin:6px 0 4px;min-height:36px;background:none;border:1px dashed var(--tc);color:var(--fg);border-radius:8px;font:500 13px var(--f-b)}
 .rsub{text-align:center;margin:-6px 0 10px;color:var(--mut)}.tmm{display:block;margin:-4px 0 8px 34px;color:var(--mut);font-size:12px}
 /* §CSS-EINST-SEITEN Unterseiten der Einstellungen: Bild/Zeitstrahl (mzv), Sätze mit Werten (mzs, Chip mzc, Regler mzp), große Zahlen (mzb), Karten (mzk),
    Aufgaben-Zeitstrahl (mztl), Boni wie im Spiel (mzi, Einstellbereich mzsh), Balancing-Regler (mzd, mzcmp), Zombie-Ablauf (mzf) */
@@ -1587,12 +1597,15 @@ function tmColPick(n,i){if(tmChef(n)!==uid)return;const tc=tmCols(G);if(Object.e
   db.ref(`games/${code}/teams/${n}/col`).set(i).then(()=>{ui.tpal=0;panel(1)}).catch(()=>toast('Farbe nicht gespeichert'))}
 // Lobby: Hunter-Spalte als Teamfelder (Beitreten, Teamchef mit Krone, Name und Farbe nur durch den Chef)
 function tmLobby(g,host,row){const me_=P()[uid]||{},N=tmN(g),tc=tmCols(g);let h='';
+  // Jede Agentur als Karte: Farbstreifen + großes Dreieck in Teamfarbe, Name groß, darunter „n Hunter“ (Chef-Hinweis);
+  // Mitglieder eingerückt und kleiner, Beitreten als Knopf in der Karte (Layout vom 21.11., damit Teamnamen sich von Agenten abheben)
   for(let n=1;n<=N;n++){const mem=tmMem(n),ch=mem.length?mem[0][0]:null,mine=me_.role==='hunter'&&me_.tm===n,c=PAL[tc[n]],chef=ch===uid;
-    h+=`<div class="lcol ltm"><h4>${SHP(true,c)}<span class=tmn>${esc(tmName(g,n))}</span>${chef?`<button class=lib onclick="tmRename(${n})" aria-label="Teamname ändern">${ic('edit')}</button><button class="lib tmc" onclick="tmPalTog(${n})" aria-label="Teamfarbe ändern"><i style="background:${c}"></i></button>`:''}<i>${mem.length}</i></h4>`
+    h+=`<div class="tmk2${mine?' me':''}" style="--tc:${c}"><div class=tmh><span class=tmsh>${SHP(true,c)}</span><div class=tmt><b>${esc(tmName(g,n))}</b><small>${mem.length?mem.length+(mem.length===1?' Hunter':' Hunter'):'noch leer'}${chef?' · du bist Teamchef':''}</small></div>`
+      +(chef?`<button class=lib onclick="tmRename(${n})" aria-label="Teamname ändern">${ic('edit')}</button><button class="lib tmc" onclick="tmPalTog(${n})" aria-label="Teamfarbe ändern"><i style="background:${c}"></i></button>`:'')+`</div>`
       +(chef&&ui.tpal===n?`<div class="pal tpal"><div class=g>${PAL.map((x,i)=>{const o=Object.entries(tc).some(([m,cc])=>+m!==n&&cc===i),on=tc[n]===i;
         return `<div><b class="${o?'x':''} ${on?'o':''}" style="background:${x}" ${o||on?'':`onclick="tmColPick(${n},${i})"`} role=button aria-label="${PALN[i]}${o?' (anderes Team)':''}"></b><span>${o?'Team':PALN[i]}</span></div>`}).join('')}</div></div>`:'')
-      +mem.map(([k,p],i)=>row([k,p]).replace(ic('crown'),'').replace(/(<span class=nm>[^<]*<\/span>)/,i===0?`$1<span class=tmk role=img aria-label="Teamchef">${ic('crown')}</span>`:'$1')).join('')
-      +(mine||me_.w?'':`<button class=lsw onclick="tmJoin(${n})">${me_.role==='hunter'?'Wechseln':'Beitreten'}</button>`)+`</div>`}
+      +(mem.length?`<div class=tmm2>${mem.map(([k,p],i)=>row([k,p]).replace(ic('crown'),'').replace(/(<span class=nm>[^<]*<\/span>)/,i===0?`$1<span class=tmk role=img aria-label="Teamchef">${ic('crown')}</span>`:'$1')).join('')}</div>`:'')
+      +(mine||me_.w?'':`<button class=tmj onclick="tmJoin(${n})">${me_.role==='hunter'?'Zu diesem Team wechseln':'Beitreten'}</button>`)+`</div>`}
   return h}
 // Lobby-Pflege (jeder Client für sich): Hunter ohne gültiges Team → kleinstes Team; Hider mit Teamfarbe → neue Farbe
 function tmCheck(){const g=G,m=P()[uid];if(!g||g.status!=='lobby'||!bty(g)||!m||m.w||rndOn(g))return;
@@ -2254,7 +2267,7 @@ function lobbyUI(g,host,me_){
           +(host?(bty(g)?`<div class=lrh>${nfl('tN','Anzahl Teams')}${nfl('tS','Hunter pro Team')}</div>`:`<div class=lrh>${nfl('rH','Anzahl '+HNP(g))}</div>`):'')
           +(bty(g)?`<div class=lrs>${n<tmN(g)+2?'Mindestens '+(tmN(g)+2)+' Spieler nötig':`<b>${tmN(g)}</b> Teams mit zusammen <b>${H}</b> Huntern · <b>${n-H}</b> Hider werden ausgelost`}</div>`
           :`<div class=lrs>${n<2?'Mindestens 2 Spieler nötig':`<b>${H}</b> ${HN(g)}${H>1&&!zmb(g)?'':H>1?'s':''} · <b>${n-H}</b> Hider werden ausgelost`}${zmb(g)&&H===1?' · <span>Patient Null</span>':''}</div>`)})()
-        :bty(g)?`<div class=ltms>${tmLobby(g,host,row)}${col('hider','Hider')}</div>`+(host?`<div class=lrh>${nfl('tN','Anzahl Teams')}</div>`:''):`<div class=lcols>${col('hunter',HNP(g))}${col('hider','Hider')}</div>`)+(ui.pal&&!(P()[uid]||{}).w?palUI():'')
+        :bty(g)?`<div class=ltms><small class=tmsec>Agenturen</small>${tmLobby(g,host,row)}<small class=tmsec>Gejagt</small><div class="tmk2 hid">${col('hider','Hider')}</div></div>`+(host?`<div class=lrh>${nfl('tN','Anzahl Teams')}</div>`:''):`<div class=lcols>${col('hunter',HNP(g))}${col('hider','Hider')}</div>`)+(ui.pal&&!(P()[uid]||{}).w?palUI():'')
       +(host?`<div class="fl lrnd"><label>Teams auslosen<small>Rollen werden beim Start verteilt.</small></label><button class="sw ${rndOn(g)?'on':''}" role=switch aria-checked="${rndOn(g)}" aria-label="Teams auslosen" onclick="setRnd(${rndOn(g)?0:1})"></button></div>`:'')
       +`<small class=lnote>Tippe auf dich, um deine Farbe zu ändern.${host?' Tippe auf andere, um sie zu verwalten.':''}</small>`;
   }else if(host){
@@ -2398,7 +2411,9 @@ const GTRI='<svg class=t viewBox="0 0 50 46" aria-hidden=true><path d="M25 3L47.
 // Countdown im Panel ohne Neuaufbau: Text wird jede Sekunde in cdTick aktualisiert (Neuaufbau störte das Scrollen, v. a. am iPhone)
 const cdT=(end,p)=>`<span data-cd="${end}" data-p="${p}">${p}${fmt(Math.max(0,end-now()))}</span>`;
 function cdTick(t){document.querySelectorAll('[data-cd]').forEach(e=>{const x=e.dataset.p+fmt(Math.max(0,+e.dataset.cd-t));if(e.textContent!==x)e.textContent=x})}
-const gBtn=o=>`<button class=gb onclick="gdShow('${o.dk}')" aria-label="${esc(o.n)}"><span class="gci${o.tri?' tri':''}${o.off?' off':''}">${o.tri?GTRI:''}${o.run?'<i class=gring></i>':''}${ic(o.i)}${o.nw?'<span class=gnew>neu</span>':''}</span><span>${o.n}</span><small>${o.s}</small></button>`;
+const // Lange Bonusnamen passen nicht in die 76 px breiten Knöpfe: weiche Trennstellen (Gegen-überwachung, Satelliten-bild)
+gShy=n=>String(n).replace('Gegenüberwachung','Gegen\u00adüberwachung').replace('Satellitenbild','Satelliten\u00adbild'),
+gBtn=o=>`<button class=gb onclick="gdShow('${o.dk}')" aria-label="${esc(o.n)}"><span class="gci${o.tri?' tri':''}${o.off?' off':''}">${o.tri?GTRI:''}${o.run?'<i class=gring></i>':''}${ic(o.i)}${o.nw?'<span class=gnew>neu</span>':''}</span><span>${gShy(o.n)}</span><small>${o.s}</small></button>`;
 // --- Hider: Boni
 const ITX=(g,i)=>i.type==='radar'?['sat','Satellitenbild',`Zeigt ${sbV(g.s)} s lang alle Hunter auf der Karte. Die Hunter merken nichts.`]
   :i.type==='bm'?['radar','Hunter-Radar',`Zählt ${fmt(bmTv(g.s)*1000)} lang, wie viele Hunter im Umkreis von ${bmRv(g.s)} m um dich sind. Jede Änderung meldet die App. Die Hunter merken nichts.`]
