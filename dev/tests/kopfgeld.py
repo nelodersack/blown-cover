@@ -69,6 +69,9 @@ with app(width=412,height=915) as (pg,ev,errs):
     # Gleichstand: Team 1 fängt auch u9 nach 4 Min → 2:2, Team 1 letzter Fang 4 Min < Team 2 5 Min → Team 1 gewinnt
     ev("""(()=>{const g=__T.games.KOPG;g.catches.u9={hunter:'u3',status:'done',t:g.startAt+4*60000};g.players.u9.state='caught';uid='u0';notify()})()""");pg.wait_for_timeout(400)
     rk=ev("tmRank(G).map(t=>t.name+':'+t.f)");print('Gleichstand:',rk);assert rk[0]=='Agentur 1:2'
+    # Analyse-Export enthält Teams
+    an=ev("(()=>{const o=JSON.parse(anBuild({}));return {t:o.game.teams,p:o.players.filter(p=>p.role==='hunter').map(p=>p.id+':'+p.team+':'+p.teamName)}})()");print('Analyse:',an)
+    assert an['t'] and len(an['t'])>=2 and all(t['members'] and t['chef'] in t['members'] for t in an['t']) and all(':None' not in x for x in an['p'])
     e2=errs[:]
 
 # 4) Auslosen: 2 Teams à 2 aus 7 Spielern
