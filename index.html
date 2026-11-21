@@ -329,6 +329,11 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .fkl{display:grid;grid-template-columns:38px 1fr;gap:8px;align-items:baseline;width:100%;margin:0;padding:5px 0;min-height:0;background:none;border:0;border-top:1px solid var(--line2);border-radius:0;text-align:left;color:var(--fg);font:400 13.5px/1.35 var(--f-b)}
 .fkm .fkl:first-child{border-top:0}.fkl .fkt{font:500 11.5px var(--f-b);color:var(--mut);font-variant-numeric:tabular-nums}.fkl .fkb{min-width:0}.fkl .fkb b{font-weight:600;margin-right:6px}.fkl .fkb i{font-style:normal;font-size:11px;color:var(--mut);margin-right:6px}
 .mkw.snap{opacity:.75}
+.leaflet-tooltip.rvbub{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:4px 9px;font:500 12.5px/1.3 var(--f-b);max-width:190px;width:max-content;white-space:normal;box-shadow:0 2px 10px #0006;pointer-events:none}
+.leaflet-tooltip.rvbub small{display:block;font-size:10.5px;color:var(--mut)}.leaflet-tooltip.rvbub.dm{border-style:dashed;border-color:var(--mut)}
+.leaflet-tooltip-top.rvbub::before{border-top-color:var(--panel)}
+.fkl .fkb i.pv{color:var(--fg);opacity:.75}
+.chpn{flex-basis:100%;color:var(--mut);font-size:11.5px;margin-top:2px}
 /* §CSS-REPLAY-LISTE Liste der gespeicherten Replays (App) */
 .rlh{display:grid;gap:4px;justify-items:start;margin-bottom:6px}
 .rll{display:grid;border-top:1px solid var(--line)}
@@ -1136,10 +1141,13 @@ function rpMk(v){if(!RP||!G||G.status!=='running'||!rpOn(G))return;const pv=RP.m
   Object.keys(v).forEach(id=>{const x=v[id];if(!pv[id]&&x&&Number.isFinite(x.lat))RP.mk.push([x.t||t,'+',id,x.k,+(+x.lat).toFixed(5),+(+x.lng).toFixed(5),x.r||null,x.x?String(x.x).slice(0,40):null,x.u||null,x.h||null])});
   Object.keys(pv).forEach(id=>{if(!v[id])RP.mk.push([t,'-',id])})}
 // Gesehene Nachrichten mitschreiben (auch Kanäle, die man später nicht mehr lesen darf, z. B. Hider-Chat eines verwandelten Zombies)
-function rpCh(ch,id,c){if(!RP||!G||G.status!=='running'||!rpOn(G)||isDm(ch)||ch==='all'||!c.t||!c.u)return;const a=RP.cs||(RP.cs={});(a[ch]=a[ch]||{})[id]=[c.t,c.u,String(c.x).slice(0,200)]}
+// Privat: Schlüssel d:<Team bzw. Rolle>:<uidA_uidB> (beide Partner liefern denselben)
+const rpDk=ch=>{const m=P()[uid]||{};return'd:'+(chTeam(m)||m.role)+':'+pairKey(ch.slice(3))};
+function rpCh(ch,id,c){if(!RP||!G||G.status!=='running'||!rpOn(G)||ch==='all'||!c.t||!c.u)return;const k=isDm(ch)?rpDk(ch):ch,a=RP.cs||(RP.cs={});(a[k]=a[k]||{})[id]=[c.t,c.u,String(c.x).slice(0,200)]}
 async function rpFunk(){const m=P()[uid]||{};if(!m.role||m.role==='spec')return null;const cn=chTeam(m)||m.role,cs={};
   Object.entries(RP.cs||{}).forEach(([ch,o])=>cs[ch]=Object.assign({},o));
-  try{const sn=await db.ref('chats/'+code+'/'+cn).once('value');Object.entries(sn.val()||{}).forEach(([id,x])=>{if(x&&x.t&&x.u&&typeof x.x==='string')(cs[cn]=cs[cn]||{})[id]=[x.t,x.u,x.x.slice(0,200)]})}catch(e){}
+  for(const ch of [cn].concat(mates().map(u=>'dm:'+u))){const k=isDm(ch)?rpDk(ch):ch;
+    try{const sn=await db.ref(isDm(ch)?chPath(ch):'chats/'+code+'/'+ch).once('value');Object.entries(sn.val()||{}).forEach(([id,x])=>{if(x&&x.t&&x.u&&typeof x.x==='string')(cs[k]=cs[k]||{})[id]=[x.t,x.u,x.x.slice(0,200)]})}catch(e){}}
   const o={};Object.entries(cs).forEach(([ch,v])=>o[ch]=Object.values(v).sort((a,b)=>a[0]-b[0]));return{cs:o,mk:RP.mk||[]}}
 async function rpUp(){if(!RP||RP.up||!code)return;RP.up=1;const o=RP.own,t0=o.length?o[0][0]:0;
   if(!RP.of)RP.of=await rpFunk();const F=RP.of;if(!RP)return;
@@ -1158,7 +1166,8 @@ function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.pla
   const log=RP.log.filter(e=>!/^players\//.test(e[1])||id[e[1].split('/')[1]]).map(e=>[e[0],mpP(e[1]),mp(e[2])]);
   // Funk zusammenführen: Nachrichten nach Kanal+Zeit+Absender+Text, Marker nach ID+Art des Ereignisses (jedes Teammitglied liefert dasselbe)
   const fs=Object.assign({},RP.gf);if(RP.of)fs[uid]=RP.of;const ch=[],mk=[],sc=new Set(),sm=new Set();
-  Object.values(fs).forEach(F=>{if(!F)return;Object.entries(F.cs||{}).forEach(([cn,a])=>(a||[]).forEach(x=>{const u=id[x[1]];if(!u)return;const q=cn+'|'+x[0]+'|'+x[1]+'|'+x[2];if(sc.has(q))return;sc.add(q);ch.push([x[0],u,cn,x[2]])}));
+  Object.values(fs).forEach(F=>{if(!F)return;Object.entries(F.cs||{}).forEach(([cn,a])=>{let cm=cn;if(cn.startsWith('d:')){const z=cn.split(':'),pr=(z[2]||'').split('_').map(x=>id[x]);if(pr.length!==2||!pr[0]||!pr[1])return;cm='d:'+z[1]+':'+pr.join('_')}
+    (a||[]).forEach(x=>{const u=id[x[1]];if(!u)return;const q=cn+'|'+x[0]+'|'+x[1]+'|'+x[2];if(sc.has(q))return;sc.add(q);ch.push([x[0],u,cm,x[2]])})});
     (F.mk||[]).forEach(x=>{const q=x[2]+x[1];if(sm.has(q))return;sm.add(q);if(x[1]==='+'){if(!id[x[8]])return;mk.push(x.slice(0,8).concat([id[x[8]],x[9]?id[x[9]]||null:null]))}else mk.push(x.slice(0,3))})});
   ch.sort((a,b)=>a[0]-b[0]);mk.sort((a,b)=>a[0]-b[0]);
   return{format:'blown-cover-replay',v:2,code:S.code,round:S.rn,generated:new Date().toISOString(),
@@ -1367,8 +1376,10 @@ function rvPrep(f,ev){const pl=RV.pl,PUB={catch:1,ping:1,zone:1,end:1,out:1};
   RV.imm={};f.log.forEach(([t,p,v])=>{const m=/^players\/([^/]+)\/immUntil$/.exec(p);if(m)(RV.imm[m[1]]=RV.imm[m[1]]||[]).push([t,v||0])});
   // Funk: Chat-Nachrichten mit Seite, Marker als Zeitabschnitte (Rufzeichen verschwinden beim nächsten Ping)
   const F=f.funk||{},cs=c=>/^t\d$/.test(c)?c:c==='hunter'?'h':c==='hider'?'x':'';
-  RV.ch=(F.ch||[]).filter(x=>pl[x[1]]).map(x=>({t:x[0],u:x[1],sd:cs(x[2]),x:x[3]})).filter(x=>x.sd).sort((a,b)=>a.t-b.t);
+  RV.ch=(F.ch||[]).filter(x=>pl[x[1]]).map(x=>{const o={t:x[0],u:x[1],x:x[3]};if(String(x[2]).startsWith('d:')){const z=x[2].split(':'),pr=(z[2]||'').split('_');o.sd=cs(z[1]);o.to=pr[0]===x[1]?pr[1]:pr[0]}else o.sd=cs(x[2]);return o})
+    .filter(x=>x.sd).sort((a,b)=>a.t-b.t);RV.ch.forEach((x,i)=>x.i=i);RV.chBy={};RV.ch.forEach(x=>(RV.chBy[x.u]=RV.chBy[x.u]||[]).push(x));
   const mk={};(F.mk||[]).forEach(x=>{if(x[1]==='+'){if(pl[x[8]]&&!mk[x[2]])mk[x[2]]={id:x[2],t0:x[0],k:x[3],lat:x[4],lng:x[5],r:x[6],x:x[7],u:x[8],h:x[9],t1:f.game.end}}else if(mk[x[2]]&&x[0]<mk[x[2]].t1)mk[x[2]].t1=x[0]});
+  try{RV.bub=LS.rvBub!=='0'}catch(e){RV.bub=true}
   RV.mki=Object.values(mk).filter(x=>['arrow','excl','zone','pin'].includes(x.k));RV.mki.forEach(x=>{if(x.k==='excl'){const n=RV.pt.find(p=>p>x.t0);if(n&&n<x.t1)x.t1=n}});RV.fm={}}
 const rvImm=(id,t)=>{const a=RV.imm[id];let v=0;if(a)for(const x of a){if(x[0]>t)break;v=x[1]}return v};
 function rvSeen(p,t,S,pos_){const V=RV.view;if(V==='all'||rvSide(p)===V)return 1;const g=RV.f.game;
@@ -1385,6 +1396,7 @@ function rvSeen(p,t,S,pos_){const V=RV.view;if(V==='all'||rvSide(p)===V)return 1
   const hk=(S.tasks||{}).hk,cm=hk&&hk.cm;if(cm&&cm.t<=t&&t<cm.t+hkRv({s:g.s})*1000)return{k:'live'};
   let st=0;RV.sat.forEach(u=>{if(u<=t&&t<u+sbV(g.s)*1000)st=u});if(st){const a=rvAt(RV.sm[p.id]||[],st,30000);if(a&&!a[2])return{k:'sat',pos:a}}
   return null}
+function rvBubT(){RV.bub=RV.bub===false;try{LS.rvBub=RV.bub?'1':'0'}catch(e){}panel(1);rvDraw()}
 function rvView(v){if(!RV||RV.view===v)return;RV.view=v;
   Object.values(RV.ln).forEach(L_=>{(L_.c||[]).forEach(pl=>pl&&RV.L.removeLayer(pl));L_.c=[];L_.s=[];L_.k=-1;if(L_.sh){RV.L.removeLayer(L_.sh);L_.sh=null}});RV.lnI={};
   Object.keys(RV.m).forEach(k=>{if(RV.m[k]){RV.L.removeLayer(RV.m[k]);RV.m[k]=null}});
@@ -1399,11 +1411,18 @@ function rvMk(t){const V=RV.view,want={};RV.fm=RV.fm||{};
     L.marker([x.lat,x.lng],{icon:L.divIcon({className:'mkw rvfm '+x.k,html:shape(x.k,x.u,x.k==='excl'&&RV.pl[x.h]?x.h:null),iconSize:[36,36],iconAnchor:low?[18,34]:[18,18]}),keyboard:false,zIndexOffset:-500})
       .bindPopup(()=>`<b style="display:block">${who}</b><div class=mut style="font-size:12px">${x.k==='pin'&&x.x?esc(x.x):MKN[x.k]}${x.k==='excl'&&RV.pl[x.h]?' · '+esc(RV.pl[x.h].name):''} · ${rvTm(x.t0,RV.f.game.R0)}</div>`,{closeButton:false,className:'bcp',autoPan:false,offset:[0,low?-30:-14],maxWidth:240}).addTo(gr);
     RV.fm[x.id]=gr.addTo(RV.L)})}
+// Sprechblasen über dem Absender: letzte Nachricht, ca. 3 s echte Zeit (bei 5× also 15 s Spielzeit), nur wenn der Absender in dieser Sicht zu sehen ist
+function rvBub(t){const V=RV.view,on=RV.bub!==false,w=3000*Math.max(1,RV.speed);
+  Object.keys(RV.m).forEach(id=>{const m=RV.m[id];if(!m)return;let x=null;
+    if(on){const a=RV.chBy[id]||[];for(let i=a.length-1;i>=0;i--){const y=a[i];if(y.t>t)continue;if(t-y.t>w)break;if(V==='all'||y.sd===V){x=y;break}}}
+    if(!x){if(m._bub!=null){m.unbindTooltip();m._bub=null}return}if(m._bub===x.i)return;if(m._bub!=null)m.unbindTooltip();m._bub=x.i;
+    const tx=x.x.length>40?x.x.slice(0,39)+'…':x.x;
+    m.bindTooltip(`${x.to?`<small>an ${esc((RV.pl[x.to]||{}).name||'?')}</small>`:''}${esc(tx)}`,{permanent:true,direction:'top',offset:[0,-14],className:'rvbub'+(x.to?' dm':''),interactive:false}).openTooltip()})}
 // Funk-Karte: die letzten drei Nachrichten bis zur aktuellen Zeit (Teamsicht: nur dieser Kanal)
 function rvFunk(t){const el=$('rvK');if(!el||!RV.ch.length)return;const V=RV.view,g=RV.f.game,a=[];
   for(let i=RV.ch.length-1;i>=0&&a.length<3;i--){const x=RV.ch[i];if(x.t>t)continue;if(V==='all'||x.sd===V)a.unshift(x)}
   const h=a.length?a.map(x=>{const p=RV.pl[x.u]||{},c=x.sd[0]==='t'?rvTeamCol(x.sd.slice(1)):colOf(x.u);
-      return`<button class=fkl onclick="rvJump(${x.t})"><span class=fkt>${rvTm(x.t,g.R0)}</span><span class=fkb><b style="color:${c}">${esc(p.name||'?')}</b>${V==='all'?`<i>${esc(x.sd==='x'?'Hider':x.sd==='h'?HNP(g):rvTN_(x.sd.slice(1)))}</i>`:''}<span>${esc(x.x)}</span></span></button>`}).join('')
+      return`<button class=fkl onclick="rvJump(${x.t})"><span class=fkt>${rvTm(x.t,g.R0)}</span><span class=fkb><b style="color:${c}">${esc(p.name||'?')}</b>${x.to?`<i class=pv>privat an ${esc((RV.pl[x.to]||{}).name||'?')}</i>`:V==='all'?`<i>${esc(x.sd==='x'?'Hider':x.sd==='h'?HNP(g):rvTN_(x.sd.slice(1)))}</i>`:''}<span>${esc(x.x)}</span></span></button>`}).join('')
     :`<small class=mut style="padding:4px 0">Noch keine Nachrichten</small>`;
   if(el._h!==h){el._h=h;el.querySelector('.fkm').innerHTML=h}}
 function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Replay');return}
@@ -1522,7 +1541,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       m.bindPopup(()=>rvInfo(p.id,RV.t),{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240});if(op)m.openPopup()}
     else m.setLatLng([P0[0],P0[1]]);
     if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
-  rvBm(t);rvMk(t);rvFunk(t);
+  rvBm(t);rvMk(t);rvFunk(t);rvBub(t);
   const el=t-g.R0;
   {const hh=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`,hu=$('hud');if(hu._h!==hh){hu._h=hh;hu.innerHTML=hh}}
   const fr=(t-RV.T0)/(RV.T1-RV.T0)*100,fl=$('rvF'),Wn=$('rvW'),St=$('rvS'),Ph=$('rvP'),c=$('rvC');if(fl){const v=(Math.round(fr*5)/5)+'%';if(fl._v!==v){fl._v=v;fl.style.width=v}}
@@ -1576,7 +1595,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     el.innerHTML=hd+tabs+vw+`
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class="t${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;background:${e.c||RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=rvzs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;--c:${e.c||RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
-     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'off':RV.tr==='off'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':RV.tr==='off'?'aus':'5 Min'}</b></span>${RVF.filter(([k])=>k!=='duel'||RV.bt).map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
+     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'off':RV.tr==='off'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':RV.tr==='off'?'aus':'5 Min'}</b></span>${RV.ch.length?`<span class="chip rvtr" role=button onclick="rvBubT()" aria-label="Sprechblasen umschalten">Sprechblasen: <b>${RV.bub===false?'aus':'an'}</b></span>`:''}${RVF.filter(([k])=>k!=='duel'||RV.bt).map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>${RV.ch.length?`<div class="card rvfk" id=rvK><div class=fkh>${ic('chat')}Funk</div><div class=fkm></div></div>`:''}`}
   else{const st=RV.st,nm=k=>(RV.bt&&RV.pl[k]&&RV.pl[k].tm?`<span class=tdot style="background:${rvTeamCol(RV.pl[k].tm)}"></span>`:'')+esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
@@ -2223,7 +2242,7 @@ function chTabs(){const cs=chChans(),mt=mates(),dm=isDm(chCur),nm=u=>esc((P()[u]
   if(cs.length>1)$('cht').innerHTML=cs.map(c=>`<button class="s ${c===chCur?'on':'g'}" onclick="chShow('${c}')">${chName[c]}${chCanWrite(c)?'':' 👁'}</button>`).join(' ');
   else{const dmT=mt.includes(chLastDm)?chLastDm:mt[0];
     $('cht').innerHTML=`<button class="s ${dm?'g':'on'}" onclick="chShow('${cs[0]}')">${cs[0]==='all'?'Alle':'Team'}</button>`+(dmT?` <button class="s ${dm?'on':'g'}" onclick="chShow('dm:${dmT}')">Privat${tot&&!dm?' ●':''}</button>`:'')}
-  $('chp').innerHTML=dm?mt.map(u=>`<button class="s ${'dm:'+u===chCur?'on':'g'}" onclick="chShow('dm:${u}')">${nm(u)}${dmUn[u]?' ●':''}</button>`).join(' '):'';
+  $('chp').innerHTML=dm?mt.map(u=>`<button class="s ${'dm:'+u===chCur?'on':'g'}" onclick="chShow('dm:${u}')">${nm(u)}${dmUn[u]?' ●':''}</button>`).join(' ')+(G&&rpOn(G)?'<small class=chpn>Privatnachrichten sind nach der Runde im Replay sichtbar.</small>':''):'';
   $('chp').style.display=dm?'flex':'none'}
 function chOpenDm(u){chToggle(true);chShow('dm:'+u)}
 function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);
@@ -2263,7 +2282,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
   const key=cs.join()+'|'+mt.join()+'|'+(G.rn||0)+'|'+(chLobby()&&rndOn(G)?'r':'');if(!code||!cs.length||key===chSet)return;
   Object.values(chRefs).forEach(r=>r.off());chRefs={};chSet=key;chUnread=0;dmUn={};chBadge();chSince=now()-1000;
   const all=cs.concat(mt.map(u=>'dm:'+u));
-  const me_=P()[uid]||{},emp=c=>isDm(c)?'Privat mit '+((P()[c.slice(3)]||{}).name||'?')+'. Nur ihr beide lest mit.':c==='all'?'Lobby-Chat für alle. Mit Spielbeginn gibt es getrennte Team-Chats.':c==='out'?'Kanal der Ausgeschiedenen. Hier dürfen alle schreiben, die raus sind.':isSpec(me_)?'Noch keine Nachrichten.':'Team-Chat der '+(c==='hunter'?'Hunter. Hider':'Hider. Hunter')+' lesen nicht mit, Ausgeschiedene schon.';
+  const me_=P()[uid]||{},emp=c=>isDm(c)?'Privat mit '+((P()[c.slice(3)]||{}).name||'?')+'. Nur ihr beide lest mit'+(G&&rpOn(G)?', nach der Runde auch alle im Replay.':'.'):c==='all'?'Lobby-Chat für alle. Mit Spielbeginn gibt es getrennte Team-Chats.':c==='out'?'Kanal der Ausgeschiedenen. Hier dürfen alle schreiben, die raus sind.':isSpec(me_)?'Noch keine Nachrichten.':'Team-Chat der '+(c==='hunter'?'Hunter. Hider':'Hider. Hunter')+' lesen nicht mit, Ausgeschiedene schon.';
   $('chm').innerHTML=all.map(c=>`<div class=chc data-ch="${c}" data-e="${esc(emp(c))}"></div>`).join('');
   all.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(chPath(ch)).limitToLast(50);chRefs[ch]=ref;
     ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;rpCh(ch,sn.key,c);if((c.t||0)>=chSince)lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);

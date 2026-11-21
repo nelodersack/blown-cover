@@ -20,7 +20,7 @@ REPLAY="""(()=>{const T0=1800000000000,R0=T0+120000,M=6e4,s={r0:700,rMin:300,shr
     [c2,'catches/p8/hunter','p3'],[c2,'catches/p8/status','done'],[c2,'players/p8/state','caught'],[c2,'players/p8/sT',c2],
     [xp,'hb/p4/b1/k','xp'],[xp,'hb/p4/b1/u',xp]];
   const ch=[[R0+6*M,'p1','t1','Mia läuft Richtung Osten, ich bin dran'],[R0+7*M,'p4','t1','Ich komme von Norden'],[R0+7*M+30000,'p2','t2','Mia steht am Teich'],
-    [R0+8*M,'p7','hider','Achtung, zwei Teams bei mir!'],[R0+9*M+20000,'p1','t1','Verdammt, Füchse sind schneller'],[R0+12*M,'p3','t3','Ben bleibt am Spielplatz']];
+    [R0+8*M,'p7','hider','Achtung, zwei Teams bei mir!'],[R0+9*M+20000,'p1','t1','Verdammt, Füchse sind schneller'],[R0+12*M,'p3','t3','Ben bleibt am Spielplatz'],[R0+9*M+25000,'p4','d:t1:p1_p4','Lass sie, wir nehmen Lea – die steht seit Minuten im Park']];
   const e1=P_(100,0),pn=P_(-200,230);
   const mk=[[R0+8.5*M,'+','m1','excl',e1[0],e1[1],null,null,'p1','p7'],[R0+5*M,'+','m2','pin',pn[0],pn[1],null,'Spielplatz','p3',null],[R0+16*M,'-','m2'],[R0+9*M,'+','m3','zone',e1[0],e1[1],120,null,'p2',null]];
   rvLoad({format:'blown-cover-replay',v:2,code:'KPRP',round:0,game:{s,c:{lat:47.07,lng:15.44},teams:{1:{name:'Agentur 1',col:0},2:{name:'Die Füchse',col:4},3:{name:'Agentur 3',col:6}},startAt:T0,R0,end:R0+30*M,winner:'hunter'},
@@ -47,7 +47,9 @@ with app(width=412,height=915) as (pg,ev,errs):
     vm=ev("Object.fromEntries(Object.keys(RV.m).filter(k=>RV.m[k]).map(k=>[k,RV.m[k]._k]))");fm=ev("Object.keys(RV.fm).sort()")
     print('Agentur 1:',vm,fm,'Funk:',ev("$('rvK').innerText").replace('\n',' | '))
     assert set(vm)=={'p1','p4','p7','p8','p9'} and all(vm[k].startswith('ping') for k in ('p7','p8','p9')), vm
-    assert fm==['m1'] and 'Füchse sind schneller' in ev("$('rvK').innerText") and 'Teich' not in ev("$('rvK').innerText")
+    assert fm==['m1'] and 'Füchse sind schneller' in ev("$('rvK').innerText") and 'Teich' not in ev("$('rvK').innerText") and 'privat an Anna' in ev("$('rvK').innerText")
+    bub=ev("[...document.querySelectorAll('.rvbub')].map(e=>e.innerText.replace(/\\n/g,' / '))");print('Sprechblasen:',bub)
+    assert len(bub)==2 and any('an Anna' in b and b.endswith('…') for b in bub)
     tl=ev("RV.ev.filter(rvVis).filter(e=>e.k==='bonus').length")
     shot(pg,'kopfgeld_replay_team.png')
     ev("$('panel').classList.remove('m');panel(1)");pg.wait_for_timeout(400);ev("$('ps').scrollTop=9999");pg.wait_for_timeout(200);shot(pg,'kopfgeld_replay_funk.png');ev("$('panel').classList.add('m');pMidSet()")
@@ -81,18 +83,21 @@ with app(width=412,height=915) as (pg,ev,errs):
       notify();uid='u0';pos={lat:47.07,lng:15.44};lastFix=T})()"""%json.dumps(pl))
     ev("join('KPRA')");pg.wait_for_timeout(1200)
     ev("""(()=>{const T=now();__T.tmarks={KPRA:{1:{m1:{u:'u2',k:'pin',lat:47.071,lng:15.441,t:T,x:'Brücke'}}}};
-      __T.chats={KPRA:{t1:{a:{u:'u0',n:'Anna',t:T-60000,x:'Ich nehme den Norden',r:'hunter'},b:{u:'u2',n:'Cora',t:T-30000,x:'Pin an der Brücke',r:'hunter'}},t2:{c:{u:'u1',n:'Bert',t:T,x:'Geheim',r:'hunter'}}}};notify()})()""")
+      __T.chats={KPRA:{dm:{t1:{u0_u2:{d:{u:'u2',n:'Cora',t:T-20000,x:'Nur für dich',r:'hunter'}}}},t1:{a:{u:'u0',n:'Anna',t:T-60000,x:'Ich nehme den Norden',r:'hunter'},b:{u:'u2',n:'Cora',t:T-30000,x:'Pin an der Brücke',r:'hunter'}},t2:{c:{u:'u1',n:'Bert',t:T,x:'Geheim',r:'hunter'}}}};notify()})()""")
     pg.wait_for_timeout(600)
+    ev("bfClose();chToggle(true);chShow('dm:u2')");pg.wait_for_timeout(400);shot(pg,'chat_privat_hinweis.png');ev("chToggle(false)")
+    assert 'im Replay sichtbar' in ev("$('chp').innerText")
     print('RP.mk:',ev("RP&&RP.mk"))
     assert ev("RP.mk.length")==1
     ev("__T.games.KPRA.status='over';__T.games.KPRA.winner='hunter';notify()");pg.wait_for_timeout(1500)
     up=ev("JSON.parse(((__T.rp||{}).KPRA||{}).u0||'{}')")
     print('Upload:',{k:up.get(k) for k in ('cs','mk')})
-    assert list(up['cs'])==['t1'] and len(up['cs']['t1'])==2 and 'Geheim' not in json.dumps(up) and len(up['mk'])==1
+    assert sorted(up['cs'])==['d:t1:u0_u2','t1'] and len(up['cs']['t1'])==2 and 'Geheim' not in json.dumps(up) and len(up['mk'])==1
     ev("rpView()");pg.wait_for_timeout(1500)
     f=ev("({ch:RV.ch.length,mk:RV.mki.length,teams:RV.teams,col:colOf('p1'),pcol:PAL[RV.pl.p1.col%12],name:nm0('p1')})")
     print('Replay aus Endscreen:',f)
-    assert f['ch']==2 and f['mk']==1 and f['col']==f['pcol']=='#00694a' and f['name']=='Anna'
+    print('Privat im Replay:',ev("RV.ch.filter(x=>x.to).map(x=>x.u+'→'+x.to+':'+x.x)"));assert ev("RV.ch.filter(x=>x.to).length")==1
+    assert f['ch']==3 and f['mk']==1 and f['col']==f['pcol']=='#00694a' and f['name']=='Anna'
     print('errors:',errs[:8])
     assert not errs
 
