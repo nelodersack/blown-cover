@@ -82,7 +82,7 @@ Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`
 - **Regeln prüfen ohne Firebase:** `sh dev/rules.sh` (nimmt `db-rules`, oder eine Datei als Argument; `schnell` = nur feste Fälle). Wertet `database.rules.json` offline aus (targaryen): feste Fälle in `dev/rules/faelle.js` plus alle Schreibvorgänge, die die App in den Tests macht (`WLOG`-Protokoll aus `dev/memdb.js`, `dev/rules/replay.js`). Bei neuen Feldern/Regeln dort einen Fall ergänzen und vor dem Liefern laufen lassen.
 - **Manuels Vorgabe (16.11.):** Vor einem Push nach `main` nicht alle Tests laufen lassen, nur die, die die Änderung betrifft (`sh dev/check.sh <stichwort>` oder einzelne Dateien in `dev/tests/`), plus `sh dev/check.sh syntax`. Den ganzen Lauf nur bei großen, querliegenden Änderungen.
 - **Balancing:** `dev/tests/balancing_grenzen.py` prüft die festen Regeln aus dem Konzept (≥ 10 Pings pro Spiel usw.) für alle Besetzungen. Bei jeder Änderung an `balCalc` laufen lassen; neue Regeln dort als Prüfung ergänzen, nicht nur ins Konzept schreiben. Rechenmodell: `python3 dev/modell/sim.py [läufe] [H/X …]` (Werte direkt aus `balCalc`, nur zum Vergleichen).
-- Kopfgeld: `dev/tests/kopfgeld.py`.
+- Kopfgeld: `dev/tests/kopfgeld.py`. Replay im Kopfgeld/Funk: `dev/tests/kopfgeld_replay.py`. Demo-Replays erzeugen: `python3 dev/demo/sim_replay.py [ordner]`.
 - Farben: `dev/tests/farben_schicht.py` (Schichtregel, 26 Spieler).
 - Belastung: `dev/tests/last_20.py` (20 Spieler, CPU 4× gebremst, Grenze `LIM` ms je Update).
 - `dev/check.sh` endet mit „ALLE TESTS OK“; jeder Test muss mit der Zeile `errors: []` enden und Exit-Code 0 liefern.
