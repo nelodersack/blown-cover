@@ -327,7 +327,7 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 .arsub{display:block;color:var(--mut);font-size:12px;line-height:1.3}
 .rvfk{padding:8px 12px 6px!important;gap:0!important}.rvfk .fkh{display:flex;align-items:center;gap:6px;font:600 11px var(--f-b);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}.rvfk .fkh .ic{width:13px;height:13px}
 .fkl{display:grid;grid-template-columns:38px 1fr;gap:8px;align-items:baseline;width:100%;margin:0;padding:5px 0;min-height:0;background:none;border:0;border-top:1px solid var(--line2);border-radius:0;text-align:left;color:var(--fg);font:400 13.5px/1.35 var(--f-b)}
-.fkm .fkl:first-child{border-top:0}.fkl .fkt{font:500 11.5px var(--f-b);color:var(--mut);font-variant-numeric:tabular-nums}.fkl .fkb{min-width:0}.fkl .fkb b{font-weight:600;margin-right:6px}.fkl .fkb i{font-style:normal;font-size:11px;color:var(--mut);margin-right:6px}
+.fkm .fkl:first-child{border-top:0}.fkl .fkt{font:500 11.5px var(--f-b);color:var(--mut);font-variant-numeric:tabular-nums}.fkl .fkb{min-width:0}.fkl .fkb b{font-weight:600;margin-right:5px}.fkl .fks{width:10px;height:10px;margin-right:5px;vertical-align:-.5px}.fkl .fkb i{font-style:normal;font-size:11px;color:var(--mut);margin-right:6px}
 .mkw.snap{opacity:.75}
 .leaflet-tooltip.rvbub{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:4px 9px;font:500 12.5px/1.3 var(--f-b);max-width:190px;width:max-content;white-space:normal;box-shadow:0 2px 10px #0006;pointer-events:none}
 .leaflet-tooltip.rvbub small{display:block;font-size:10.5px;color:var(--mut)}.leaflet-tooltip.rvbub.dm{border-style:dashed;border-color:var(--mut)}
@@ -1187,7 +1187,7 @@ const RL={on:false,items:[],busy:false,src:''},RLMAX=30;
 const rlCan=()=>{try{return !!NB&&typeof NB.replays==='function'&&typeof NB.readReplay==='function'}catch(e){return false}};
 const rlIdbOk=()=>{try{return !NB&&!!window.indexedDB}catch(e){return false}};
 const rlKey=f=>'2|'+f.id+'|'+f.size+'|'+f.t;   // 2 = Zusammenfassung mit geplanter Dauer p
-const rlCache=()=>{try{return JSON.parse(LS.rlS||'{}')||{}}catch(e){return{}}};
+const rlCache=()=>{try{const c=JSON.parse(LS.rlS||'{}')||{};Object.keys(c).forEach(k=>{if(c[k]&&!c[k].bad&&!c[k].mo)delete c[k]});return c}catch(e){return{}}};   // ältere Einträge ohne Modus neu lesen
 // IndexedDB (nur Browser)
 let rlDB=null;
 const rlDb=()=>rlDB||(rlDB=new Promise((res,rej)=>{try{const r=indexedDB.open('blowncover',1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'k'});if(!d.objectStoreNames.contains('data'))d.createObjectStore('data',{keyPath:'k'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}));
@@ -1213,7 +1213,7 @@ window.bcReplaysChanged=()=>{if(RL.on&&RL.src==='app'&&!RV)rlOpen()};
 // Zusammenfassung aus der Datei (Format blown-cover-replay v2; ältere über rvConv)
 function rlSum(txt,f){const o=rvConv(JSON.parse(txt)),g=o&&o.game;if(!g||!g.startAt||!o.players)throw 0;
   const s=g.s||{},R0=g.R0||(g.startAt+(s.head||0)*6e4),m=g.end&&g.end>R0?Math.round((g.end-R0)/6e4):(s.dur||null);
-  return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,p:s.dur||null,w:g.winner||'',z:zmb(g)?1:0}}
+  return{d:g.startAt||f.t,op:o.code?bfName(o.code,o.round||0):'',m,p:s.dur||null,w:g.winner||'',z:zmb(g)?1:0,mo:md(g)}}
 function rlFill(){if(RL.busy||RL.src!=='app')return;const c=rlCache(),f=RL.items.find(x=>!c[rlKey(x)]);if(!f||!RL.on)return;RL.busy=true;
   setTimeout(()=>{let v;try{const t=NB.readReplay(f.id);if(!t)throw 0;v=rlSum(t,f)}catch(e){v={bad:1}}
     const c2=rlCache();c2[rlKey(f)]=v;try{LS.rlS=JSON.stringify(c2)}catch(e){}
@@ -1230,7 +1230,10 @@ function rlRow(f,v){const k=esc(rlKey(f)),i=RL.items.indexOf(f);
   const wt=w?'':`<span class=wt>${v.w==='host'?'Abgebrochen':'Beendet'}</span>`;
   // Dauer: gespielt / geplant, wenn kürzer gespielt wurde
   const du=v.m&&v.p&&v.m<v.p?`${v.m} / ${v.p} Min`:(v.m||v.p)?`${v.m||v.p} Min`:'';
-  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${du}</span><span class=w title="${wl}" aria-label="${wl}">${w||wt}</span></button>`}
+  // Spalte rechts: Name des Modus (Manuel 21.11.), Ergebnis nur noch als Hinweis für Vorleser
+  const mn=MDN[v.mo]||(v.z?'Zombie':'');
+  return`<button class=rlr data-k="${k}" onclick="rlPlay(${i})"><span class=d>${rlDate(v.d)}</span><span class=o>${esc(v.op||'Replay')}</span><span class=du>${du}</span><span class=w title="${wl}" aria-label="${mn}${wl?', '+wl:''}"><span class=wt>${mn||(w?'':wt.replace(/<[^>]+>/g,''))}</span></span></button>`}
+const MDN={survive:'Untertauchen',mission:'Mission',zombie:'Zombie',bounty:'Kopfgeld'};
 function rlHTML(){const c=rlCache(),app=RL.src==='app';
   return`<div class=rlh><button class=lback onclick="rlClose()">${ic('chev')} Start</button><h2>${app?'Replays':'Zuletzt abgespielt'}</h2></div>`+
    (RL.items.length?`<div class=rll>${RL.items.map(f=>rlRow(f,app?c[rlKey(f)]:f.sum)).join('')}</div>`:
@@ -1341,7 +1344,7 @@ function rvStats(f,P_,catches){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map
   let fast=null,snatch=null,h2h=null;
   if(bty(g)){const tm=k=>(P_[k]||{}).tm||0,first={};catches.forEach(c=>{const n=tm(c.hunter);if(n&&(!first[n]||c.t<first[n]))first[n]=c.t});
     fast=[...new Set(H.map(tm).filter(Boolean))].map(n=>[n,first[n]||null]).sort((a,b)=>(a[1]||1e15)-(b[1]||1e15)||a[0]-b[0]);
-    snatch=[];km_.forEach(e=>{const a=tm(e.hunter),c=catches.find(c=>c.hider===e.hider&&c.t>=e.t&&c.t<=e.last+180000);if(a&&c&&tm(c.hunter)&&tm(c.hunter)!==a)snatch.push({t:e.t,a,b:tm(c.hunter),hider:e.hider,d:e.d,ct:c.t})});
+    snatch=[];km_.forEach(e=>{const a=tm(e.hunter),c=catches.find(c=>c.hider===e.hider&&c.t>=e.t&&c.t<=e.last+180000);if(a&&c&&tm(c.hunter)&&tm(c.hunter)!==a){const o=snatch.find(x=>x.hider===e.hider&&x.a===a&&x.b===tm(c.hunter));if(o){if(e.d<o.d){o.d=e.d;o.t=e.t}}else snatch.push({t:e.t,a,b:tm(c.hunter),hider:e.hider,d:e.d,ct:c.t})}});
     const raw=[];X.forEach(k=>{const run={},fin=r=>{if(r.t1-r.t0>=15000)raw.push(r)};
       for(let t=R0;t<=Math.min(endOf(k),T1);t+=5000){const a=rvAt(tr[k],t,30000),near={};
         if(a&&!a[2])H.forEach(h=>{const n=tm(h);if(!n||rvOut(P_[h],t))return;const c=rvAt(tr[h],t,30000);if(!c||c[2])return;const d=rvD(a,c);if(d<=100&&(near[n]==null||d<near[n]))near[n]=d});
@@ -1421,8 +1424,11 @@ function rvBub(t){const V=RV.view,on=RV.bub!==false,w=3000*Math.max(1,RV.speed);
 // Funk-Karte: die letzten drei Nachrichten bis zur aktuellen Zeit (Teamsicht: nur dieser Kanal)
 function rvFunk(t){const el=$('rvK');if(!el||!RV.ch.length)return;const V=RV.view,g=RV.f.game,a=[];
   for(let i=RV.ch.length-1;i>=0&&a.length<3;i--){const x=RV.ch[i];if(x.t>t)continue;if(V==='all'||x.sd===V)a.unshift(x)}
-  const h=a.length?a.map(x=>{const p=RV.pl[x.u]||{},c=x.sd[0]==='t'?rvTeamCol(x.sd.slice(1)):colOf(x.u);
-      return`<button class=fkl onclick="rvJump(${x.t})"><span class=fkt>${rvTm(x.t,g.R0)}</span><span class=fkb><b style="color:${c}">${esc(p.name||'?')}</b>${x.to?`<i class=pv>privat an ${esc((RV.pl[x.to]||{}).name||'?')}</i>`:V==='all'?`<i>${esc(x.sd==='x'?'Hider':x.sd==='h'?HNP(g):rvTN_(x.sd.slice(1)))}</i>`:''}<span>${esc(x.x)}</span></span></button>`}).join('')
+  // Zeile: Zeit · Name (Spielerfarbe, auf dem dunklen Panel aufgehellt) · Form der Seite (▲ Hunter, ● Hider) · Teamname bzw. „an <Name>“ · Text
+  const h=a.length?a.map(x=>{const p=RV.pl[x.u]||{},c=colOf(x.u),hu=rvRole(p,x.t)==='hunter',
+        sy=`<svg class=fks viewBox="0 0 12 12" aria-label="${hu?HN(g):'Hider'}">${hu?`<path d="M6 1.3L11 10.4H1Z" fill="${c}" stroke="#fff" stroke-width=".9" stroke-linejoin=round />`:`<circle cx=6 cy=6 r=4.3 fill="${c}" stroke="#fff" stroke-width=".9"/>`}</svg>`,
+        ex=x.to?'an '+((RV.pl[x.to]||{}).name||'?'):RV.bt&&x.sd[0]==='t'?rvTN_(x.sd.slice(1)):'';
+      return`<button class=fkl onclick="rvJump(${x.t})"><span class=fkt>${rvTm(x.t,g.R0)}</span><span class=fkb><b style="color:${rvLite(c)}">${esc(p.name||'?')}</b>${sy}${ex?`<i>${esc(ex)}</i>`:''}<span>${esc(x.x)}</span></span></button>`}).join('')
     :`<small class=mut style="padding:4px 0">Noch keine Nachrichten</small>`;
   if(el._h!==h){el._h=h;el.querySelector('.fkm').innerHTML=h}}
 function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Replay');return}
@@ -1473,7 +1479,7 @@ function rvFit(anim){const g=RV.f.game,ph=Math.min(pVis(),innerHeight*.6),av=Mat
 function rvClose(){if(!RV)return;$('panel').classList.remove('m');if(pRO)pRO.disconnect();cancelAnimationFrame(RV.raf);cancelAnimationFrame(RV.fl);map.off('zoomstart',rvZs);map.off('zoomend',rvZe);map.removeLayer(RV.L);RV=null;$('hud').innerHTML='';$('hud')._h=null;rotMode(!!G);panel(1);if(G){draw();resSync(G)}}
 // Boni und Status eines Spielers zum Zeitpunkt t (für das Popup)
 function rvInfo(id,t){const p=RV.pl[id],S=rvState(t),q=S.players[id]||{},g=RV.f.game,gT={s:g.s,tasks:S.tasks||{},hb:S.hb||{},players:S.players,code:RV.f.code,rn:RV.f.round};
-  const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${rvRole(p,t)==='hunter'?(zmb(g)?'Zombie':'Hunter'):'Hider'} · ${out?SL[p.state]||p.state:p.zt&&t>=p.zt?'infiziert':'aktiv'}</div>`;
+  const SL={caught:'gefangen',safe:'in Sicherheit',quit:'aufgegeben',dq:'disqualifiziert'},out=rvOut(p,t);let h=`<b style="display:block">${esc(p.name)}</b><div class=mut style="font-size:12px;margin-bottom:4px">${RV.bt&&p.role==='hunter'&&p.tm?`<span class=tdot style="background:${rvTeamCol(p.tm)}"></span>`+esc(rvTN_(p.tm))+' · ':''}${rvRole(p,t)==='hunter'?(zmb(g)?'Zombie':'Hunter'):'Hider'} · ${out?SL[p.state]||p.state:p.zt&&t>=p.zt?'infiziert':'aktiv'}</div>`;
   const rows=[];
   if(rvRole(p,t)==='hider'){const im=(q.immUntil||0)>t,lh=Object.entries((S.live||{})[id]||{}).filter(([h,u])=>u>t);
     lh.forEach(([h,u])=>rows.push(`<span style="color:var(--live);font-weight:600">Live geortet</span> von ${esc((RV.pl[h]||{}).name||'?')} · noch ${fmt(u-t)}`));
@@ -2431,7 +2437,7 @@ function lobbyUI(g,host,me_){
     if(SUBP)b=''; b+=SUBP?`<div class=lsub><button class=lback onclick="subGo(null)">${ic('chev')} Einstellungen</button><h2>${SUBP.t}</h2></div>${SUBP.b}`:list;
   }else{
     const R=(a,v)=>`<div class=rl><span>${a}</span><small>${v}</small></div>`;
-    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p><div>`+R('Modus',{survive:'Untertauchen',mission:'Mission',zombie:'Zombie'}[md(g)]||'Untertauchen')+(zmb(g)?R('Verwandlung',(s.zT??DEF.zT)+' s im '+(s.zR??DEF.zR)+'-m-Kreis')+R('Ping wächst mit der Horde',zPg(g)?'bis '+String(zCap(g)).replace('.',',')+'×':'nein'):'')+(rndOn(g)?R('Teams',rndH(g)+' '+HN(g)+(rndH(g)>1&&zmb(g)?'s':'')+' werden ausgelost'):'')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' → '+s.rMin+' m')+R('Ping alle',mmss(s.ping))+R('Headstart',s.head+' Min')+R('Dead Drops · Meetings',(s.ddN||0)+' · '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Festsetzen',fsOn(g)?fsRv(g)+' m · '+fsTv(g)/1000+' s':'aus')+R('Kompromittierung',s.tsol?'an':'aus')+R('Hider sehen einander',hpOn(g)?'ja':'nein')+R('Ausschluss bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus')+'</div>';
+    b+=`<p class="sm mut">Nur der Host kann Einstellungen ändern.</p><div>`+R('Modus',MDN[md(g)]||'Untertauchen')+(zmb(g)?R('Verwandlung',(s.zT??DEF.zT)+' s im '+(s.zR??DEF.zR)+'-m-Kreis')+R('Ping wächst mit der Horde',zPg(g)?'bis '+String(zCap(g)).replace('.',',')+'×':'nein'):'')+(rndOn(g)?R('Teams',rndH(g)+' '+HN(g)+(rndH(g)>1&&zmb(g)?'s':'')+' werden ausgelost'):'')+R('Dauer',s.dur+' Min')+R('Zone',s.r0+' → '+s.rMin+' m')+R('Ping alle',mmss(s.ping))+R('Headstart',s.head+' Min')+R('Dead Drops · Meetings',(s.ddN||0)+' · '+(s.mtN||0))+R('Hunter-Boni',hbOn(g)?'an':'aus')+R('Terminal',s.hk?'an':'aus')+R('Festsetzen',fsOn(g)?fsRv(g)+' m · '+fsTv(g)/1000+' s':'aus')+R('Kompromittierung',s.tsol?'an':'aus')+R('Hider sehen einander',hpOn(g)?'ja':'nein')+R('Ausschluss bei Signalverlust',dqOn(g)?'nach '+gdv(g)+' s':'aus')+R('Replay aufzeichnen',s.rp?'an':'aus')+'</div>';
   }
   const f=(host?`<button id=stb class="${stBusy?'busy':''}" style="--p:${stP.toFixed(1)}%" onclick="st()"${stBusy?' disabled':''}><span>${stBusy?(stChk?'Standorte werden geprüft…':'Orte werden gesucht…'):'Spiel starten'}</span></button>`:`<small style="text-align:center">Warte auf den Host …</small>`)
     +`<div class=row>${g.prev?`<button class=ghost onclick="showPrev()">Letzte Runde</button>`:''}<button class=ghost onclick="leaveGame()">Spiel verlassen</button>${host?`<button class=ghost onclick="fin()">Auflösen</button>`:''}</div>`;

@@ -26,8 +26,8 @@ with app(init=BR%(json.dumps(json.dumps(LIST)),json.dumps(FILES)),width=412,heig
     rows=ev(ROWS);print('gefüllt:',rows)
     assert rows.count('||')==3, 'Analyse-Datei darf nicht erscheinen'
     r=rows.split(' || ')
-    lab=ev("[...document.querySelectorAll('.rlr .w')].map(w=>(w.getAttribute('aria-label')||'')+':'+(w.querySelector('path')?'D':w.querySelector('circle')?'K':'-')).join(',')");print('gewinner:',lab)
-    assert lab=='Zombies gewinnen:D,:-,Hunter gewinnen:D,Hider gewinnen:K', lab
+    lab=ev("[...document.querySelectorAll('.rlr .w')].map(w=>w.innerText).join(',')");print('Modus:',lab)
+    assert lab=='Zombie,,Untertauchen,Untertauchen', lab   # 2. Zeile = kaputte Datei   # Manuel 21.11.: Modus statt Gewinner
     assert '27 / 60 Min' in r[0], r[0]
     assert 'Datei nicht lesbar' in r[1], r[1]
     assert '60 Min' in r[2] and '/' not in r[2] and '42 / 60 Min' in r[3]

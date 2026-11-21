@@ -47,7 +47,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     vm=ev("Object.fromEntries(Object.keys(RV.m).filter(k=>RV.m[k]).map(k=>[k,RV.m[k]._k]))");fm=ev("Object.keys(RV.fm).sort()")
     print('Agentur 1:',vm,fm,'Funk:',ev("$('rvK').innerText").replace('\n',' | '))
     assert set(vm)=={'p1','p4','p7','p8','p9'} and all(vm[k].startswith('ping') for k in ('p7','p8','p9')), vm
-    assert fm==['m1'] and 'Füchse sind schneller' in ev("$('rvK').innerText") and 'Teich' not in ev("$('rvK').innerText") and 'privat an Anna' in ev("$('rvK').innerText")
+    assert fm==['m1'] and 'Füchse sind schneller' in ev("$('rvK').innerText") and 'Teich' not in ev("$('rvK').innerText") and 'an Anna' in ev("$('rvK').innerText")
     bub=ev("[...document.querySelectorAll('.rvbub')].map(e=>e.innerText.replace(/\\n/g,' / '))");print('Sprechblasen:',bub)
     assert len(bub)==2 and any('an Anna' in b and b.endswith('…') for b in bub)
     tl=ev("RV.ev.filter(rvVis).filter(e=>e.k==='bonus').length")
