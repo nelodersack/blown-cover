@@ -1113,9 +1113,9 @@ let RP=null,rpRef=null,rpT=0;
 function rpInit(){const k='rp_'+code+'_'+(G.rn||0);if(RP&&RP.k===k)return;
   let o=null;try{o=JSON.parse(LS[k]||'null')}catch(e){}
   if(rpRef){rpRef.off();rpRef=null}
-  RP=o&&o.k===k?o:{k,own:[],seen:{},log:[],snap:null,got:{}};RP.got=RP.got||{};RP.log=RP.log||[];RP.mk=RP.mk||[];RP.gf=RP.gf||{};RP.prev=null;RP.up=0;
+  RP=o&&o.k===k?o:{k,own:[],seen:{},log:[],snap:null,got:{}};RP.got=RP.got||{};RP.log=RP.log||[];RP.mk=RP.mk||[];RP.gf=RP.gf||{};RP.cs=RP.cs||{};RP.prev=null;RP.up=0;
   try{for(let i=LS.length-1;i>=0;i--){const q=LS.key(i);if(q&&q.indexOf('rp_')===0&&q!==k)LS.removeItem(q)}}catch(e){}}
-function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,log:RP.log,snap:RP.snap,got:RP.got,mk:RP.mk,gf:RP.gf,of:RP.of||null})}catch(e){}}
+function rpSave(){if(RP)try{LS[RP.k]=JSON.stringify({k:RP.k,own:RP.own,seen:RP.seen,log:RP.log,snap:RP.snap,got:RP.got,mk:RP.mk,gf:RP.gf,cs:RP.cs,of:RP.of||null})}catch(e){}}
 function rpOwn(){if(!G||G.status!=='running'||!rpOn(G)||!pos||((G.players||{})[uid]||{}).role==='spec')return;rpInit();const t=now(),o=RP.own,l=o[o.length-1];if(l&&t-l[0]<4000)return;
   o.push([t,+pos.lat.toFixed(5),+pos.lng.toFixed(5),typeof gAcc==='number'?Math.round(gAcc):null])}
 // Spielzustand protokollieren: nur geänderte Werte der relevanten Pfade
@@ -1135,15 +1135,18 @@ function rpData(){const g=G;if(!g||!rpOn(g)){if(rpRef&&(!g||g.status!=='over')){
 function rpMk(v){if(!RP||!G||G.status!=='running'||!rpOn(G))return;const pv=RP.mkV||{},t=now();RP.mkV=v;
   Object.keys(v).forEach(id=>{const x=v[id];if(!pv[id]&&x&&Number.isFinite(x.lat))RP.mk.push([x.t||t,'+',id,x.k,+(+x.lat).toFixed(5),+(+x.lng).toFixed(5),x.r||null,x.x?String(x.x).slice(0,40):null,x.u||null,x.h||null])});
   Object.keys(pv).forEach(id=>{if(!v[id])RP.mk.push([t,'-',id])})}
-async function rpFunk(){const m=P()[uid]||{};if(!m.role||m.role==='spec')return null;const cn=chTeam(m)||m.role;let ch=[];
-  try{const sn=await db.ref('chats/'+code+'/'+cn).once('value');ch=Object.values(sn.val()||{}).filter(x=>x&&x.t&&x.u&&x.x).map(x=>[x.t,x.u,String(x.x).slice(0,200)]).sort((a,b)=>a[0]-b[0])}catch(e){}
-  return{cn,ch,mk:RP.mk||[]}}
+// Gesehene Nachrichten mitschreiben (auch Kanäle, die man später nicht mehr lesen darf, z. B. Hider-Chat eines verwandelten Zombies)
+function rpCh(ch,id,c){if(!RP||!G||G.status!=='running'||!rpOn(G)||isDm(ch)||ch==='all'||!c.t||!c.u)return;const a=RP.cs||(RP.cs={});(a[ch]=a[ch]||{})[id]=[c.t,c.u,String(c.x).slice(0,200)]}
+async function rpFunk(){const m=P()[uid]||{};if(!m.role||m.role==='spec')return null;const cn=chTeam(m)||m.role,cs={};
+  Object.entries(RP.cs||{}).forEach(([ch,o])=>cs[ch]=Object.assign({},o));
+  try{const sn=await db.ref('chats/'+code+'/'+cn).once('value');Object.entries(sn.val()||{}).forEach(([id,x])=>{if(x&&x.t&&x.u&&typeof x.x==='string')(cs[cn]=cs[cn]||{})[id]=[x.t,x.u,x.x.slice(0,200)]})}catch(e){}
+  const o={};Object.entries(cs).forEach(([ch,v])=>o[ch]=Object.values(v).sort((a,b)=>a[0]-b[0]));return{cs:o,mk:RP.mk||[]}}
 async function rpUp(){if(!RP||RP.up||!code)return;RP.up=1;const o=RP.own,t0=o.length?o[0][0]:0;
   if(!RP.of)RP.of=await rpFunk();const F=RP.of;if(!RP)return;
-  const s=JSON.stringify(Object.assign({v:1,t0,tr:o.map(x=>[Math.round((x[0]-t0)/1000),Math.round(x[1]*1e5),Math.round(x[2]*1e5),x[3]])},F?{cn:F.cn,ch:F.ch,mk:F.mk}:{}));
+  const s=JSON.stringify(Object.assign({v:1,t0,tr:o.map(x=>[Math.round((x[0]-t0)/1000),Math.round(x[1]*1e5),Math.round(x[2]*1e5),x[3]])},F?{cs:F.cs,mk:F.mk}:{}));
   db.ref('rp/'+code+'/'+uid).set(s).catch(()=>{RP.up=0;setTimeout(()=>{if(G&&G.status==='over')rpUp()},5000)})}
 function rpListen(){if(rpRef)return;rpRef=db.ref('rp/'+code);
-  rpRef.on('value',s=>{const v=s.val()||{};for(const k in v){try{const o=JSON.parse(v[k]);RP.got[k]=o.tr.map(x=>[o.t0+x[0]*1000,x[1]/1e5,x[2]/1e5,x[3]]);if(o.cn)RP.gf[k]={cn:o.cn,ch:o.ch||[],mk:o.mk||[]}}catch(e){}}
+  rpRef.on('value',s=>{const v=s.val()||{};for(const k in v){try{const o=JSON.parse(v[k]);RP.got[k]=o.tr.map(x=>[o.t0+x[0]*1000,x[1]/1e5,x[2]/1e5,x[3]]);if(o.cs||o.mk)RP.gf[k]={cs:o.cs||{},mk:o.mk||[]}}catch(e){}}
     rpSave();if(G&&G.status==='over')resSync(G)},()=>{})}
 function rpNeed(){const S=RP.snap;return Object.keys(S.players).filter(k=>!S.players[k].lf)}
 function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.players[a].j||0)-(S.players[b].j||0)),id={};ids.forEach((k,i)=>id[k]='p'+(i+1));
@@ -1155,7 +1158,7 @@ function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.pla
   const log=RP.log.filter(e=>!/^players\//.test(e[1])||id[e[1].split('/')[1]]).map(e=>[e[0],mpP(e[1]),mp(e[2])]);
   // Funk zusammenführen: Nachrichten nach Kanal+Zeit+Absender+Text, Marker nach ID+Art des Ereignisses (jedes Teammitglied liefert dasselbe)
   const fs=Object.assign({},RP.gf);if(RP.of)fs[uid]=RP.of;const ch=[],mk=[],sc=new Set(),sm=new Set();
-  Object.values(fs).forEach(F=>{if(!F)return;(F.ch||[]).forEach(x=>{const u=id[x[1]];if(!u)return;const q=F.cn+'|'+x[0]+'|'+x[1]+'|'+x[2];if(sc.has(q))return;sc.add(q);ch.push([x[0],u,F.cn,x[2]])});
+  Object.values(fs).forEach(F=>{if(!F)return;Object.entries(F.cs||{}).forEach(([cn,a])=>(a||[]).forEach(x=>{const u=id[x[1]];if(!u)return;const q=cn+'|'+x[0]+'|'+x[1]+'|'+x[2];if(sc.has(q))return;sc.add(q);ch.push([x[0],u,cn,x[2]])}));
     (F.mk||[]).forEach(x=>{const q=x[2]+x[1];if(sm.has(q))return;sm.add(q);if(x[1]==='+'){if(!id[x[8]])return;mk.push(x.slice(0,8).concat([id[x[8]],x[9]?id[x[9]]||null:null]))}else mk.push(x.slice(0,3))})});
   ch.sort((a,b)=>a[0]-b[0]);mk.sort((a,b)=>a[0]-b[0]);
   return{format:'blown-cover-replay',v:2,code:S.code,round:S.rn,generated:new Date().toISOString(),
@@ -2263,7 +2266,7 @@ function chatSync(){const cs=chChans(),mt=mates();$('cb').style.display=(code&&c
   const me_=P()[uid]||{},emp=c=>isDm(c)?'Privat mit '+((P()[c.slice(3)]||{}).name||'?')+'. Nur ihr beide lest mit.':c==='all'?'Lobby-Chat für alle. Mit Spielbeginn gibt es getrennte Team-Chats.':c==='out'?'Kanal der Ausgeschiedenen. Hier dürfen alle schreiben, die raus sind.':isSpec(me_)?'Noch keine Nachrichten.':'Team-Chat der '+(c==='hunter'?'Hunter. Hider':'Hider. Hunter')+' lesen nicht mit, Ausgeschiedene schon.';
   $('chm').innerHTML=all.map(c=>`<div class=chc data-ch="${c}" data-e="${esc(emp(c))}"></div>`).join('');
   all.forEach(ch=>{const box=document.querySelector(`#chm .chc[data-ch="${ch}"]`),ref=db.ref(chPath(ch)).limitToLast(50);chRefs[ch]=ref;
-    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;if((c.t||0)>=chSince)lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
+    ref.on('child_added',sn=>{const c=sn.val();if(!c||typeof c.x!=='string')return;rpCh(ch,sn.key,c);if((c.t||0)>=chSince)lg('chat',[ch,c.u===uid?'me':String(c.n||'?'),c.r||null,c.x.slice(0,200),c.t||null]);
       const d=document.createElement('div'),rr_=(ch==='out'||(ch==='all'&&!rndOn(G)))&&(c.r==='hunter'||c.r==='hider')?c.r:'';d.className='m'+(c.u===uid?' me':'')+(rr_?' r-'+rr_:'');
       const n=document.createElement('b');n.textContent=(c.u===uid?'Du':String(c.n||'?'))+(rr_?(rr_==='hunter'?' · Hunter':' · Hider'):'');if(c.u!==uid&&P()[c.u]){const dt=document.createElement('i');dt.className='cd';dt.style.background=colOf(c.u);n.prepend(dt)}
       const x=document.createElement('span');x.textContent=c.x;d.append(n,x);

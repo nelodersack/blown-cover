@@ -87,11 +87,30 @@ with app(width=412,height=915) as (pg,ev,errs):
     assert ev("RP.mk.length")==1
     ev("__T.games.KPRA.status='over';__T.games.KPRA.winner='hunter';notify()");pg.wait_for_timeout(1500)
     up=ev("JSON.parse(((__T.rp||{}).KPRA||{}).u0||'{}')")
-    print('Upload:',{k:up.get(k) for k in ('cn','ch','mk')})
-    assert up.get('cn')=='t1' and len(up['ch'])==2 and 'Geheim' not in json.dumps(up) and len(up['mk'])==1
+    print('Upload:',{k:up.get(k) for k in ('cs','mk')})
+    assert list(up['cs'])==['t1'] and len(up['cs']['t1'])==2 and 'Geheim' not in json.dumps(up) and len(up['mk'])==1
     ev("rpView()");pg.wait_for_timeout(1500)
     f=ev("({ch:RV.ch.length,mk:RV.mki.length,teams:RV.teams,col:colOf('p1'),pcol:PAL[RV.pl.p1.col%12],name:nm0('p1')})")
     print('Replay aus Endscreen:',f)
     assert f['ch']==2 and f['mk']==1 and f['col']==f['pcol']=='#00694a' and f['name']=='Anna'
     print('errors:',errs[:8])
     assert not errs
+
+# 3) Funk in anderen Modi: Untertauchen (Hunter- und Hider-Kanal) und Zombie (verwandelter Hider lädt den Hider-Chat hoch, den er als Hider gesehen hat)
+pl={}
+for i,n in enumerate(['Anna','Bert','Gabi','Hugo']):
+    pl['u%d'%i]={'name':n,'role':'hunter' if i<2 else 'hider','state':'alive','j':i+1,'col':i,'lat':47.07+i*3e-4,'lng':15.44,'ts':0}
+for mode,me in (('survive','u0'),('survive','u2'),('zombie','u2')):
+  with app(width=412,height=915) as (pg,ev,errs):
+    ev("""(()=>{const T=Date.now();__T['.info']={connected:true};const pl=%s;for(const k in pl)pl[k].ts=T;
+      __T.chats={KPRS:{hunter:{a:{u:'u0',n:'Anna',t:T-60000,x:'Hunter-Funk',r:'hunter'}},hider:{b:{u:'u2',n:'Gabi',t:T-30000,x:'Hider-Funk',r:'hider'}}}};
+      __T.games={KPRS:{host:'u0',status:'running',startAt:T-10*6e4,c:{lat:47.07,lng:15.44},s:Object.assign({},DEF,preOf(30),{mode:'%s',head:0,rp:true}),players:pl}};
+      notify();uid='%s';pos={lat:47.07,lng:15.44};lastFix=T})()"""%(json.dumps(pl),mode,me))
+    ev("join('KPRS')");pg.wait_for_timeout(1200);ev("chToggle(true)");pg.wait_for_timeout(500)
+    if mode=='zombie':ev("(()=>{const p=__T.games.KPRS.players.u2;p.role='hunter';p.zt=now();notify()})()");pg.wait_for_timeout(500)
+    ev("__T.games.KPRS.status='over';__T.games.KPRS.winner='hider';notify()");pg.wait_for_timeout(1500)
+    up=json.loads(ev("((__T.rp||{}).KPRS||{})['%s']||'{}'"%me));ev("rpView()");pg.wait_for_timeout(1200)
+    r=ev("RV.ch.map(x=>x.sd+':'+x.x)");print(mode,me,'Upload-Kanäle',sorted(up.get('cs',{})),'Replay',r,errs[:3])
+    want={'u0':['h:Hunter-Funk'],'u2':['x:Hider-Funk']}[me]
+    assert all(w in r for w in want) and ev("!!$('rvK')") and not errs
+print('errors: []')
