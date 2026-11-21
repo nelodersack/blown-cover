@@ -39,6 +39,26 @@ T('Fang starten: läuft schon',false,base({fz:{u3:{h:'u4',t:N-10000}}}),'u1','se
 T('Fang starten: alter Countdown abgelaufen',true,base({fz:{u3:{h:'u4',t:N-41000}}}),'u1','set',G+'/fz/u3',{h:'u1',t:N});
 T('Fang starten: Schalter aus',false,(()=>{const d=base();d.games.K7QF.s.fs=false;return d})(),'u1','set',G+'/fz/u3',{h:'u1',t:N});
 T('Fang starten: Ergebnis schreibt Hider',true,base(),'u3','set','/fzp/K7QF/u3',{t:N,ok:true});
+// Kopfgeld: u1 in Team 1, u4 in Team 2
+{const kb=o=>{const d=base(o);const g=d.games.K7QF;g.s.mode='bounty';g.s.tN=2;g.players.u1.tm=1;g.players.u4.tm=2;return d};
+ T('Kopfgeld: Hunter liest eigenen Teamchat',true,kb(),'u1','read','/chats/K7QF/t1');
+ T('Kopfgeld: Hunter liest fremden Teamchat',false,kb(),'u1','read','/chats/K7QF/t2');
+ T('Kopfgeld: Hider liest Teamchat',false,kb(),'u2','read','/chats/K7QF/t1');
+ T('Kopfgeld: Hunter schreibt in eigenen Teamchat',true,kb(),'u1','set','/chats/K7QF/t1/m1',{u:'u1',n:'Anna',t:N,x:'hi',r:'hunter'});
+ T('Kopfgeld: Hunter schreibt in fremden Teamchat',false,kb(),'u1','set','/chats/K7QF/t2/m1',{u:'u1',n:'Anna',t:N,x:'hi',r:'hunter'});
+ T('Kopfgeld: Privat im Team (dm/t1)',true,kb(),'u1','set','/chats/K7QF/dm/t1/u1_u5/m1',{u:'u1',n:'Anna',t:N,x:'hi',r:'hunter'});
+ T('Kopfgeld: Privat unter fremdem Team',false,kb(),'u1','set','/chats/K7QF/dm/t2/u1_u4/m1',{u:'u1',n:'Anna',t:N,x:'hi',r:'hunter'});
+ T('Kopfgeld: Teammarker eigenes Team lesen',true,kb(),'u1','read','/tmarks/K7QF/1');
+ T('Kopfgeld: Teammarker fremdes Team lesen',false,kb(),'u1','read','/tmarks/K7QF/2');
+ T('Kopfgeld: Teammarker setzen',true,kb(),'u1','set','/tmarks/K7QF/1/u1_0',{u:'u1',k:'pin',lat:47.07,lng:15.44,t:N});
+ T('Kopfgeld: Teammarker im fremden Team setzen',false,kb(),'u1','set','/tmarks/K7QF/2/u1_0',{u:'u1',k:'pin',lat:47.07,lng:15.44,t:N});
+ T('Kopfgeld: Teamname durch Mitglied (Lobby)',true,kb({status:'lobby'}),'u1','set',G+'/teams/1/name','Die Füchse');
+ T('Kopfgeld: Teamname durch fremdes Team',false,kb({status:'lobby'}),'u4','set',G+'/teams/1/name','Hack');
+ T('Kopfgeld: Teamfarbe ungültig',false,kb({status:'lobby'}),'u1','set',G+'/teams/1/col',12);
+ T('Kopfgeld: Team beitreten (Lobby)',true,kb({status:'lobby'}),'u2','update',G+'/players/u2',{role:'hunter',tm:2,tj:N});
+ T('Kopfgeld: Team 5 ungültig',false,kb({status:'lobby'}),'u2','update',G+'/players/u2',{role:'hunter',tm:5,tj:N});
+ T('Kopfgeld: Team wechseln im laufenden Spiel',false,kb(),'u1','set',G+'/players/u1/tm',2);
+ T('Kopfgeld: Modus und Teamzahl setzen',true,kb({status:'lobby'}),'u1','update',G+'/s',{mode:'bounty',tN:3,tS:2})}
 T('Fang starten: Hunter liest Ergebnis',false,(()=>{const d=base();d.fzp={K7QF:{u3:{t:N,ok:true}}};return d})(),'u1','read','/fzp/K7QF/u3');
 T('Fang starten: Hunter liest ganzen fzp-Knoten',false,(()=>{const d=base();d.fzp={K7QF:{u3:{t:N,ok:true}}};return d})(),'u1','read','/fzp/K7QF');
 T('Fang starten: Hider liest eigenes Ergebnis',true,(()=>{const d=base();d.fzp={K7QF:{u3:{t:N,ok:true}}};return d})(),'u3','read','/fzp/K7QF/u3');

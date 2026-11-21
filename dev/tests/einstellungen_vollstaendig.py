@@ -27,6 +27,8 @@ with app(390,844) as (pg,ev,errs):
     for sp in ['tasks','bon']:
         ev("subGo('%s')"%sp);pg.wait_for_timeout(250);grab()
         ev("ui.ed=null;edGo('evT')");pg.wait_for_timeout(120);grab()
+    # Kopfgeld: Teamzahl im Spieler-Reiter, beim Auslosen auch Teamgröße
+    ev("subGo(null);__T.games.K7QF.s.mode='bounty';__T.games.K7QF.s.rnd=true;notify()");pg.wait_for_timeout(300);ev("tabGo('lt','players')");pg.wait_for_timeout(250);grab()
     fd=ev("Object.keys(FD)")
     miss=[k for k in fd+SW if k not in seen]
     print('fehlt:',miss)

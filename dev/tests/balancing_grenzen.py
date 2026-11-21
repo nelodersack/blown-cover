@@ -8,7 +8,7 @@
 import sys,os;sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from harness import app
 CHK="""(()=>{const bad=[];let n=0;
- for(const mode of ['survive','mission','zombie'])for(const T of [20,30,45,60,90,120])for(let H=1;H<=10;H++)for(let X=1;X<=20;X++)for(let k=0;k<5;k++){
+ for(const mode of ['survive','mission','zombie','bounty'])for(const T of [20,30,45,60,90,120])for(let H=1;H<=10;H++)for(let X=1;X<=20;X++)for(let k=0;k<5;k++){
   n++;const s=Object.assign({},DEF,PRE[T]||PRE[30],{dur:T,mode}),r=balCalc(s,H,X,k),o=r.o,id=mode+' '+H+'/'+X+' '+T+'min k'+k,f=m=>bad.push(id+': '+m);
   if(!(o.ping<=T*6))f('nur '+(T*60/o.ping).toFixed(1)+' Pings (Ping '+o.ping+' s)');
   if(!(o.ping>=30&&o.ping<=(mode==='zombie'?900:420)))f('Ping '+o.ping);
