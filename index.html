@@ -1563,7 +1563,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
           const L_=RV.ln[p.id];if(L_.sh)L_.sh.setLatLngs(pts);else if(pts.length)L_.sh=L.polyline(pts,L_.o).addTo(RV.L)}}}
     // Blickwinkel: unsichtbar → kein Marker; Ping/Extra-Ping/Satellitenbild → Momentaufnahme an der damaligen Stelle
     const sv=pos_?rvSeen(p,t,S,pos_):null,P0=sv&&sv.pos?[sv.pos[0],sv.pos[1],false]:pos_;
-    let k=out&&p.state==='caught'?'catch':out||!pos_||pos_[2]?'stale':rl==='hunter'?'hunter':'hider',I=im,V_=lv,cl='';
+    let k=out||!pos_||pos_[2]?'stale':rl==='hunter'?'hunter':'hider',I=im,V_=lv,cl='';
     if(sv&&sv!==1){if(sv.k==='ping'||sv.k==='xping'){k=sv.k;I=V_=false}else if(sv.k==='sat'){k='hunter';cl=' snap'}else if(sv.k==='live'||sv.k==='out')V_=true}
     const key=k+(I?'i':'')+(V_?'l':'')+cl+(sv&&sv.pos?Math.round(sv.pos[0]*1e5):'');
     if(!pos_||!sv){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
@@ -1573,6 +1573,11 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       m.bindPopup(()=>rvInfo(p.id,RV.t),{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240});if(op)m.openPopup()}
     else m.setLatLng([P0[0],P0[1]]);
     if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
+  // Fangort: Handschellen bleiben dort stehen, der Gefangene selbst läuft (falls er sich weiter bewegt) grau gestrichelt weiter
+  RV.cm=RV.cm||{};Object.values(RV.pl).forEach(p=>{if(p.role!=='hider'||p.state!=='caught'||!p.sT)return;const on=t>=p.sT;let m=RV.cm[p.id];
+    if(on&&!m){const a=rvAt(RV.sm[p.id]||[],p.sT,6e5);if(!a)return;m=RV.cm[p.id]=L.marker([a[0],a[1]],{icon:L.divIcon({className:'mkw',html:shape('catch',p.id),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-200,keyboard:false})
+      .bindPopup(()=>`<b style="display:block">${esc(p.name||'?')}</b><div class=mut style="font-size:12px">Fangort · ${rvTm(p.sT,g.R0)}</div>`,{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14]})}
+    if(m&&on&&!RV.L.hasLayer(m))m.addTo(RV.L);if(m&&!on&&RV.L.hasLayer(m))RV.L.removeLayer(m)});
   rvBm(t);rvMk(t);rvFunk(t);rvBub(t);
   const el=t-g.R0;
   {const hh=`<span><b>${el<0?'Headstart '+rvTm(t,g.R0).slice(1):rvTm(t,g.R0)}</b>&nbsp;/ ${g.s.dur}:00</span><span>Zone ${zr} m</span>`,hu=$('hud');if(hu._h!==hh){hu._h=hh;hu.innerHTML=hh}}
