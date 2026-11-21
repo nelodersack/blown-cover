@@ -60,7 +60,7 @@
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000"
           },
           "mode": {
-            ".validate": "newData.val() === 'survive' || newData.val() === 'mission' || newData.val() === 'zombie'"
+            ".validate": "newData.val() === 'survive' || newData.val() === 'mission' || newData.val() === 'zombie' || newData.val() === 'bounty'"
           },
           "taskR": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
@@ -196,6 +196,12 @@
           },
           "fsT": {
             ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 120"
+          },
+          "tN": {
+            ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 4 && newData.val() % 1 === 0"
+          },
+          "tS": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10 && newData.val() % 1 === 0"
           }
         },
         "players": {
@@ -302,6 +308,14 @@
             "pS": {
               ".write": "auth.uid === $pid",
               ".validate": "newData.isNumber() && newData.val() <= now + 7200000"
+            },
+            "tm": {
+              ".write": "(auth.uid === $pid && root.child('games').child($code).child('status').val() === 'lobby') || (root.child('games').child($code).child('host').val() === auth.uid && root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('s').child('rnd').val() === true)",
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4 && newData.val() % 1 === 0"
+            },
+            "tj": {
+              ".write": "(auth.uid === $pid && root.child('games').child($code).child('status').val() === 'lobby') || (root.child('games').child($code).child('host').val() === auth.uid && root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('s').child('rnd').val() === true)",
+              ".validate": "newData.isNumber()"
             }
           }
         },
@@ -688,6 +702,22 @@
               ".validate": false
             }
           }
+        },
+        "teams": {
+          ".write": "!newData.exists() && root.child('games').child($code).child('host').val() === auth.uid && (root.child('games').child($code).child('status').val() === 'lobby' || root.child('games').child($code).child('status').val() === 'over')",
+          "$n": {
+            ".write": "root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && (($n === '1' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1) || ($n === '2' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2) || ($n === '3' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3) || ($n === '4' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4))",
+            ".validate": "$n.matches(/^[1-4]$/)",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20"
+            },
+            "col": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 11 && newData.val() % 1 === 0"
+            },
+            "$o": {
+              ".validate": false
+            }
+          }
         }
       }
     },
@@ -697,9 +727,9 @@
         "dm": {
           "$role": {
             "$pair": {
-              ".read": "$role === root.child('games').child($code).child('players').child(auth.uid).child('role').val() && ($pair.beginsWith(auth.uid + '_') || $pair.endsWith('_' + auth.uid))",
+              ".read": "($role === root.child('games').child($code).child('players').child(auth.uid).child('role').val() || ($role === 't1' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't2' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't3' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't4' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4 && root.child('games').child($code).child('s').child('mode').val() === 'bounty')) && ($pair.beginsWith(auth.uid + '_') || $pair.endsWith('_' + auth.uid))",
               "$mid": {
-                ".write": "!data.exists() && newData.exists() && $role === root.child('games').child($code).child('players').child(auth.uid).child('role').val() && ($pair.beginsWith(auth.uid + '_') || $pair.endsWith('_' + auth.uid)) && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')",
+                ".write": "!data.exists() && newData.exists() && ($role === root.child('games').child($code).child('players').child(auth.uid).child('role').val() || ($role === 't1' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't2' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't3' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($role === 't4' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4 && root.child('games').child($code).child('s').child('mode').val() === 'bounty')) && ($pair.beginsWith(auth.uid + '_') || $pair.endsWith('_' + auth.uid)) && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')",
                 ".validate": "newData.hasChildren(['u','n','t','x']) && newData.child('u').val() === auth.uid",
                 "u": {
                   ".validate": "newData.isString()"
@@ -724,9 +754,9 @@
           }
         },
         "$team": {
-          ".read": "($team === 'all' && root.child('games').child($code).child('players').child(auth.uid).exists()) || root.child('games').child($code).child('players').child(auth.uid).child('role').val() === $team || ((root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec') && ($team === 'out' || $team === 'hider' || $team === 'hunter'))",
+          ".read": "($team === 'all' && root.child('games').child($code).child('players').child(auth.uid).exists()) || root.child('games').child($code).child('players').child(auth.uid).child('role').val() === $team || ((root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec') && ($team === 'out' || $team === 'hider' || $team === 'hunter' || $team === 't1' || $team === 't2' || $team === 't3' || $team === 't4')) || ($team === 't1' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't2' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't3' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't4' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4 && root.child('games').child($code).child('s').child('mode').val() === 'bounty')",
           "$mid": {
-            ".write": "!data.exists() && newData.exists() && (($team === 'all' && root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('players').child(auth.uid).exists()) || ($team === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')) || ($team === 'hider' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')) || ($team === 'out' && (root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')))",
+            ".write": "!data.exists() && newData.exists() && (($team === 'all' && root.child('games').child($code).child('status').val() === 'lobby' && root.child('games').child($code).child('players').child(auth.uid).exists()) || ($team === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')) || ($team === 'hider' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hider' && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')) || ($team === 'out' && (root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')) || ((($team === 't1' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't2' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't3' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3 && root.child('games').child($code).child('s').child('mode').val() === 'bounty') || ($team === 't4' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4 && root.child('games').child($code).child('s').child('mode').val() === 'bounty')) && !(root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'caught' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'dq' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'safe' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'quit' || root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'spec')))",
             ".validate": "newData.hasChildren(['u','n','t','x']) && newData.child('u').val() === auth.uid",
             "u": {
               ".validate": "newData.isString()"
@@ -824,6 +854,45 @@
           },
           "$o": {
             ".validate": false
+          }
+        }
+      }
+    },
+    "tmarks": {
+      "$code": {
+        ".write": "!newData.exists() && (root.child('games').child($code).child('host').val() === auth.uid || (root.child('games').child($code).child('players').child(auth.uid).exists() && (root.child('games').child($code).child('status').val() === 'lobby' || root.child('games').child($code).child('status').val() === 'over')))",
+        "$n": {
+          ".read": "root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && (($n === '1' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1) || ($n === '2' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2) || ($n === '3' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3) || ($n === '4' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4))",
+          "$mid": {
+            ".write": "((!newData.exists() && data.child('u').val() === auth.uid) || (newData.exists() && ($mid === auth.uid + '_0' || $mid === auth.uid + '_1' || $mid === auth.uid + '_2') && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive' && root.child('games').child($code).child('status').val() === 'running')) && (($n === '1' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 1) || ($n === '2' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 2) || ($n === '3' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 3) || ($n === '4' && root.child('games').child($code).child('players').child(auth.uid).child('tm').val() === 4))",
+            ".validate": "newData.hasChildren(['u','k','lat','lng','t']) && newData.child('u').val() === auth.uid",
+            "u": {
+              ".validate": "newData.isString()"
+            },
+            "k": {
+              ".validate": "newData.val() === 'arrow' || newData.val() === 'excl' || newData.val() === 'zone' || newData.val() === 'pin'"
+            },
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+            },
+            "lng": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "r": {
+              ".validate": "newData.isNumber() && newData.val() >= 20 && newData.val() <= 400"
+            },
+            "h": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "x": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+            },
+            "$o": {
+              ".validate": false
+            }
           }
         }
       }
