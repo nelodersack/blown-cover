@@ -1563,7 +1563,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
           const L_=RV.ln[p.id];if(L_.sh)L_.sh.setLatLngs(pts);else if(pts.length)L_.sh=L.polyline(pts,L_.o).addTo(RV.L)}}}
     // Blickwinkel: unsichtbar → kein Marker; Ping/Extra-Ping/Satellitenbild → Momentaufnahme an der damaligen Stelle
     const sv=pos_?rvSeen(p,t,S,pos_):null,P0=sv&&sv.pos?[sv.pos[0],sv.pos[1],false]:pos_;
-    let k=out||!pos_||pos_[2]?'stale':rl==='hunter'?'hunter':'hider',I=im,V_=lv,cl='';
+    let k=out&&p.state==='caught'?'catch':out||!pos_||pos_[2]?'stale':rl==='hunter'?'hunter':'hider',I=im,V_=lv,cl='';
     if(sv&&sv!==1){if(sv.k==='ping'||sv.k==='xping'){k=sv.k;I=V_=false}else if(sv.k==='sat'){k='hunter';cl=' snap'}else if(sv.k==='live'||sv.k==='out')V_=true}
     const key=k+(I?'i':'')+(V_?'l':'')+cl+(sv&&sv.pos?Math.round(sv.pos[0]*1e5):'');
     if(!pos_||!sv){if(RV.m[p.id]){RV.L.removeLayer(RV.m[p.id]);RV.m[p.id]=null}return}
