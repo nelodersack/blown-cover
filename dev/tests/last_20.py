@@ -1,5 +1,5 @@
-# Test: 20 Spieler (Geburtstagsrunde). 1) Farben: 20 Spieler bekommen in der Lobby automatisch eine Farbe; ab 13 teilen sich je zwei
-# eine Farbe, Farbe+Buchstabe(n) bleiben eindeutig (gleicher Anfangsbuchstabe → zwei Buchstaben). 2) Belastung: laufendes Spiel mit
+# Test: 20 Spieler (Geburtstagsrunde). 1) Farben: 20 Spieler bekommen in der Lobby automatisch eine Farbe; erst alle 12 einmal, dann
+# doppelt (Schichtregel), automatisch mit anderem Anfangsbuchstaben → Farbe+Buchstabe eindeutig. Ausführlich: farben_schicht.py. 2) Belastung: laufendes Spiel mit
 # 6 bzw. 20 Spielern, jeder schreibt alle 4 s seinen Standort (wie write()), CPU 4× gebremst (Mittelklasse-Handy); gemessen werden
 # Rechenzeit je Datenbank-Update (onData inkl. draw/panel) und lange Aufgaben (> 50 ms). Ausgabe als Tabelle, Grenze siehe LIM.
 import sys,os,json;sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,11 +24,10 @@ with app(width=412,height=915) as (pg,ev,errs):
     res=ev("Object.keys(P()).map(k=>[P()[k].name,P()[k].col,colI(k),letOf(k)])")
     print('farben:',' '.join('%s:%s/%s%s'%(n,c,ci,l) for n,c,ci,l in res))
     keys=['%s|%s'%(ci,l) for n,c,ci,l in res]
-    assert all(isinstance(c,int) for n,c,ci,l in res) and len(set(c for n,c,ci,l in res))==20, 'jeder braucht einen eigenen Platz'
+    from collections import Counter
+    cnt=Counter(ci for n,c,ci,l in res);print('Belegung:',sorted(cnt.values()))
+    assert all(isinstance(c,int) for n,c,ci,l in res) and len(cnt)==12 and max(cnt.values())==2, 'erst alle 12, dann doppelt'
     assert len(set(keys))==20, 'Farbe+Buchstabe muss eindeutig sein: %s'%keys
-    # gleicher Anfangsbuchstabe in derselben Farbe (von Hand gewählt): Max (Platz 2) und Mara/Marie → mehrere Buchstaben
-    ev("__T.games.GEBX.players.u18.col=14;notify()");pg.wait_for_timeout(300)
-    lt=ev("[letOf('u2'),letOf('u18')]");print('gleiche Farbe, gleicher Anfang:',lt);assert lt[0]!=lt[1] and lt[0].startswith('M'),lt
     ev("ui.pal=1;panel(1)");pg.wait_for_timeout(300);shot(pg,'last20_farben.png')
     e0=errs[:]
 

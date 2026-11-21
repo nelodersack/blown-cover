@@ -877,14 +877,11 @@ const SV={catch:'<circle cx="6" cy="15" r="4.5"/><circle cx="18" cy="15" r="4.5"
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
 const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0','#8a5a2b','#8e2a3a','#e02fb5','#f28c00','#7b3fe4'],PALN=['Blau','Gelb','Dunkelgrün','Türkis','Schiefer','Grün','Himmelblau','Braun','Bordeaux','Magenta','Orange','Violett'],PALK=PAL.map(h=>{const v=[1,3,5].map(k=>{const c=parseInt(h.substr(k,2),16)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]>.3?'#1a1a1a':'#fff'});
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
-// Ab 13 Spielern teilen sich je zwei Spieler eine Farbe (Plätze 0–11 und 12–23, Farbe = Platz % 12); unterscheiden über den
-// Buchstaben im Marker. Haben beide denselben Anfangsbuchstaben, zeigen beide zwei Buchstaben („Ma“/„Mi“).
+// Farbe = col % 12 (ältere Lobbys nutzten Plätze 12–23); mehrere Spieler können dieselbe Farbe haben (Schichtregel in §FARBWAHL).
+// Im Marker steht nur der Anfangsbuchstabe, auch bei gleicher Farbe und gleichem Anfang (Manuel 21.11.).
 const NCOL=24,colI=u=>{const p=P()[u];return p&&Number.isInteger(p.col)&&p.col>=0&&p.col<NCOL?p.col%12:hsh(u)},colOf=u=>PAL[colI(u)],inkOf=u=>PALK[colI(u)],
   nm0=u=>String((P()[u]||{}).name||'?').trim()||'?',
-  letOf=u=>{const n=nm0(u),c=n.charAt(0).toUpperCase(),ci=colI(u),lo=n.toLowerCase(),
-      tw=Object.keys(P()).filter(k=>{const q=P()[k];return k!==u&&q&&!q.lf&&q.role!=='spec'&&colI(k)===ci&&nm0(k).charAt(0).toUpperCase()===c});
-    if(!tw.length)return esc(c);let l=2;tw.forEach(k=>{const o=nm0(k).toLowerCase();while(l<3&&o.slice(0,l)===lo.slice(0,l))l++});
-    return esc(c+n.slice(1,l).toLowerCase())};
+  letOf=u=>esc(nm0(u).charAt(0).toUpperCase());
 // Verwandelte Zombies: kleiner grüner Punkt am Dreieck (Spiel: P()[pid].zt; Replay: RV.zt[pid] bis zur aktuellen Zeit)
 const zBadge=pid=>RV&&RV.zt?!!(RV.zt[pid]&&RV.t>=RV.zt[pid]):!!(G&&P()[pid]&&P()[pid].zt);
 function shape(k,pid,hid){const sv=b=>`<svg style="overflow:visible" viewBox="0 0 36 36" aria-hidden="true">${b}</svg>`,W='#fff',
@@ -1517,9 +1514,8 @@ async function join(c){
   if(had&&had.lf){LS.removeItem('c');return toast('Du hast dieses Spiel verlassen')}
   code=c;LS.c=c;
   if(spec){try{await db.ref(`games/${c}/players/${uid}`).set({name:me.name||'Agent',role:'spec',state:'spec',j:now()});toast('Das Spiel läuft schon – du schaust zu')}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}}
-  else if(!had){let ok=false;const b0=0,pl0={name:me.name||'Agent',role:'hider',state:'alive',j:now()};
-    for(let a=0;a<12&&!ok;a++){const i=(b0+a)%12;try{await db.ref('games/'+c).update({['players/'+uid]:Object.assign({col:i},pl0),['cols/'+i]:uid});ok=true}catch(e){}}
-    if(!ok)try{await db.ref(`games/${c}/players/${uid}`).set(pl0)}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}}
+  else if(!had){const pl0={name:me.name||'Agent',role:'hider',state:'alive',j:now()};   // Farbe vergibt danach autoCol (Schichtregel)
+    try{await db.ref(`games/${c}/players/${uid}`).set(pl0)}catch(e){code=null;LS.removeItem('c');return toast('Beitritt nicht möglich')}}
   const lost=()=>{if(leaving)return;LS.removeItem('c');toast('Du bist nicht mehr in diesem Spiel');setTimeout(()=>location.reload(),1200)};
   evSince=now()-1000;db.ref(`games/${c}/ev`).limitToLast(20).on('child_added',sn=>{const e=sn.val();if(e&&e.t>=evSince&&e.u!==uid&&typeof e.x==='string')note(e.x)},()=>{});
   db.ref('games/'+c).on('value',s=>{if(!s.exists()){LS.removeItem('c');location.reload();return}G=s.val();onData()},lost)}
@@ -1536,26 +1532,29 @@ function dlg(o){return new Promise(res=>{const el=document.createElement('div');
   el.onclick=e=>{if(e.target===el)done(o.inp?null:false)};
   setTimeout(()=>(inp||el.querySelector('#dlo')||el.querySelector('#dlc')).focus(),30)})}
 
-// §FARBWAHL
+// §FARBWAHL Farben werden schichtweise vergeben (alle Modi, KONZEPT_Kopfgeld.md Teil A): eine Farbe bekommt ihren k-ten Inhaber erst,
+// wenn alle (erlaubten) Farben schon k−1 Inhaber haben. Belegung = players/*/col (% 12); keine Sperrstruktur mehr (`cols` alt, nur noch gelesen
+// von älteren Lobbys). Bereits vergebene Farben werden nie umsortiert. Teamfarben im Kopfgeld-Modus sind gesperrt (colBlk).
 let colBusy=0;
-function colTaken(){const o={},c=(G&&G.cols)||{};Object.entries(c).forEach(([i,u])=>{const p=P()[u];if(p&&!p.lf)o[i]=u});return o}
-async function claimCol(i){const me_=P()[uid]||{},old=Number.isInteger(me_.col)?me_.col:null,u={};
-  u['players/'+uid+'/col']=i;u['cols/'+i]=uid;if(old!==null&&old!==i)u['cols/'+old]=null;
-  try{await db.ref('games/'+code).update(u);return true}catch(e){return false}}
-// Zuerst eine freie Farbe; sind alle 12 vergeben, den zweiten Platz einer Farbe, deren Inhaber einen anderen Anfangsbuchstaben hat
-async function autoCol(){if(colBusy||!G||G.status!=='lobby')return;colBusy=1;const tk=colTaken(),c0=nm0(uid).charAt(0).toUpperCase(),
-    ini=k=>nm0(k).charAt(0).toUpperCase(),ord=[...Array(12).keys()];
-  const cand=[...ord,...ord.map(i=>i+12).filter(j=>!tk[j-12]||ini(tk[j-12])!==c0),...ord.map(i=>i+12)];
-  try{for(const i of cand){if(tk[i]&&tk[i]!==uid)continue;if(await claimCol(i))break}}finally{colBusy=0}}
+const colBlk=()=>new Set();   // Kopfgeld: Teamfarben (wird in §KOPFGELD ersetzt)
+function colCnt(){const n=Array(12).fill(0);Object.entries(P()).forEach(([k,p])=>{if(k!==uid&&p&&!p.lf&&isPl(p)&&Number.isInteger(p.col)&&colUse(k))n[p.col%12]++});return n}
+function colUse(k){return true}   // Kopfgeld: Hunter in Teams belegen keine eigene Farbe (wird in §KOPFGELD ersetzt)
+function colFree(){const n=colCnt(),B=colBlk(),al=PAL.map((_,i)=>i).filter(i=>!B.has(i));if(!al.length)return{n,ok:[],min:0};const min=Math.min(...al.map(i=>n[i]));return{n,min,ok:al.filter(i=>n[i]===min)}}
+async function claimCol(i){try{await db.ref('games/'+code).update({['players/'+uid+'/col']:i});return true}catch(e){return false}}
+// Automatisch: eine Farbe mit der niedrigsten Belegung, bevorzugt ohne Inhaber mit gleichem Anfangsbuchstaben, sonst Palettenreihenfolge
+async function autoCol(){if(colBusy||!G||G.status!=='lobby')return;colBusy=1;
+  try{const f=colFree(),c0=nm0(uid).charAt(0).toUpperCase(),same=i=>Object.entries(P()).some(([k,p])=>k!==uid&&p&&!p.lf&&isPl(p)&&colUse(k)&&Number.isInteger(p.col)&&p.col%12===i&&nm0(k).charAt(0).toUpperCase()===c0);
+    const i=f.ok.find(i=>!same(i));const j=i!=null?i:f.ok[0];if(j!=null)await claimCol(j)}finally{colBusy=0}}
 function palTog(){ui.pal=!ui.pal;panel(1)}
-function palPick(i){const tk=colTaken();if(tk[i]===uid||tk[i+12]===uid)return;const full=PAL.every((_,k)=>[tk[k],tk[k+12]].some(u=>u&&u!==uid)),j=!tk[i]&&!tk[i+12]?i:full&&!tk[i+12]?i+12:full&&!tk[i]?i:-1;if(j<0)return;
-  claimCol(j).then(ok=>{if(!ok)toast('Farbe bereits vergeben')})}
-function palUI(){const tk=colTaken(),mine=colI(uid);
-  // Farbe voll = beide Plätze (i, i+12) belegt; halb belegt (alle 12 schon einmal vergeben) = „zu zweit“ wählbar
-  const full=PAL.every((_,i)=>[tk[i],tk[i+12]].some(u=>u&&u!==uid));
-  return `<div class=pal><h4>Deine Farbe</h4><div class=g>`+PAL.map((c,i)=>{const me_=i===mine&&(tk[i]===uid||tk[i+12]===uid),
-      oth=[tk[i],tk[i+12]].filter(u=>u&&u!==uid),o=!me_&&(oth.length>=2||oth.length===1&&!full),half=!me_&&!o&&oth.length===1;
-    return `<div><b class="${o?'x':''} ${me_?'o':''}" style="background:${c};color:${PALK[i]}" ${o||me_?'':`onclick="palPick(${i})"`} role=button aria-label="${PALN[i]}${o?' (vergeben)':half?' (zu zweit)':''}">${me_?letOf(uid):(oth.length?letOf(oth[0]):'')}</b><span>${o?'vergeben':half?'zu zweit':PALN[i]}</span></div>`}).join('')+`</div></div>`}
+function palPick(i){const me_=P()[uid]||{};if(Number.isInteger(me_.col)&&me_.col%12===i)return;
+  if(!colFree().ok.includes(i))return toast(colBlk().has(i)?'Teamfarbe – nicht wählbar':'Erst wieder frei, wenn alle Farben gleich oft vergeben sind');
+  claimCol(i).then(ok=>{if(!ok)toast('Farbe nicht wählbar')})}
+const COLN=['','','zu zweit','zu dritt','zu viert','zu fünft','zu sechst'];
+function palUI(){const f=colFree(),B=colBlk(),me_=P()[uid]||{},mine=Number.isInteger(me_.col)?me_.col%12:-1,lock=f.ok.length<PAL.length-B.size;
+  return `<div class=pal><h4>Deine Farbe</h4><div class=g>`+PAL.map((c,i)=>{const m=i===mine,tb=B.has(i),ok=m||f.ok.includes(i),n=f.n[i];
+    const lab=m?PALN[i]:tb?'Team':!ok?'vergeben':n?(COLN[n+1]||'×'+(n+1)):PALN[i];
+    return `<div><b class="${ok?'':'x'} ${m?'o':''}" style="background:${c};color:${PALK[i]}" ${ok&&!m?`onclick="palPick(${i})"`:''} role=button aria-label="${PALN[i]}${ok?'':' (nicht wählbar)'}">${m?letOf(uid):''}</b><span>${lab}</span></div>`}).join('')
+    +`</div>${lock?'<small class=mut>Belegte Farben werden erst wieder wählbar, wenn alle Farben gleich oft vergeben sind.</small>':''}</div>`}
 
 // §MARKER Eigene Kartenmarker (mk*, drawMarks)
 let MK={},mkL=null,mkSeen=null,mkMode=null,mkTmp=null,mkBusy=0,hidM=new Set();
