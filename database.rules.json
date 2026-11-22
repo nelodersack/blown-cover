@@ -202,6 +202,12 @@
           },
           "tS": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10 && newData.val() % 1 === 0"
+          },
+          "inf": {
+            ".validate": "newData.isBoolean()"
+          },
+          "infN": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5 && newData.val() % 1 === 0"
           }
         },
         "players": {
@@ -893,6 +899,53 @@
             "$o": {
               ".validate": false
             }
+          }
+        }
+      }
+    },
+    "inf": {
+      "$code": {
+        ".read": "root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' || root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'spec'",
+        ".write": "root.child('games').child($code).child('host').val() === auth.uid || (!newData.exists() && root.child('games').child($code).child('players').child(auth.uid).exists() && (root.child('games').child($code).child('status').val() === 'lobby' || root.child('games').child($code).child('status').val() === 'over'))",
+        "$n": {
+          ".validate": "newData.hasChildren(['t'])",
+          "t": {
+            ".validate": "newData.isNumber()"
+          },
+          "lat": {
+            ".write": "!data.exists() && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter'",
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "lng": {
+            ".write": "!data.exists() && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter'",
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "by": {
+            ".write": "!data.exists() && newData.val() === auth.uid && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('players').child(auth.uid).child('role').val() === 'hunter' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive' && data.parent().child('lat').exists() && data.parent().child('t').val() <= now",
+            ".validate": "newData.isString()"
+          },
+          "tm": {
+            ".write": "!data.exists() && newData.parent().child('by').val() === auth.uid",
+            ".validate": "newData.val() === root.child('games').child($code).child('players').child(auth.uid).child('tm').val()"
+          },
+          "at": {
+            ".write": "!data.exists() && newData.parent().child('by').val() === auth.uid",
+            ".validate": "newData.isNumber()"
+          },
+          "b": {
+            ".write": "!data.exists() && data.parent().child('by').val() === auth.uid && root.child('games').child($code).child('status').val() === 'running'",
+            ".validate": "newData.val() === 'ab' || newData.val() === 'st'"
+          },
+          "u": {
+            ".write": "!data.exists() && data.parent().child('by').val() === auth.uid && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive'",
+            ".validate": "newData.isNumber() && newData.parent().child('b').exists()"
+          },
+          "tg": {
+            ".write": "!data.exists() && data.parent().child('by').val() === auth.uid && root.child('games').child($code).child('status').val() === 'running' && root.child('games').child($code).child('players').child(auth.uid).child('state').val() === 'alive'",
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4 && newData.val() % 1 === 0 && newData.val() !== newData.parent().child('tm').val() && newData.parent().child('b').val() === 'st'"
+          },
+          "$o": {
+            ".validate": false
           }
         }
       }
