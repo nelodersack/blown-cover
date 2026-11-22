@@ -1039,6 +1039,14 @@ function ksBadge(){if(!KST)return;const d=document.createElement('div');d.id='ks
   const go=v=>{const u=new URL(location.href);u.searchParams.set('kartenstil',v);location.href=u.toString()};
   d.innerHTML=`<button aria-label="Vorheriger Stil">‹</button><span>${KST}/${KSN} · ${esc(KSD[KST].n)}</span><button aria-label="Nächster Stil">›</button>`;
   const b=d.querySelectorAll('button');b[0].onclick=()=>go(KST>1?KST-1:KSN);b[1].onclick=()=>go(KST<KSN?KST+1:1);document.body.appendChild(d)}
+// Halbe Karte (22.11.): MapLibre übergeht den ersten Rückruf seines ResizeObservers. Ändert Leaflet die Größe im ersten Bild nach dem
+// Anlegen (Fenster/WebView noch im Aufbau), bleibt der Canvas auf der alten Breite, der Rest der Karte bleibt leer. Darum nach jedem
+// Größenwechsel des Containers und beim Laden des Stils die Canvas-Größe selbst nachziehen (resize() ist ohne Änderung ein No-op).
+function vtFix(){try{const gl=vt&&vt.getMaplibreMap&&vt.getMaplibreMap(),c=gl&&gl.getContainer(),v=gl&&gl.getCanvas();
+  if(c&&v&&(Math.abs(v.clientWidth-c.clientWidth)>1||Math.abs(v.clientHeight-c.clientHeight)>1)){lg('vt-fix',[v.clientWidth,c.clientWidth]);gl.resize()}}catch(e){}}
+if(L.MaplibreGL){const P_=L.MaplibreGL.prototype,rc=P_._resizeContainer,ig=P_._initGL;P_._resizeContainer=function(){rc.call(this);if(this._glMap)vtFix()};
+  P_._initGL=function(){ig.call(this);const gl=this._glMap;gl.once('load',vtFix);requestAnimationFrame(()=>requestAnimationFrame(vtFix))}}
+map.on('resize moveend',()=>requestAnimationFrame(vtFix));
 const vtOpt=st=>({fadeDuration:0,pixelRatio:Math.min(window.devicePixelRatio||1,2),maxTileCacheSize:48,style:st,attribution:'© OpenFreeMap, © OpenMapTiles, Daten von OpenStreetMap'});
 if(L.maplibreGL&&!/[?&]karte=raster/.test(location.search)){const PZ='https://tiles.openfreemap.org/styles/positron';
   {const T=KSD[KST||1];map.getContainer().style.background=T.bg;fetch(PZ).then(r=>r.json()).then(st=>{(vt=L.maplibreGL(vtOpt(ksApply(st,T)))).addTo(map)}).catch(()=>{(vt=L.maplibreGL(vtOpt(PZ))).addTo(map)})}}
