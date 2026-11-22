@@ -320,14 +320,15 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 /* §CSS-LAGEBERICHT Log-Knopf #lgk (wie Chat/Marker), Seitenleiste #blg, Ping-Etikett .blpt */
 #lgk{position:fixed;right:10px;top:calc(156px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:40px!important;height:40px;min-height:0!important;padding:0!important;place-items:center;color:var(--fg);border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important}
 #lgk .ic{width:22px;height:22px}#lgk i{display:none;position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--panel)}#lgk.new i{display:block}
-#blg{position:fixed;top:0;bottom:0;right:0;width:86%;max-width:420px;z-index:2500;background:#1b1e22;border-left:1px solid var(--line);box-shadow:-10px 0 30px #0009;padding:calc(14px + env(safe-area-inset-top,0px)) 14px env(safe-area-inset-bottom,0px);color:var(--fg);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+#blg{position:fixed;top:0;bottom:auto;max-height:100%;border-bottom-left-radius:14px;border-bottom:1px solid var(--line);right:0;width:86%;max-width:420px;z-index:2500;background:#1b1e22;border-left:1px solid var(--line);box-shadow:-10px 0 30px #0009;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 4px;color:var(--fg);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);visibility:hidden}
 #blg.on{transform:none;visibility:visible}
 #blg .blh{display:flex;align-items:center;gap:8px}#blg .blh b{font-size:17px;flex:1}
 #blg .blt{display:flex;background:var(--bg);border-radius:999px;padding:3px}#blg .blt button{width:auto;min-height:0;margin:0;padding:4px 11px;border-radius:999px;font:600 12.5px var(--f-b);color:var(--mut);background:none;border:0}#blg .blt button.on{background:var(--fg);color:var(--bg)}
 #blg .blx{width:30px;height:30px;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--panel2);border:0;color:var(--mut);font-size:14px}
 #blg .blf{display:flex;gap:6px;margin:12px 0 6px;overflow-x:auto;scrollbar-width:none;flex:none}#blg .blf::-webkit-scrollbar{display:none}
 #blg .blf button{flex:none;width:auto;min-height:0;margin:0;font:600 12px var(--f-b);padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mut);display:flex;gap:5px;align-items:center}#blg .blf button.on{color:var(--fg);border-color:var(--fg)}#blg .blf .ic{width:12px;height:12px}
-#blg .bll{overflow-y:auto;flex:1;min-height:0;padding-bottom:16px}
+#blg .bll{overflow-y:auto;flex:0 1 auto;min-height:0;padding-bottom:6px}   /* Leiste nur so hoch wie der Inhalt (Manuel 22.11.) */
+#blg .blr:last-child{border-bottom:0}
 #blg .blr{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line2);font-size:13px}#blg .blr .t{width:38px;color:var(--mut);font-size:11.5px;font-variant-numeric:tabular-nums;flex:none}
 #blg .blr>.ic{width:14px;height:14px;color:var(--c);flex:none}#blg .blr .x{flex:1;min-width:0;line-height:1.3}#blg .blr .x small{color:var(--mut)}
 #blg .blr.tap{cursor:pointer}#blg .blr .go{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex:none}
@@ -336,7 +337,7 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #blg h4{margin:12px 0 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between}
 #blg .q{display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13.5px}#blg .q .n{flex:1;min-width:0}#blg .q .v{font:700 15px var(--f-d)}#blg .q small{color:var(--mut);font-size:11.5px}#blg .q.me .n{font-weight:700}#blg .q.out .n{color:var(--mut);text-decoration:line-through}
 #blg .tri{width:12px;height:11px;flex:none}#blg .ci{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 1px #fff8}
-#blg>.bls~h4:first-of-type{margin-top:4px}#blg{overflow-y:auto}
+#blg{overflow-y:auto}#blg>.q:last-child{margin-bottom:8px}
 .blpt{display:flex;align-items:center;gap:5px;background:#1b1e22f0;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 7px;font:600 12px var(--f-b);color:var(--fg);white-space:nowrap;transform:translate(-50%,calc(-100% - 22px));width:max-content}.blpt .ic{width:13px;height:13px;color:#9ca1a8}
 /* §CSS-REPLAY-SICHT Blickwinkel (rvv), Ergebniszeile (rvop), Funk-Karte (rvfk), Teampunkt (tdot) */
 .rvh{margin:2px 0 0;font-size:24px;line-height:1.15}.rvop{display:block;margin-top:-6px}.rvop b{font-weight:600;color:var(--fg)}
