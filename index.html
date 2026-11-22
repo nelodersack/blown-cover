@@ -317,6 +317,27 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #ksb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1300;display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;color:var(--fg);font:500 13px var(--f-b);box-shadow:0 4px 14px rgba(0,0,0,.35)}
 #ksb button{width:32px!important;height:32px;min-height:0!important;padding:0!important;margin:0!important;background:var(--panel2)!important;border:0!important;border-radius:8px!important;color:var(--fg)!important;font-size:18px}
 #ksb span{padding:0 6px;white-space:nowrap}
+/* §CSS-LAGEBERICHT Log-Knopf #lgk (wie Chat/Marker), Seitenleiste #blg, Ping-Etikett .blpt */
+#lgk{position:fixed;right:10px;top:calc(156px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:40px!important;height:40px;min-height:0!important;padding:0!important;place-items:center;color:var(--fg);border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important}
+#lgk .ic{width:22px;height:22px}#lgk i{display:none;position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--panel)}#lgk.new i{display:block}
+#blg{position:fixed;top:0;bottom:0;right:0;width:86%;max-width:420px;z-index:2500;background:#1b1e22;border-left:1px solid var(--line);box-shadow:-10px 0 30px #0009;padding:calc(14px + env(safe-area-inset-top,0px)) 14px env(safe-area-inset-bottom,0px);color:var(--fg);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+#blg.on{transform:none;visibility:visible}
+#blg .blh{display:flex;align-items:center;gap:8px}#blg .blh b{font-size:17px;flex:1}
+#blg .blt{display:flex;background:var(--bg);border-radius:999px;padding:3px}#blg .blt button{width:auto;min-height:0;margin:0;padding:4px 11px;border-radius:999px;font:600 12.5px var(--f-b);color:var(--mut);background:none;border:0}#blg .blt button.on{background:var(--fg);color:var(--bg)}
+#blg .blx{width:30px;height:30px;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--panel2);border:0;color:var(--mut);font-size:14px}
+#blg .blf{display:flex;gap:6px;margin:12px 0 6px;overflow-x:auto;scrollbar-width:none;flex:none}#blg .blf::-webkit-scrollbar{display:none}
+#blg .blf button{flex:none;width:auto;min-height:0;margin:0;font:600 12px var(--f-b);padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mut);display:flex;gap:5px;align-items:center}#blg .blf button.on{color:var(--fg);border-color:var(--fg)}#blg .blf .ic{width:12px;height:12px}
+#blg .bll{overflow-y:auto;flex:1;min-height:0;padding-bottom:16px}
+#blg .blr{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line2);font-size:13px}#blg .blr .t{width:38px;color:var(--mut);font-size:11.5px;font-variant-numeric:tabular-nums;flex:none}
+#blg .blr>.ic{width:14px;height:14px;color:var(--c);flex:none}#blg .blr .x{flex:1;min-width:0;line-height:1.3}#blg .blr .x small{color:var(--mut)}
+#blg .blr.tap{cursor:pointer}#blg .blr .go{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex:none}
+#blg .bls{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0}#blg .bls div{padding:8px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}#blg .bls div:nth-child(2n){border-right:0}#blg .bls div:nth-last-child(-n+2){border-bottom:0}
+#blg .bls small{display:block;color:var(--mut);font-size:11px}#blg .bls b{font:700 17px var(--f-d)}
+#blg h4{margin:12px 0 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between}
+#blg .q{display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:13.5px}#blg .q .n{flex:1;min-width:0}#blg .q .v{font:700 15px var(--f-d)}#blg .q small{color:var(--mut);font-size:11.5px}#blg .q.me .n{font-weight:700}#blg .q.out .n{color:var(--mut);text-decoration:line-through}
+#blg .tri{width:12px;height:11px;flex:none}#blg .ci{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 1px #fff8}
+#blg>.bls~h4:first-of-type{margin-top:4px}#blg{overflow-y:auto}
+.blpt{display:flex;align-items:center;gap:5px;background:#1b1e22f0;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 7px;font:600 12px var(--f-b);color:var(--fg);white-space:nowrap;transform:translate(-50%,calc(-100% - 22px));width:max-content}.blpt .ic{width:13px;height:13px;color:#9ca1a8}
 /* §CSS-REPLAY-SICHT Blickwinkel (rvv), Ergebniszeile (rvop), Funk-Karte (rvfk), Teampunkt (tdot) */
 .rvh{margin:2px 0 0;font-size:24px;line-height:1.15}.rvop{display:block;margin-top:-6px}.rvop b{font-weight:600;color:var(--fg)}
 .rvv{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -14px 0;padding:0 14px}.rvv::-webkit-scrollbar{display:none}
@@ -542,6 +563,7 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
 <div id="map"></div><div id="hud"></div><div id="panel"><div id="ph"><i></i></div><div id="ps"><div id="pb"></div><div id="pf"></div></div></div><button id=lgb onclick="lgToggle()"></button><button id=nb onclick="nbTap()" aria-label="Kartenausrichtung"></button><div id=nbt></div><div id=lg></div><div id="toast"></div><div id=res><div id=resb></div></div>
+<button id=lgk onclick="blToggle()" aria-label="Lagebericht"></button>
 <button id=upb onclick="updGo()" aria-label="App laden"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><i></i></button><button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span id=cbn></span></button>
 <button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
@@ -908,7 +930,7 @@ async function mkPts(c,R,n){const d=Math.max(40,Math.min(120,R/5)),A=`(around:${
 
 // §UI-BASIS toast, Icons (SV, ic), Spielerfarben (PAL, colOf), Markerformen (shape, shape0), Wake Lock
 let lastE=0;addEventListener('unhandledrejection',e=>{const m=(e.reason&&e.reason.message)||'';if(Date.now()-lastE>4000){lastE=Date.now();toast('Fehler: '+m.slice(0,80))}});
-function toast(m){m=zx(String(m));lg('toast',String(m).slice(0,120));if(NB&&(document.hidden||window.bcHidden)){try{NB.notify('Blown Cover',String(m))}catch(e){}}const e=$('toast');if(e.lastChild&&e.lastChild.textContent===String(m)&&!e.lastChild.classList.contains('out'))return;
+function toast(m){m=zx(String(m));lg('toast',String(m).slice(0,120));blAdd(m,0,blRef);blRef=null;if(NB&&(document.hidden||window.bcHidden)){try{NB.notify('Blown Cover',String(m))}catch(e){}}const e=$('toast');if(e.firstChild&&e.firstChild.textContent===String(m)&&!e.firstChild.classList.contains('out'))return;   // neueste steht oben
   // Konzept B (Manuel 21.11.): Stapel aus höchstens drei kompakten Zeilen, neueste oben, ältere blasser; Farbe/Symbol nach Art der Meldung
   while(e.children.length>=3)e.lastChild.remove();const k=tCat(m),d=document.createElement('div');d.className='t';d.style.setProperty('--c',k[0]);
   d.innerHTML=ic(k[1]);const sp=document.createElement('span');sp.textContent=m;d.appendChild(sp);e.prepend(d);
@@ -919,7 +941,7 @@ const TCAT=[[/fäng|gefangen|Fang|festgesetzt|FESTGESETZT|infiziert/,'#e5484d','
   [/Ping/,'#9ca1a8','ping'],[/Zone/,'#9ca1a8','bal']];
 const tCat=m=>{for(const c of TCAT)if(c[0].test(m))return[c[1],c[2]];return['#9ca1a8','info']};
 
-const SV={vs:'<path d="M3 4l7 7M21 4l-7 7"/><path d="M3 9V4h5M21 9V4h-5"/><circle cx="12" cy="17" r="3.5"/>',snatch:'<path d="M4 19c0-8 5-13 12-13"/><path d="M12.5 2.5L16 6l-3.5 3.5"/><circle cx="18" cy="17" r="3"/>',clock:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2M9.5 2.5h5M12 2.5V6"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',catch:'<circle cx="6" cy="15" r="4.5"/><circle cx="18" cy="15" r="4.5"/><path d="M6 10.5V8h3.5M18 10.5V8h-3.5"/><circle cx="12" cy="8" r="1.6"/>',knapp:'<path d="M2 12h6M5 9l3 3-3 3M22 12h-6M19 9l-3 3 3 3"/><path d="M12 7v10" stroke-dasharray="2 2.5"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',sat:'<rect x="9.5" y="9.5" width="5" height="5" transform="rotate(45 12 12)"/><path d="M5 5l3.5 3.5M15.5 15.5L19 19M2.5 7.5l5-5M16.5 21.5l5-5"/>',gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13M12 8C10 4 6 4 6 6.5S12 8 12 8zm0 0c2-4 6-4 6-1.5S12 8 12 8z"/>',radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/>',home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',skull:'<path d="M12 3c-4.4 0-7.5 3-7.5 7 0 2.4 1.1 4.2 2.8 5.3V19a1 1 0 0 0 1 1h7.4a1 1 0 0 0 1-1v-3.7c1.7-1.1 2.8-2.9 2.8-5.3 0-4-3.1-7-7.5-7z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10.5 20v-2.5M13.5 20v-2.5"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>',hack:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l3 2-3 2M12 13h4"/>',block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',share:'<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
+const SV={list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',vs:'<path d="M3 4l7 7M21 4l-7 7"/><path d="M3 9V4h5M21 9V4h-5"/><circle cx="12" cy="17" r="3.5"/>',snatch:'<path d="M4 19c0-8 5-13 12-13"/><path d="M12.5 2.5L16 6l-3.5 3.5"/><circle cx="18" cy="17" r="3"/>',clock:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2M9.5 2.5h5M12 2.5V6"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',catch:'<circle cx="6" cy="15" r="4.5"/><circle cx="18" cy="15" r="4.5"/><path d="M6 10.5V8h3.5M18 10.5V8h-3.5"/><circle cx="12" cy="8" r="1.6"/>',knapp:'<path d="M2 12h6M5 9l3 3-3 3M22 12h-6M19 9l-3 3 3 3"/><path d="M12 7v10" stroke-dasharray="2 2.5"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',sat:'<rect x="9.5" y="9.5" width="5" height="5" transform="rotate(45 12 12)"/><path d="M5 5l3.5 3.5M15.5 15.5L19 19M2.5 7.5l5-5M16.5 21.5l5-5"/>',gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13M12 8C10 4 6 4 6 6.5S12 8 12 8zm0 0c2-4 6-4 6-1.5S12 8 12 8z"/>',radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/>',home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',exit:'<path d="M14 3h5v18h-5"/><path d="M3 12h11"/><path d="M10 8l4 4-4 4"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',meet:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',zone:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',ping:'<path d="M5 14a7 7 0 0 1 14 0"/><path d="M8.5 14a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="14" r="1"/>',live:'<circle cx="12" cy="12" r="3"/><path d="M6 6a8.5 8.5 0 0 0 0 12M18 6a8.5 8.5 0 0 1 0 12"/>',extra:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/>',hunter:'<path d="M12 4l9 16H3z"/>',hider:'<circle cx="12" cy="12" r="8"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',check:'<path d="M5 12l5 5 9-10"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',chev:'<path d="M9 6l6 6-6 6"/>',skull:'<path d="M12 3c-4.4 0-7.5 3-7.5 7 0 2.4 1.1 4.2 2.8 5.3V19a1 1 0 0 0 1 1h7.4a1 1 0 0 0 1-1v-3.7c1.7-1.1 2.8-2.9 2.8-5.3 0-4-3.1-7-7.5-7z"/><circle cx="9" cy="11" r="1.6"/><circle cx="15" cy="11" r="1.6"/><path d="M10.5 20v-2.5M13.5 20v-2.5"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',bal:'<path d="M12 3v18M8 21h8M4 7h16M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',play:'<path d="M8 5.5v13l10.5-6.5z"/>',hack:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l3 2-3 2M12 13h4"/>',block:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',share:'<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'};
 const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n]}</svg>`;
 const PAL=['#1c5fd6','#e3cc1f','#00694a','#0fb5ae','#1f2937','#2fa83a','#4fb3f0','#8a5a2b','#8e2a3a','#e02fb5','#f28c00','#7b3fe4'],PALN=['Blau','Gelb','Dunkelgrün','Türkis','Schiefer','Grün','Himmelblau','Braun','Bordeaux','Magenta','Orange','Violett'],PALK=PAL.map(h=>{const v=[1,3,5].map(k=>{const c=parseInt(h.substr(k,2),16)/255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]>.3?'#1a1a1a':'#fff'});
 const hsh=u=>{let h=0;String(u).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%997);return h%12};
@@ -1004,7 +1026,7 @@ if(!L.maplibreGL||/[?&]karte=raster/.test(location.search)){const E='https://ser
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
 const lay=L.layerGroup().addTo(map);
-map.on('click',e=>{if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;{const P_=$('panel');if(!P_.classList.contains('c')){P_.classList.add('c');return}}
+map.on('click',e=>{if(blOpen){blClose();return}if(blShowL){blClear();return}if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;{const P_=$('panel');if(!P_.classList.contains('c')){P_.classList.add('c');return}}
   if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
 if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
 
@@ -2108,7 +2130,7 @@ function hbUse(id){const i=hbMine(G)[id];if(!i||i.u||i.d||now()<i.av)return;
   Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
     if(locatable(p,t,u)){pts[u]={lat:p.lat,lng:p.lng,name:p.name};lk[u]=pts[u]}else{(locWhy(p,t,u)==='old'?ol:nm).push(p.name);if(lk[u])grey[u]=lk[u]}});
   hbRef(id+'/u').set(t).then(()=>{xping={t,pts,grey};psave();db.ref(`games/${code}/xp`).push({t});
-    toast('Extra-Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(ol.length?' Kein Signal: '+ol.join(', '):''));navigator.vibrate&&navigator.vibrate(300);draw();panel(1)})}
+    blRef={p:Object.entries(pts).map(([k,v])=>[k,+(+v.lat).toFixed(5),+(+v.lng).toFixed(5)])};toast('Extra-Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(ol.length?' Kein Signal: '+ol.join(', '):''));navigator.vibrate&&navigator.vibrate(300);draw();panel(1)})}
 function hbLiveGo(h){const g=G,t=now(),id=hbLive,i=id&&hbMine(g)[id];if(!i||i.u||i.d)return;
   if(t<hbLock)return toast('Bitte kurz warten ('+Math.ceil((hbLock-t)/1000)+' s)');
   if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast(locMsg(P()[h],t,h)+'. Dein Bonus bleibt erhalten.')}
@@ -2259,6 +2281,84 @@ function bmOv(p,R,hit){if(!p){if(BM.ov){map.removeLayer(BM.ov);BM.ov=null}return
   if(!BM.ov){const e=document.createElementNS('http://www.w3.org/2000/svg','svg');e.setAttribute('viewBox','-50 -50 100 100');e.innerHTML=BMSVG;
     BM.ov=L.svgOverlay(e,b,{interactive:false,className:'bmr'}).addTo(map)}else BM.ov.setBounds(b);
   BM.ov.getElement().classList.toggle('hit',!!hit)}
+// §LAGEBERICHT Log der Runde (KONZEPT_Log.md, Manuels Wahl: Seitenleiste C). Verlauf = eigene Meldungen (Toast-Historie, lokal in LS
+// blog_<code>_<rn>) + Abgleich mit Meldungen an alle (G.ev); Lage = Restzeit/Zone/Ping + Teams/Hider aus players/catches. Keine DB-Änderung.
+// Nicht ins Log: Bedien-Rückmeldungen (BLX), Chat. Gleiche Meldung binnen 90 s → „×n“. Ping-Einträge speichern die Positionen (letzte 30).
+const BLX=/nicht möglich|nicht geklappt|onnte nicht|Kopiert|Teamfarbe – nicht|Erst wieder frei|Maximal 3 Marker|Replay|Heruntergeladen|Protokoll|Name nicht|Lobby|Beitritt|fehlgeschlagen|Update wird|Noch nicht am Ort|Kein GPS – bitte|Verlassen nicht|Wählt unterschiedliche|bereits vergeben|läuft bereits|Radar läuft noch|Keine weiteren Orte|Live-Ortung läuft|läuft schon|geht wieder in|Noch in Verwandlung|Analyse|Keine Verbindung|Marker konnte|Löschen nicht|Setzen nicht/;
+let BL=null,blRef=null,blOpen=false,blTab='v',blF='all',blShowL=null;
+const blKey=()=>code&&G?'blog_'+code+'_'+(G.rn||0):null;
+function blLoad(){const k=blKey();if(!k)return null;if(BL&&BL.k===k)return BL;
+  try{Object.keys(LS).forEach(x=>{if(x.startsWith('blog_')&&x!==k)LS.removeItem(x)})}catch(e){}   // alte Runden weg
+  let o=null;try{o=JSON.parse(LS[k]||'null')}catch(e){}BL={k,a:(o&&o.a)||[],seen:(o&&o.seen)||0};return BL}
+function blSave(){if(BL)try{LS[BL.k]=JSON.stringify({a:BL.a,seen:BL.seen})}catch(e){}}
+function blAdd(m,t,ref){if(!G||RV||!code||(G.status!=='running'&&G.status!=='over')||BLX.test(m))return;const b=blLoad();if(!b)return;t=t||now();
+  const x=String(m).replace(/^📡\s*/,''),l=b.a[0];
+  if(l&&l.x===x&&t-l.t<90000&&!ref){l.n=(l.n||1)+1;l.t=t}
+  else{b.a.unshift(Object.assign({t,x},ref?{r:ref}:{}));b.a.sort((p,q)=>q.t-p.t);if(b.a.length>300)b.a.length=300;let pc=0;b.a.forEach(e=>{if(e.r&&e.r.p&&++pc>30)delete e.r})}
+  blSave();blSync();if(blOpen&&blTab==='v')blRender()}
+// Meldungen an alle, die man verpasst hat (offline), mit echter Zeit nachtragen
+function blFill(){const b=blLoad();if(!b||!G)return;let ch=0;
+  Object.values(G.ev||{}).forEach(e=>{if(!e||typeof e.x!=='string'||e.u===uid||!(e.t>=G.startAt)||BLX.test(e.x))return;
+    if(b.a.some(a=>a.x===e.x&&Math.abs(a.t-e.t)<60000))return;b.a.push({t:e.t,x:e.x});ch=1});
+  if(ch){b.a.sort((p,q)=>q.t-p.t);if(b.a.length>300)b.a.length=300;blSave()}}
+function blSync(){const b=$('lgk');if(!b)return;const on=!!(G&&code&&!RV&&(G.status==='running'||G.status==='over'));b.style.display=on?'grid':'none';
+  if(!on){if(blOpen)blClose();if(blShowL)blClear();return}
+  b.style.top=`calc(${$('mmbtn').style.display==='grid'?156:108}px + env(safe-area-inset-top,0px))`;
+  if(!b.firstChild)b.innerHTML=ic('list')+'<i></i>';const bl=blLoad();b.classList.toggle('new',!!bl&&!blOpen&&bl.a.some(e=>e.t>bl.seen))}
+function blToggle(){blOpen?blClose():blOpenF()}
+function blOpenF(){blClear();blFill();blOpen=true;let el=$('blg');if(!el){el=document.createElement('div');el.id='blg';el.setAttribute('role','dialog');el.setAttribute('aria-label','Lagebericht');document.body.appendChild(el)}
+  el.classList.add('on');blRender();const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
+function blClose(){blOpen=false;const el=$('blg');if(el)el.classList.remove('on');const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
+const blCat=x=>{const c=tCat(x);return{c:c[0],i:c[1]}},blTm=t=>{const d=t-rs(G);return(d<0?'−':'')+fmt(Math.abs(d))};
+// was ein Eintrag beim Antippen zeigt: Ping-Positionen, Fangort, bekannter Ort (Terminal, eigenes Safehouse)
+function blAct(e){if(e.r&&e.r.p&&e.r.p.length)return'Karte';const c=blCat(e.x);
+  if(c.i==='catch'&&blCatch(e))return'zeigen';if(blLoc(e))return'zeigen';return''}
+function blCatch(e){let best=null,bd=9e9;Object.entries(G.catches||{}).forEach(([h,c])=>{if(!c||c.status!=='done'||c.lat==null)return;const d=Math.abs((c.t||0)-e.t);if(d<bd&&d<90000){bd=d;best=[h,c]}});return best}
+function blLoc(e){const T=G.tasks||{},m=P()[uid]||{},hi=m.role==='hider'||m.role==='spec';
+  if(/Terminal|hackt|gehackt/.test(e.x)&&T.hk&&T.hk.loc)return[T.hk.loc.lat,T.hk.loc.lng];
+  if(hi&&/Safehouse/.test(e.x)&&T.sh&&T.sh.loc)return[T.sh.loc.lat,T.sh.loc.lng];return null}
+function blRender(){const el=$('blg');if(!el||!G)return;const b=blLoad()||{a:[]};
+  let h=`<div class=blh><b>Log</b><span class=blt role=tablist><button role=tab class="${blTab==='v'?'on':''}" onclick="blTab='v';blRender()">Verlauf</button><button role=tab class="${blTab==='l'?'on':''}" onclick="blTab='l';blRender()">Lage</button></span><button class=blx onclick="blClose()" aria-label="Schließen">✕</button></div>`;
+  if(blTab==='v'){const F=[['all','Alle',''],['catch','Fang','catch'],['ping','Ping','ping'],['extra','Boni','extra'],['box','Aufgaben','box']];
+    h+=`<div class=blf>${F.map(([k,l,i])=>`<button class="${blF===k?'on':''}" onclick="blF='${k}';blRender()">${i?ic(i):''}${l}</button>`).join('')}</div><div class=bll>`;
+    const a=b.a.filter(e=>blF==='all'||blCat(e.x).i===blF);
+    h+=a.length?a.map(e=>{const c=blCat(e.x),ac=blAct(e),i=b.a.indexOf(e);
+      return`<div class="blr${ac?' tap':''}" style="--c:${c.c}"${ac?` role=button onclick="blGo(${i})"`:''}><span class=t>${blTm(e.t)}</span>${ic(c.i)}<span class=x>${esc(zx(e.x))}${e.n>1?` <small>×${e.n}</small>`:''}</span>${ac?`<span class=go>${ac}</span>`:''}</div>`}).join('')
+      :`<p class=mut style="font-size:13px;padding:10px 4px">${b.a.length?'Keine Einträge in dieser Auswahl.':'Noch keine Meldungen in dieser Runde.'}</p>`;
+    h+='</div>'}
+  else h+=`<div class=bls id=blS></div>`+blLage();
+  el.innerHTML=h;if(blTab==='l')blStats()}
+function blStats(){const el=$('blS');if(!el||!G)return;const g=G,t=now(),R0=rs(g);let v;
+  if(g.status==='over')v=[['Restzeit','vorbei'],['Zone',Math.round(Rad(g,g.end||t))+' m'],['Verkleinerung','–'],['Ping','–']];
+  else if(t<R0)v=[['Headstart','noch '+fmt(R0-t)],['Zone',Math.round(g.s.r0)+' m'],['Verkleinerung','–'],['Ping','–']];
+  else{const el_=t-R0,nextS=g.s.shrink*6e4-el_%(g.s.shrink*6e4),rz=Rad(g,t),dz=Math.round(rz-Rad(g,t+nextS+500)),pk=pgK(g,t);
+    v=[['Restzeit',fmt(g.s.dur*6e4-el_)],['Zone',Math.round(rz)+' m'],['Verkleinerung',rz>g.s.rMin&&dz>0?'in '+fmt(nextS):'Endgröße'],['Ping','in '+fmt(pk.next-t)]]}
+  el.innerHTML=v.map(([l,x])=>`<div><small>${l}</small><b>${x}</b></div>`).join('')}
+function blLage(){const g=G,pl=g.players||{},m=pl[uid]||{},R0=rs(g),ct=g.catches||{},tm=x=>x==null?'–':fmt(Math.max(0,x)),
+    tri=c=>`<svg class=tri viewBox="0 0 12 11" aria-hidden=true><path d="M6 1.2L11 10H1Z" fill="${c}" stroke="#fff" stroke-width=".9" stroke-linejoin=round /></svg>`,
+    dot=c=>`<span class=ci style="background:${c}"></span>`,hu=Object.entries(pl).filter(([k,p])=>p.role==='hunter'&&isPl(p)),
+    me=m.role,all=me==='spec'||(me==='hider'&&m.state!=='alive');
+  let h='';
+  if(bty(g)){h+=`<h4><span>Agenturen</span><span>Fänge</span></h4>`+tmRank(g).map(r=>`<div class="q${me==='hunter'&&m.tm===r.n?' me':''}">${tri(r.c)}<span class=n>${esc(r.name)}</span><small>${r.lt!=null?'letzter '+tm(r.lt):''}</small><span class=v>${r.f}</span></div>`).join('')}
+  else if(zmb(g)){const zs=hu.map(([k,p])=>[k,p,Object.values(pl).filter(q=>q.zb===k).length]).sort((a,b)=>b[2]-a[2]);
+    h+=me==='hider'&&!all?`<h4><span>Zombies</span><span>${zs.length}</span></h4>`:`<h4><span>Zombies</span><span>Infektionen</span></h4>`+zs.map(([k,p,n])=>`<div class="q${k===uid?' me':''}">${tri(colOf(k))}<span class=n>${esc(p.name||'?')}</span><span class=v>${n}</span></div>`).join('')}
+  else{const n=k=>Object.values(ct).filter(c=>c&&c.status==='done'&&c.hunter===k).length;
+    h+=me==='hider'&&!all?`<h4><span>${HNP(g)}</span><span>${hu.length}</span></h4>`:`<h4><span>${HNP(g)}</span><span>Fänge</span></h4>`+hu.map(([k,p])=>`<div class="q${k===uid?' me':''}">${tri(colOf(k))}<span class=n>${esc(p.name||'?')}</span><span class=v>${n(k)}</span></div>`).join('')}
+  const X=Object.entries(pl).filter(([k,p])=>isPl(p)&&(p.role==='hider'||p.zt)),fr=X.filter(([k,p])=>p.role==='hider'&&p.state==='alive').length;
+  const st=(k,p)=>{if(p.zt)return'infiziert · '+tm(p.zt-R0);const c=ct[k];
+    if(p.state==='caught'&&c){const by=pl[c.hunter];return(by?esc(by.name)+' · ':'')+tm((c.t||p.sT||0)-R0)}
+    return{alive:'frei',safe:'in Sicherheit',dq:'disqualifiziert',quit:'aufgegeben',caught:'gefangen'}[p.state]||esc(p.state||'')};
+  X.sort((a,b)=>(a[1].state==='alive'&&a[1].role==='hider'?0:1)-(b[1].state==='alive'&&b[1].role==='hider'?0:1)||String(a[1].name).localeCompare(b[1].name));
+  h+=`<h4><span>Hider</span><span>${fr} / ${X.length} frei</span></h4>`+X.map(([k,p])=>{const out=!(p.role==='hider'&&p.state==='alive');
+    return`<div class="q${out?' out':''}${k===uid?' me':''}">${dot(colOf(k))}<span class=n>${esc(p.name||'?')}</span><small>${st(k,p)}</small></div>`}).join('');
+  return h}
+function blClear(){if(blShowL){map.removeLayer(blShowL);blShowL=null}}
+function blGo(i){const b=blLoad();const e=b&&b.a[i];if(!e)return;blClose();blClear();const L_=blShowL=L.layerGroup().addTo(map);let pts=[];
+  if(e.r&&e.r.p&&e.r.p.length){e.r.p.forEach(([k,la,ln])=>{pts.push([la,ln]);L.marker([la,ln],{icon:L.divIcon({className:'mkw',html:shape('ping',k),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:2500,interactive:false}).addTo(L_)});
+    L.marker(pts[0],{icon:L.divIcon({className:'',html:`<div class=blpt>${ic('ping')}Ping von ${blTm(e.t)}</div>`,iconSize:[0,0]}),interactive:false,zIndexOffset:2600}).addTo(L_)}
+  else{const c=blCatch(e);const p=c?[c[1].lat,c[1].lng]:blLoc(e);if(!p){blClear();return}pts=[p];
+    if(c)L.marker(p,{icon:L.divIcon({className:'mkw',html:shape('catch',c[0]),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:2500,interactive:false}).addTo(L_)}
+  if(pts.length>1)map.fitBounds(L.latLngBounds(pts).pad(.3),{maxZoom:17});else map.setView(pts[0],Math.max(map.getZoom(),17));}
 // §CHAT
 // Chat: in der Lobby ein Kanal „all“ für alle (keine Privatnachrichten, Rolle neben dem Namen, bei Auslosen ohne Rolle);
 // ab Spielstart Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene lesen alles und schreiben nur in "out"
@@ -2735,7 +2835,7 @@ const LOGO='<svg viewBox="0 0 60 60" aria-hidden=true><circle cx="30" cy="30" r=
 const SHP=(hu,c,st='#edece8')=>hu?`<svg class=sh viewBox="0 0 12 12"><path d="M6 1 L11 10.5 L1 10.5Z" fill="${c}" stroke="${st}" stroke-width="1.4" stroke-linejoin="round"/></svg>`:`<svg class=sh viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="${c}" stroke="${st}" stroke-width="1.4"/></svg>`;
 // §PANEL panel() mit Signatur lastSig
 // Höhenwechsel des Panels weich (Inhalt wechselt → Höhe gleitet statt zu springen); _h1 = Zielhöhe für pMid während der Bewegung
-function panel(force){const P_=$('panel');if(!P_||RV&&RV.play||matchMedia('(prefers-reduced-motion: reduce)').matches)return panel0(force);
+function panel(force){blSync();const P_=$('panel');if(!P_||RV&&RV.play||matchMedia('(prefers-reduced-motion: reduce)').matches)return panel0(force);
   // max-height (tall) springt beim Messen sofort auf den neuen Wert, die Höhe gleitet dann von h0 nach h1
   const h0=P_.offsetHeight;P_.style.transition='transform .25s ease,height .25s ease';P_.style.height='';const r=panel0(force),h1=P_.offsetHeight;
   if(Math.abs(h1-h0)<3){if(P_._h1)P_.style.height=P_._h1+'px';else P_.style.transition='';return r}
@@ -3090,6 +3190,7 @@ function onData(){
   if(G.status==='running')bfAuto();else{const b=$('bfd');if(b)b.remove()}}
 
 // §TICK Sekundentakt: HUD, GPS/Netz-Warnung, Zone, Pings, Fänge, Spielende
+setInterval(()=>{if(blOpen&&blTab==='l')blStats()},1000);
 setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),m=P()[uid]||{};let h='';
   const nw=Date.now();if(nw-lastTick>3000)skipUntil=nw+10000;lastTick=nw;
   if(pos&&nw-lastW>=8000&&nw-lastFix<15000)write(1);
@@ -3185,7 +3286,7 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
         if((p.immUntil||0)>t||hkAct(g,id)){nm.push(p.name);if(lk[id])ping.grey[id]=lk[id]}
         else if(p.lat){if(!TEST&&(offl||t-(p.ts||0)>30000)){old.push(p.name);ping.grey[id]={lat:p.lat,lng:p.lng,name:p.name,old:1,ts:p.ts||0}}
           else{ping.pts[id]={lat:p.lat,lng:p.lng,name:p.name};lk[id]=ping.pts[id]}}});
-      navigator.vibrate&&navigator.vibrate(300);toast('📡 Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(old.length?(offl?' Du bist offline – Standorte veraltet':' Kein Signal: '+old.join(', ')):''));psave();draw()}}}
+      blRef={p:Object.entries(ping.pts).map(([k,v])=>[k,+(+v.lat).toFixed(5),+(+v.lng).toFixed(5)])};navigator.vibrate&&navigator.vibrate(300);toast('📡 Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(old.length?(offl?' Du bist offline – Standorte veraltet':' Kein Signal: '+old.join(', ')):''));psave();draw()}}}
   // Fang-Anfragen
   {const c=(g.catches||{})[uid];if(c&&c.status==='pending'){const hq=P()[c.hunter];if(!hq||hq.state!=='alive')db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{})}}
   Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid||m.state!=='alive')return;
