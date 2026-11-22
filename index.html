@@ -1940,7 +1940,8 @@ async function leaveGame(){const g=G,m=P()[uid]||{};
   try{
     if(g.host===uid&&!others.length){try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('marks/'+code).remove()}catch(e){}try{await db.ref('tmarks/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}try{await db.ref('rp/'+code).remove()}catch(e){}await db.ref('games/'+code).remove();return leave()}
     if(g.host===uid)u.host=others[0][0];
-    if(g.status==='lobby'){u['players/'+uid]=null;if(Number.isInteger(m.col))u['cols/'+m.col]=null}
+    if(g.status==='lobby'){u['players/'+uid]=null;   // alte Farb-Sperre nur löschen, wenn sie wirklich uns gehört – sonst lehnt die Regel das ganze Update ab (Fehler seit der Farbregel 101)
+      Object.entries(g.cols||{}).forEach(([i,v])=>{if(v===uid)u['cols/'+i]=null})}
     else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
     await db.ref('games/'+code).update(u)}
   catch(e){leaving=false;toast('Verlassen nicht möglich: '+String(e.message||e).slice(0,50));return}

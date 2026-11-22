@@ -11,6 +11,9 @@ const zInf=(h,hu)=>({[`players/${h}/role`]:'hunter',[`players/${h}/zt`]:N,[`play
 let fail=0;const T=(name,want,data,uid,op,p,v)=>{const db=t.database(rules,data,N).as(uid?{uid}:null);const r=op==='update'?db.update(p,v,{now:N}):op==='read'?db.read(p,{now:N}):db.write(p,v,{now:N});
   const ok=r.allowed===want;if(!ok)fail++;console.log((ok?'ok  ':'FALSCH ')+name+' → '+(r.allowed?'erlaubt':'abgelehnt')+(ok?'':'\n'+String(r.info).split('\n').filter(l=>/=> false|No \.write|validate/.test(l)).slice(0,8).join('\n')))};
 const G='/games/K7QF';
+// Lobby selbst verlassen (Fehler 22.11.: die App löschte cols/<col>, das ihr nicht gehörte → ganzes Update abgelehnt)
+{const d=base({status:'lobby',cols:{}});T('Lobby verlassen: nur eigener Spieler',true,d,'u3','update',G,{'players/u3':null});
+ T('Lobby verlassen: fremde Farbsperre mitlöschen (alter Fehler)',false,d,'u3','update',G,{'players/u3':null,'cols/2':null});}
 T('Zombie: Infektion durch Fänger nach Timeout',true,base(),'u1','update',G,zInf('u2','u1'));
 T('Zombie: Infektion durch den Hider selbst (ok)',true,base(),'u2','update',G,zInf('u2','u1'));
 T('Zombie: Infektion durch fremden Hunter',false,base(),'u4','update',G,zInf('u2','u1'));
