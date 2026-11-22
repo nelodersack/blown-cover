@@ -339,6 +339,15 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #blg .tri{width:12px;height:11px;flex:none}#blg .ci{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 1px #fff8}
 #blg{overflow-y:auto}#blg>.q:last-child{margin-bottom:8px}
 .blpt{display:flex;align-items:center;gap:5px;background:#1b1e22f0;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 7px;font:600 12px var(--f-b);color:var(--fg);white-space:nowrap;transform:translate(-50%,calc(-100% - 22px));width:max-content}.blpt .ic{width:13px;height:13px;color:#9ca1a8}
+/* §CSS-CHAT-KARTE Chat als Karte am Knopf wie der Lagebericht (Manuel 22.11.); beim Tippen (.kb) breit über der Tastatur (--kbb Abstand unten, --kbh verfügbare Höhe aus visualViewport) */
+#chat{left:auto;right:58px;top:calc(56px + env(safe-area-inset-top,0px));bottom:auto;width:calc(100% - 116px);max-width:340px;height:auto;max-height:58vh;border-radius:14px;border:1px solid var(--line);box-shadow:0 12px 34px #000a;background:#1b1e22;overflow:hidden}
+#chh{padding:10px 10px 8px 12px;border-bottom:0}#chh>button{width:30px;height:30px;min-height:0;padding:0;border-radius:50%;color:var(--mut)}
+#cht{background:var(--bg);border-radius:999px;padding:3px;gap:2px;flex-wrap:nowrap}#cht .s{border:0;background:none;padding:4px 10px;font-size:12.5px;border-radius:999px;opacity:1;color:var(--mut);min-height:0;margin:0;width:auto}
+#cht .s.on{background:var(--fg);color:var(--bg)}
+#chp{padding:2px 12px 0!important}#chm{flex:0 1 auto;padding:6px 12px}#chm .m{font-size:13.5px;padding:5px 9px}
+#chq{padding:6px 10px 0}#chq button.qr{min-height:30px;padding:4px 10px;font-size:12px}
+#chr{padding:8px 10px 10px}#chr input{min-height:38px;font-size:16px}#chr button#chs{width:38px;min-height:38px;height:38px}
+#chat.kb{left:8px;right:8px;width:auto;max-width:none;top:auto;bottom:var(--kbb,8px);max-height:var(--kbh,60vh)}
 /* §CSS-REPLAY-SICHT Blickwinkel (rvv), Ergebniszeile (rvop), Funk-Karte (rvfk), Teampunkt (tdot) */
 .rvh{margin:2px 0 0;font-size:24px;line-height:1.15}.rvop{display:block;margin-top:-6px}.rvop b{font-weight:600;color:var(--fg)}
 .rvv{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -14px 0;padding:0 14px}.rvv::-webkit-scrollbar{display:none}
@@ -569,7 +578,7 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 <button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
 <div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
 <div id=chro style="display:none;padding:10px 14px 14px;border-top:1px solid #333;color:#aaa;font-size:13px">Nur lesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</div>
-<div id=chq></div><div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()"><button id=chs onclick="chSend()" aria-label="Senden"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div></div>
+<div id=chq></div><div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()" onfocus="chKb(true)" onblur="setTimeout(()=>{if(document.activeElement!==$('chi'))chKb(false)},150)"><button id=chs onclick="chSend()" aria-label="Senden"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div></div>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/maplibre-gl.js"></script>
@@ -1027,7 +1036,7 @@ if(!L.maplibreGL||/[?&]karte=raster/.test(location.search)){const E='https://ser
   L.tileLayer(E+'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);
   L.tileLayer(E+'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:19}).addTo(map)}
 const lay=L.layerGroup().addTo(map);
-map.on('click',e=>{if(blOpen){blClose();return}if(blShowL){blClear();return}if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;{const P_=$('panel');if(!P_.classList.contains('c')){P_.classList.add('c');return}}
+map.on('click',e=>{if(blOpen){blClose();return}if(chOpen&&!$('chat').classList.contains('kb')){chToggle(false);return}if(blShowL){blClear();return}if(mkMode&&mkMode!=='excl-wait'&&mkMode!=='zone-size'&&mkMode!=='pin-wait'){mkTap(e.latlng);return}if(mkMode)return;{const P_=$('panel');if(!P_.classList.contains('c')){P_.classList.add('c');return}}
   if(TEST&&G){pos={lat:e.latlng.lat,lng:e.latlng.lng};lastFix=Date.now();write(1);draw();panel()}});
 if(TEST){const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7b2cbf;color:#fff;font:12px sans-serif;text-align:center;padding:2px;pointer-events:none';d.textContent='TESTMODUS: Karte antippen = Standort setzen';document.body.appendChild(d)}
 
@@ -2308,7 +2317,7 @@ function blSync(){const b=$('lgk');if(!b)return;const on=!!(G&&code&&!RV&&(G.sta
   b.style.top=`calc(${$('mmbtn').style.display==='grid'?156:108}px + env(safe-area-inset-top,0px))`;
   if(!b.firstChild)b.innerHTML=ic('list')+'<i></i>';const bl=blLoad();b.classList.toggle('new',!!bl&&!blOpen&&bl.a.some(e=>e.t>bl.seen))}
 function blToggle(){blOpen?blClose():blOpenF()}
-function blOpenF(){blClear();blFill();blOpen=true;let el=$('blg');if(!el){el=document.createElement('div');el.id='blg';el.setAttribute('role','dialog');el.setAttribute('aria-label','Lagebericht');document.body.appendChild(el)}
+function blOpenF(){if(chOpen)chToggle(false);blClear();blFill();blOpen=true;let el=$('blg');if(!el){el=document.createElement('div');el.id='blg';el.setAttribute('role','dialog');el.setAttribute('aria-label','Lagebericht');document.body.appendChild(el)}
   el.classList.add('on');blRender();const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
 function blClose(){blOpen=false;const el=$('blg');if(el)el.classList.remove('on');const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
 const blCat=x=>{const c=tCat(x);return{c:c[0],i:c[1]}},blTm=t=>{const d=t-rs(G);return(d<0?'−':'')+fmt(Math.abs(d))};
@@ -2384,8 +2393,12 @@ function chTabs(){const cs=chChans(),mt=mates(),dm=isDm(chCur),nm=u=>esc((P()[u]
   $('chp').innerHTML=dm?mt.map(u=>`<button class="s ${'dm:'+u===chCur?'on':'g'}" onclick="chShow('dm:${u}')">${nm(u)}${dmUn[u]?' ●':''}</button>`).join(' ')+(G&&rpOn(G)?'<small class=chpn>Privatnachrichten sind nach der Runde im Replay sichtbar.</small>':''):'';
   $('chp').style.display=dm?'flex':'none'}
 function chOpenDm(u){chToggle(true);chShow('dm:'+u)}
-function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);
+function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);if(chOpen&&blOpen)blClose();if(!chOpen)chKb(false);
   chQSync();if(chOpen){chUnread=0;Object.keys(dmUn).forEach(u=>{if(chCur!=='dm:'+u)chUnread+=dmUn[u]});chBadge();const b=$('chm');b.scrollTop=b.scrollHeight}}
+// Tastatur: Karte wird breit und sitzt direkt darüber. visualViewport kennt die Tastatur (iOS); schrumpft stattdessen das Fenster (Android-WebView), reicht bottom:8px.
+function chKb(on){const c=$('chat');if(!c)return;if(!on){c.classList.remove('kb');return}const v=window.visualViewport,H=innerHeight,vh=v?v.height:H,off=v?v.offsetTop:0,kb=Math.max(0,H-vh-off);
+  c.style.setProperty('--kbb',(kb+8)+'px');c.style.setProperty('--kbh',Math.max(160,vh-72)+'px');c.classList.add('kb');const b=$('chm');if(b)b.scrollTop=b.scrollHeight}
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(chOpen&&$('chat').classList.contains('kb'))chKb(true)});
 function chPath(ch){const m=P()[uid]||{};return isDm(ch)?`chats/${code}/dm/${chTeam(m)||m.role}/${pairKey(ch.slice(3))}`:`chats/${code}/${ch}`}
 function chSend(q){const i=$('chi'),x=(q!=null?String(q):i.value).trim().slice(0,200);if(!x||!code||!chCur||!chCanWrite(chCur))return;
   const m=P()[uid]||{};db.ref(chPath(chCur)).push({u:uid,n:(m.name||'Agent').slice(0,16),t:now(),x,r:m.role});if(q==null)i.value=''}
