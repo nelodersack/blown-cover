@@ -62,7 +62,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     # Ping-Block beim Ziel-Team: Hunter u2 (Team 3) zum Ping-Zeitpunkt → Störungsmeldung, kein Ping
     ev("uid='u2';pos={lat:47.07,lng:15.44};lastK=-1;ping=null");
     k=ev("(()=>{const pk=pgK(G,now());return pk.next-now()})()");pg.wait_for_timeout(int(k)+1500)
-    print('Toast Team 3:',ev("$('toast').innerText"),'ping:',ev("!!ping"));assert 'Funk wird gestört' in ev("$('toast').innerText") and not ev("!!ping")
+    print('Toast Team 3:',ev("$('toast').innerText"),'ping:',ev("!!ping"));assert 'Funk gestört' in ev("$('toast').innerText") and not ev("!!ping")
     print('HUD:',ev("$('hud').innerText"))
     # Replay: Ereignisse aus dem Log
     r=ev("""(()=>{const T=1e12,f={code:'X',round:0,game:{s:Object.assign({},DEF,{mode:'bounty',tN:3,ping:60}),teams:{2:{name:'Füchse'}}},log:[[T,'inf/1/t',T],[T+5,'inf/1/lat',47],[T+5,'inf/1/lng',15],

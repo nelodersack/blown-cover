@@ -24,7 +24,7 @@ with app(390,844) as (pg,ev,errs):
     f=ev("G.fz&&G.fz.u2");print('fz',f);assert f and f['h']=='u1'
     t=ev("document.getElementById('pb').textContent");assert 'Lena festgesetzt' in t and 'Wieder in' in t,t[:400]
     pg.screenshot(path=OUT+'/fs_hunter_countdown.png')
-    ev("fsBtn()");assert 'wieder in' in ev("__toasts.slice(-1)[0]")
+    ev("fsBtn()");assert ev("__toasts.slice(-1)[0]").startswith('Noch ')
     # zweite Auslösung auf denselben Hider während Countdown eines anderen Hunters wird nicht geschrieben
     ev("const m=fsMine();m.l-=70000;m.p={};LS[fsKey('fs')]=JSON.stringify(m)");ev("const t0=G.fz.u2.t;fsGo('u2');window.__t0=t0");pg.wait_for_timeout(400)
     assert ev("G.fz.u2.t===__t0"),'laufender Countdown wurde überschrieben'

@@ -25,7 +25,7 @@ with app(390,844) as (pg,ev,errs):
     pg.screenshot(path=OUT+'/solo_hider.png')
     ev("chk('d1')");pg.wait_for_timeout(900);assert ev(T_+".d1.fin"),ev(T_+".d1")
     it=ev("myItems(G)");print(it);assert len(it)==1 and it[0]['id']=='d1b' and it[0]['type'] in('bm','radar'),it
-    assert any('Deine Belohnung' in x for x in ev("__m"))
+    assert any('Aufgabe erledigt: ' in x for x in ev("__m"))
     assert not [e for e in errs if 'PE:' in e],errs
 # 2 Hunter: sieht den verratenen Ort (Meeting), Meldung
 with app(390,844) as (pg,ev,errs):

@@ -741,7 +741,7 @@ function anBuild(v){const g=G,pl=g.players||{},ids=Object.keys(pl).sort((a,b)=>(
 async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten werden gesammelt…');
   try{const need=Object.entries(P()).filter(([k,p])=>!p.lf&&isPl(p)).map(e=>e[0]);let v={};
     for(let i=0;i<10;i++){const sn=await db.ref('analysis/'+code).once('value');v=sn.val()||{};if(need.every(k=>v[k]))break;await new Promise(r=>setTimeout(r,1000))}
-    if(!Object.keys(v).length){toast('Noch keine Protokolle empfangen – kurz warten und erneut tippen');return}
+    if(!Object.keys(v).length){toast('Noch keine Protokolle empfangen – warte kurz');return}
     const txt=anBuild(v),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=`blowncover_analyse_${code}_r${G.rn||0}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
@@ -761,7 +761,7 @@ db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){connSince=Date.
 let lastAck=0,netOkSince=0; // Eigene Verbindung nachweislich ok? (Schutz gegen Fehl-Disqualifikationen aus dem Funkloch)
 const BOOT=Date.now(); // Seitenstart (GPS-Lücke nach Neuladen erst ab hier zählen)
 const netGap=()=>{const n=Date.now();return Math.max(connLost?n-connLost:0,wrOld?n-wrOld:0)};
-function rcn(){const mm=P()[uid],n=Date.now();if(!mm||mm.state!=='alive'||!G||G.status!=='running'||now()<G.startAt||n-lastRcn<8000)return;lastRcn=n;evW(uid+'_r_'+n,lbl(mm)+' ist wieder verbunden')}
+function rcn(){const mm=P()[uid],n=Date.now();if(!mm||mm.state!=='alive'||!G||G.status!=='running'||now()<G.startAt||n-lastRcn<8000)return;lastRcn=n;evW(uid+'_r_'+n,mm.name+' ist wieder verbunden')}
 const now=()=>Date.now()+off,$=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const D=(a,b)=>{const t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t*Math.cos((a.lat+b.lat)*t/2);return 6371000*Math.hypot(x,y)};
@@ -775,7 +775,7 @@ function evW(key,x,u){if(!code||evSeen.has(key))return;evSeen.add(key);db.ref(`g
 function note(m){nq.push(m);if(!nB)nxt()}
 function nxt(){if(!nq.length){nB=0;return}nB=1;toast(nq.shift());navigator.vibrate&&navigator.vibrate(120);setTimeout(nxt,1400)}
 // §ERGEBNIS Fang-Ablehnungsgründe (CW, catchWhy), Ergebnisfenster (buildRes, resHTML, resSync)
-const CW={far:'Fang abgelehnt: zu weit weg (mehr als 40 m)',stale:'Fang abgelehnt: Standort nicht aktuell'};
+const CW={far:'Fang abgelehnt: zu weit weg (>40 m)',stale:'Fang abgelehnt: Standort nicht aktuell'};
 const catchWhy=(p,t)=>(!p||!p.lat||!pos||t-(p.ts||0)>30000||Date.now()-lastFix>30000)?'stale':(D(pos,p)>40?'far':null);
 function buildRes(g){const R0=rs(g),ct=g.catches||{},pl=g.players||{};
   const bt_=k=>{const h=(ct[k]||{}).hunter,q=pl[h];return bty(g)&&p_st(k)&&q&&q.tm?tmName(g,q.tm):null},p_st=k=>(pl[k]||{}).state==='caught';
@@ -890,7 +890,7 @@ function myTk(g,t){const T=g.tasks||{},o=[];['sh','ev'].forEach(id=>{if(tv(g,id,
 // Verratene Aufgabenorte (für Hunter): Partner gefangen, Aufgabe noch offen
 const cmpIds=(g,t)=>Object.keys(g.tasks||{}).filter(i=>(isDd(i)||isMt(i))&&g.tasks[i].cmp&&g.tasks[i].loc&&t>=g.tasks[i].t0&&!g.tasks[i].fin&&!g.tasks[i].ex&&!g.tasks[i].pick).sort();
 let lastCT=null;
-const tkMsg=x=>/c$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert: Die '+HNP(G)+' kennen jetzt den Ort':x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: dein Partner fiel aus':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
+const tkMsg=x=>/c$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert: Die '+HNP(G)+' kennen jetzt den Ort':x==='sh'?'Neue Aufgabe: Safehouse':x==='ev'?'Evakuierung: Erreiche den Zielort!':/x$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+' verfallen: kein Partner':/s$/.test(x)?(x[0]==='m'?'Meeting':'Dead Drop')+': Du musst allein ran':'Neue Aufgabe: '+(x[0]==='m'?'Meeting':'Dead Drop');
 const tv=(g,id,t)=>{const k=g.tasks&&g.tasks[id];return !!k&&t>=k.t0};
 const rankOf=(inn,u)=>{const a=Object.entries(inn||{}).sort((x,y)=>x[1].t-y[1].t||(x[0]<y[0]?-1:1));return a.findIndex(e=>e[0]===u)+1};
 // Radar (Konzept: claude/KONZEPT_Bewegungsmelder.md): Radius/Dauer (0 = auto), Dead-Drop-Verteilung per Hash aus code+rn+id (alle Geräte gleich, ohne DB)
@@ -1235,7 +1235,7 @@ function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.pla
     game:{s:S.s,c:S.c,teams:S.teams||null,startAt:S.startAt,R0:S.startAt+S.s.head*6e4,end:S.end,winner:S.winner},players,tracks,log,funk:ch.length||mk.length?{ch,mk}:null}}
 function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(f)],{type:'application/json'}));a.download=`blowncover_replay_${f.code}_r${f.round}_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){toast('Replay konnte nicht erstellt werden')}}
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){toast('Fehler beim Erstellen')}}
 
 // §REPLAY Abspielen rv* (rvConv, rvScan, rvStats, rvDraw, rvPanel)
 // ===== Replay: Abspielen =====
@@ -1365,39 +1365,39 @@ function rvScan(f,P_){const cur={},ev=[],nm=k=>esc((P_[k]||{}).name||'?'),st={pl
   f.log.forEach(([t,p,v])=>{if(cur[p]===v)return;const old=cur[p];cur[p]=v;rvSetP(st,p,v);let m;
     if((m=/^players\/([^/]+)\/state$/.exec(p))&&P_[m[1]]&&v&&v!=='alive'&&(old==null||old==='alive')){const q=P_[m[1]];if(!q.sT){q.state=v;q.sT=t}}
     else if((m=/^players\/([^/]+)\/sT$/.exec(p))&&P_[m[1]]&&v&&!P_[m[1]]._sT)P_[m[1]]._sT=v;
-    else if((m=/^fz\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'catch',hu:1,i:'catch',x:`${nm(cur['fz/'+m[1]+'/h'])} setzt ${nm(m[1])} fest`});
-    else if((m=/^tasks\/(\w+)\/t0$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],i:rvTI(m[1]),x:`${rvTN(m[1])} erscheint`,start:1});
-    else if((m=/^tasks\/(\w+)\/in\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],who:m[2],i:rvTI(m[1]),x:`${nm(m[2])} erreicht ${m[1]==='sh'?'das Safehouse':'die '+rvTN(m[1])}`});
-    else if((m=/^tasks\/(\w+)\/fin$/.exec(p))&&v){const k=st.tasks[m[1]];ev.push({t:v,k:'task',i:rvTI(m[1]),x:isMt(m[1])&&k?`Meeting erfüllt: ${nm(k.a)} und ${nm(k.b)}`:`${rvTN(m[1])} erledigt`})}
-    else if((m=/^tasks\/(\w+)\/ex$/.exec(p))&&v){const k=st.tasks[m[1]]||{};ev.push({t:Math.max(t,k.t0||0),k:'task',i:rvTI(m[1]),x:`${rvTN(m[1])} entfällt (Partner ausgeschieden)`})}
-    else if((m=/^players\/([^/]+)\/used\/([^/]+)$/.exec(p))&&v){const u=m[1],it=myItems({s:g.s,tasks:st.tasks||{},code:f.code,rn:f.round},u).find(i=>i.id===m[2]);ev.push({t,k:'bonus',by:u,sat:it&&it.type==='radar'?1:0,bm:it&&it.type==='bm'?u:null,i:it?{imm:'shield',radar:'sat',bm:'radar'}[it.type]:'shield',x:`${nm(u)} setzt ${it?ITN(it).replace(/ [0-9:]+$/,''):'Immunität'} ein`})}});
-  Object.entries(st.tasks||{}).forEach(([id,k])=>{if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',i:'box',who:k.dep.u,x:`${nm(k.dep.u)} legt den Dead Drop ab`});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',i:'box',who:k.pick.u,x:`${nm(k.pick.u)} holt den Dead Drop ab`})});
+    else if((m=/^fz\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'catch',hu:1,i:'catch',x:`${nm(cur['fz/'+m[1]+'/h'])} setzt ${nm(m[1])} fest`,ti:'Festgesetzt!'});
+    else if((m=/^tasks\/(\w+)\/t0$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],i:rvTI(m[1]),x:`${rvTN(m[1])} erscheint`,ti:isMt(m[1])?'Meeting erscheint':rvTN(m[1]),nopos:isMt(m[1])?1:0,start:1});
+    else if((m=/^tasks\/(\w+)\/in\/([^/]+)\/t$/.exec(p))&&v)ev.push({t:v,k:'task',id:m[1],who:m[2],i:rvTI(m[1]),x:`${nm(m[2])} erreicht ${m[1]==='sh'?'das Safehouse':'die '+rvTN(m[1])}`,ti:m[1]==='sh'?'Eingecheckt':'Evakuiert'});
+    else if((m=/^tasks\/(\w+)\/fin$/.exec(p))&&v){const k=st.tasks[m[1]];ev.push({t:v,k:'task',i:rvTI(m[1]),x:isMt(m[1])&&k?`Meeting erfüllt: ${nm(k.a)} und ${nm(k.b)}`:`${rvTN(m[1])} erledigt`,ti:rvTN(m[1])+' erledigt',nopos:isMt(m[1])?1:0})}
+    else if((m=/^tasks\/(\w+)\/ex$/.exec(p))&&v){const k=st.tasks[m[1]]||{};ev.push({t:Math.max(t,k.t0||0),k:'task',i:rvTI(m[1]),x:`${rvTN(m[1])} entfällt (kein Partner)`,ti:rvTN(m[1])+' verfallen',nopos:isMt(m[1])?1:0})}
+    else if((m=/^players\/([^/]+)\/used\/([^/]+)$/.exec(p))&&v){const u=m[1],it=myItems({s:g.s,tasks:st.tasks||{},code:f.code,rn:f.round},u).find(i=>i.id===m[2]);ev.push({t,k:'bonus',by:u,sat:it&&it.type==='radar'?1:0,bm:it&&it.type==='bm'?u:null,i:it?{imm:'shield',radar:'sat',bm:'radar'}[it.type]:'shield',x:`${nm(u)} setzt ${it?ITN(it).replace(/ [0-9:]+$/,''):'Immunität'} ein`,ti:it?ITN(it).replace(/ [0-9:]+$/,''):'Immunität'})}});
+  Object.entries(st.tasks||{}).forEach(([id,k])=>{if(k.dep&&k.dep.t)ev.push({t:k.dep.t,k:'task',i:'box',who:k.dep.u,x:`${nm(k.dep.u)} legt den Dead Drop ab`,ti:'Dead Drop abgelegt'});if(k.pick&&k.pick.t)ev.push({t:k.pick.t,k:'task',i:'box',who:k.pick.u,x:`${nm(k.pick.u)} holt den Dead Drop ab`,ti:'Dead Drop abgeholt'})});
   {const k=(st.tasks||{}).hk;if(k){const A=k.at||{};Object.keys(A).sort((a,b)=>a-b).forEach(n=>{const a=A[n];
-      ev.push({t:a.s,k:'task',i:'hack',x:`${nm(a.u)} hackt das Terminal (Versuch ${n})`});
-      Object.entries(a.p||{}).forEach(([u,o])=>{if(u!==a.u&&o&&o.t)ev.push({t:o.t,k:'task',i:'hack',x:`${nm(u)} hilft beim Hack`})});
-      Object.entries(a.x||{}).forEach(([u,tt])=>ev.push({t:tt,k:'task',i:'hack',x:`${nm(u)} verlässt die Terminal-Zone und scheidet aus`}));
-      if(a.e)ev.push({t:a.e.t,k:'task',i:'hack',x:a.e.k==='ok'?'Terminal gehackt!':a.e.k==='df'?'Hack gestoppt: alle Hacker gefangen':`Hack abgebrochen (Versuch ${n})`})});
+      ev.push({t:a.s,k:'task',i:'hack',x:`${nm(a.u)} startet den Hack (Versuch ${n})`,ti:'Hack gestartet'});
+      Object.entries(a.p||{}).forEach(([u,o])=>{if(u!==a.u&&o&&o.t)ev.push({t:o.t,k:'task',i:'hack',x:`${nm(u)} hilft beim Hack`,ti:'Hack-Beitritt'})});
+      Object.entries(a.x||{}).forEach(([u,tt])=>ev.push({t:tt,k:'task',i:'hack',x:`${nm(u)} verlässt die Terminal-Zone und scheidet aus`,ti:'Hacker ausgeschieden'}));
+      if(a.e)ev.push({t:a.e.t,k:'task',i:'hack',x:a.e.k==='ok'?'Terminal gehackt!':a.e.k==='df'?'Hack gestoppt: alle Hacker gefangen':`Hack abgebrochen (Versuch ${n})`,ti:a.e.k==='ok'?'Terminal gehackt!':a.e.k==='df'?'Hack gestoppt':'Hack abgebrochen'})});
     const r=k.res;if(r){let ex='';
-      if(r.k==='d3')ev.push({t:r.t,k:'task',i:'hack',x:'Terminal gesichert: Zone verteidigt'});
+      if(r.k==='d3')ev.push({t:r.t,k:'task',i:'hack',x:'Terminal gesichert',ti:'Terminal gesichert'});
       if(r.k!=='ok'&&r.h)ex=`${nm(r.h)} erhält das Sperrgebiet`;
       if(r.k==='ok'&&r.el){const f1=Object.entries(r.el).sort((a,b)=>a[1]-b[1])[0];if(f1)ex=`${nm(f1[0])} erhält die Gegenüberwachung`}
-      if(ex){const l=ev.filter(e=>e.k==='task'&&e.t===r.t).pop();if(l)l.x+=' · '+ex;else ev.push({t:r.t,k:'task',i:'hack',x:ex})}}
-    if(k.cm)ev.push({t:k.cm.t,k:'bonus',i:'sat',x:`${nm(k.cm.u)} setzt die Gegenüberwachung ein`});
-    if(k.oz){const ph=ozPhase(g.s,k.oz,k.oz.t);ev.push({t:k.oz.t,k:'bonus',i:'block',hu:1,x:`${nm(k.oz.u)} setzt das Sperrgebiet (Vorwarnung)`},{t:ph.w,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aktiv'},{t:ph.e,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aufgehoben'})}}}
+      if(ex){const l=ev.filter(e=>e.k==='task'&&e.t===r.t).pop();if(l)l.x+=' · '+ex;else ev.push({t:r.t,k:'task',i:'hack',x:ex,ti:'Terminal'})}}
+    if(k.cm)ev.push({t:k.cm.t,k:'bonus',i:'sat',x:`${nm(k.cm.u)} setzt die Gegenüberwachung ein`,ti:'Gegenüberwachung'});
+    if(k.oz){const ph=ozPhase(g.s,k.oz,k.oz.t);ev.push({t:k.oz.t,k:'bonus',i:'block',hu:1,x:`${nm(k.oz.u)} setzt das Sperrgebiet (Vorwarnung)`,ti:'Sperrgebiet'},{t:ph.w,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aktiv',ti:'Sperrgebiet aktiv'},{t:ph.e,k:'bonus',i:'block',hu:1,x:'Sperrgebiet aufgehoben',ti:'Sperrgebiet beendet'})}}}
   Object.entries(st.hb||{}).forEach(([h,o])=>Object.values(o||{}).forEach(i=>{if(!i||!i.u)return;let tg='';
     if(i.k==='live'){const L_=st.live||{};for(const x in L_)if(L_[x]&&L_[x][h]&&Math.abs(L_[x][h]-(i.u+(g.s.hbL||60)*1000))<15000)tg=' auf '+nm(x)}
-    ev.push({t:i.u,k:'bonus',hu:1,by:h,xp:i.k!=='live'&&i.k!=='bm'?1:0,bm:i.k==='bm'?h:null,i:{live:'live',bm:'radar'}[i.k]||'extra',x:`${nm(h)} setzt ${i.k==='live'?'Live-Standort'+tg:i.k==='bm'?'Hider-Radar':'Extra-Ping'} ein`})}));
+    ev.push({t:i.u,k:'bonus',hu:1,by:h,xp:i.k!=='live'&&i.k!=='bm'?1:0,bm:i.k==='bm'?h:null,i:{live:'live',bm:'radar'}[i.k]||'extra',x:`${nm(h)} setzt ${i.k==='live'?'Live-Standort'+tg:i.k==='bm'?'Hider-Radar':'Extra-Ping'} ein`,ti:i.k==='live'?'Live-Ortung':i.k==='bm'?'Hider-Radar':'Extra-Ping'})}));
   {const TS=Array.from({length:tmN(g)},(_,i)=>'t'+(i+1)),tn=n=>esc(tmName({teams:f.game.teams||{}},n));
     Object.entries(st.inf||{}).forEach(([n,x])=>{if(!x||x.lat==null)return;const at=f.log.find(l=>l[1]==='inf/'+n+'/lat');const t0=at?at[0]:x.t;
-      ev.push({t:t0,k:'bonus',i:'inf',c:'#4fb3f0',sd:TS,inf:n,x:'Ein Informant taucht auf'});
-      if(x.by&&x.at)ev.push({t:x.at,k:'bonus',i:'inf',c:'#4fb3f0',sd:TS,by:x.by,x:`${nm(x.by)} (${tn(x.tm)}) trifft den Informanten`});
-      if(x.u&&x.b==='ab')ev.push({t:x.u,k:'bonus',i:'ear',c:'#4fb3f0',sd:['t'+x.tm],by:x.by,x:`${nm(x.by)} hört die anderen Agenturen ab`});
-      if(x.u&&x.b==='st')ev.push({t:x.u,k:'bonus',i:'jam',c:'#4fb3f0',sd:['t'+x.tm,'t'+x.tg],by:x.by,x:`${nm(x.by)} stört den Funk von ${tn(x.tg)}`})})}
+      ev.push({t:t0,k:'bonus',i:'inf',c:'#4fb3f0',sd:TS,inf:n,x:'Ein Informant taucht auf',ti:'Informant'});
+      if(x.by&&x.at)ev.push({t:x.at,k:'bonus',i:'inf',c:'#4fb3f0',sd:TS,by:x.by,x:`${nm(x.by)} (${tn(x.tm)}) trifft den Informanten`,ti:'Informant getroffen'});
+      if(x.u&&x.b==='ab')ev.push({t:x.u,k:'bonus',i:'ear',c:'#4fb3f0',sd:['t'+x.tm],by:x.by,x:`${nm(x.by)} startet Abhören`,ti:'Abhören'});
+      if(x.u&&x.b==='st')ev.push({t:x.u,k:'bonus',i:'jam',c:'#4fb3f0',sd:['t'+x.tm,'t'+x.tg],by:x.by,x:`${nm(x.by)} stört den Funk von ${tn(x.tg)}`,ti:'Störsender'})})}
   Object.values(P_).forEach(p=>{if(p._sT&&p.state&&p.state!=='alive')p.sT=p._sT;delete p._sT});
-  const ca=(st.catches)||{};Object.values(P_).forEach(p=>{if(p.state==='caught'&&p.sT){const h=(ca[p.id]||{}).hunter;ev.push({t:p.sT,k:'catch',hu:1,i:'catch',x:`${h&&P_[h]?nm(h):'Ein Hunter'} fängt ${nm(p.id)}`,hider:p.id,hunter:h})}});
-  Object.values(P_).forEach(p=>{if(!p.zt)return;const h=p.zb||((st.players||{})[p.id]||{}).zb;ev.push({t:p.zt,k:'catch',hu:1,i:'catch',x:`${h&&P_[h]?nm(h):'Ein Zombie'} infiziert ${nm(p.id)}`,hider:p.id,hunter:h,z:1})});
+  const ca=(st.catches)||{};Object.values(P_).forEach(p=>{if(p.state==='caught'&&p.sT){const h=(ca[p.id]||{}).hunter;ev.push({t:p.sT,k:'catch',hu:1,i:'catch',x:`${h&&P_[h]?nm(h):'Ein Hunter'} fängt ${nm(p.id)}`,ti:'Fang!',hider:p.id,hunter:h})}});
+  Object.values(P_).forEach(p=>{if(!p.zt)return;const h=p.zb||((st.players||{})[p.id]||{}).zb;ev.push({t:p.zt,k:'catch',hu:1,i:'catch',x:`${h&&P_[h]?nm(h):'Ein Zombie'} infiziert ${nm(p.id)}`,ti:'Infiziert!',hider:p.id,hunter:h,z:1})});
   const SX={safe:'ist in Sicherheit',quit:'hat aufgegeben',dq:'wurde disqualifiziert'};
-  Object.values(P_).forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`})});
+  Object.values(P_).forEach(p=>{if(SX[p.state]&&p.sT)ev.push({t:p.sT,k:'out',x:`${nm(p.id)} ${SX[p.state]}`,ti:{safe:'In Sicherheit',quit:'Aufgegeben',dq:'Disqualifiziert'}[p.state]})});
   return{ev,final:st}}
 // Statistik (Schwellen an Runde DZLMEM vom 30.10. abgestimmt: GPS-Zittern ~14 m)
 function rvStats(f,P_,catches){const g=f.game,R0=g.R0,T1=g.end,ids=f.players.map(p=>p.id),tr=f.tracks,nm=k=>P_[k].name,endOf=k=>{const p=P_[k];return p.state&&p.state!=='alive'&&p.sT?Math.min(p.sT,T1):T1};
@@ -1502,8 +1502,8 @@ function rvEvPos(e){const t=e.t,p=k=>{const a=k&&RV.sm[k]&&rvAt(RV.sm[k],t,60000
   if(e.hider)return p(e.hider);if(e.who)return p(e.who);if(e.by)return p(e.by);
   if(e.inf){const x=(RV.fin.inf||{})[e.inf];if(x&&x.lat!=null)return[x.lat,x.lng]}
   const k=e.id&&(RV.fin.tasks||{})[e.id];return k&&k.loc&&k.loc.lat!=null?[k.loc.lat,k.loc.lng]:null}
-function rvNote(e){const now_=performance.now(),c=e.c||RVC[e.k]||'#9ca1a8',i=e.i||RVI[e.k]||'info',pos=e.k==='ping'||e.k==='zone'||e.k==='end'?null:rvEvPos(e),
-    tx=String(e.x).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&'),sh=tx.length>38?tx.slice(0,37)+'…':tx;
+function rvNote(e){const now_=performance.now(),c=e.c||RVC[e.k]||'#9ca1a8',i=e.i||RVI[e.k]||'info',pos=e.k==='ping'||e.k==='zone'||e.k==='end'||e.nopos?null:rvEvPos(e),
+    tx=String(e.ti||e.x).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&'),sh=tx.length>38?tx.slice(0,37)+'…':tx;
   RV.nt=RV.nt||[];
   if(pos){while(RV.nt.length>=4){RV.L.removeLayer(RV.nt[0].m);RV.nt.shift()}
     const m=L.marker(pos,{icon:L.divIcon({className:'',html:`<div class=rvn style="--c:${c}">${ic(i)}<span>${esc(sh)}</span></div>`,iconSize:[0,0]}),zIndexOffset:4000,interactive:false,keyboard:false}).addTo(RV.L);
@@ -1530,7 +1530,7 @@ function rvFunk(t){const el=$('rvK');if(!el||!RV.ch.length)return;const V=RV.vie
     :`<small class=mut style="padding:4px 0">Noch keine Nachrichten</small>`;
   if(el._h!==h){el._h=h;el.querySelector('.fkm').innerHTML=h}}
 function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Replay');return}
-  if(!f.game||!f.game.startAt||!f.players||!f.tracks){toast('Replay ist unvollständig');return}
+  if(!f.game||!f.game.startAt||!f.players||!f.tracks){toast('Replay unvollständig');return}
   if(RV)rvClose();if(G)lay.clearLayers();{const e=$('toast');if(e)e.innerHTML=''}
   f.log=(f.log||[]).slice().sort((a,b)=>a[0]-b[0]);
   f.log.forEach(([t,p,v])=>{const m=/^players\/([^/]+)\/(zt|zb)$/.exec(p);if(m&&v){const q=f.players.find(x=>x.id===m[1]);if(q&&!q[m[2]])q[m[2]]=v}});
@@ -1539,14 +1539,14 @@ function rvLoad(o){let f;try{f=rvConv(o)}catch(e){toast('Diese Datei ist kein Re
   RV={f,pl,T0:f.game.startAt,T1:f.game.end,t:f.game.startAt,speed:5,play:false,tab:'map',tr:(()=>{try{return ['all','off'].includes(LS.rvTr)?LS.rvTr:'short'}catch(e){return'short'}})(),open:{},L:L.layerGroup().addTo(map),m:{},ln:{},tk:{},tkc:{},raf:0,last:0,zm:0,zt:{}};f.players.forEach(p=>{if(p.zt)RV.zt[p.id]=p.zt});
   rvTeams(f);const sc=rvScan(f,pl);RV.fin=sc.final;RV.bms=sc.ev.filter(e=>e.bm).map(e=>({p:e.bm,t0:e.t,t1:e.t+bmTv(f.game.s)*1000}));RV.bmo={};const catches=sc.ev.filter(e=>e.k==='catch').map(e=>({t:e.t,hider:e.hider,hunter:e.hunter}));
   RV.st=rvStats(f,pl,catches);rvTcount(catches);const nm=k=>esc((pl[k]||{}).name||'?');
-  RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',hu:1,i:'knapp',hider:e.hider,sd:[rvSide(pl[e.hunter]),'x'],x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
+  RV.st.knapp.forEach(e=>sc.ev.push({t:e.t,k:'knapp',hu:1,i:'knapp',hider:e.hider,sd:[rvSide(pl[e.hunter]),'x'],ti:'Knapp!',x:`Knapp! ${nm(e.hunter)} war ${Math.round(e.d)} m an ${nm(e.hider)} dran`}));
   if(RV.bt){const tn=n=>esc(rvTN_(n));
-    (RV.st.h2h||[]).forEach(e=>sc.ev.push({t:e.t,k:'duel',i:'vs',hider:e.hider,sd:['t'+e.a,'t'+e.b,'x'],x:`Kopf-an-Kopf: ${tn(e.a)} und ${tn(e.b)} jagen ${nm(e.hider)}`}));
-    (RV.st.snatch||[]).forEach(e=>sc.ev.push({t:e.t,k:'duel',i:'snatch',hider:e.hider,sd:['t'+e.a,'t'+e.b,'x'],x:`Weggeschnappt: ${tn(e.b)} vor ${tn(e.a)} bei ${nm(e.hider)}`}))}
-  const g=f.game,zb_=zmb(g);sc.ev.push({t:g.end,k:'end',x:rvWinT(g)||'Spielende'});
-  if(zb_){const zp={};Object.values(pl).forEach(p=>zp[p.id]=p);let T=g.R0,iv=zIv(g,zp,T);for(let i=0;i<2000&&T+iv<g.end;i++){T+=iv;sc.ev.push({t:T,k:'ping',x:'Ping: Die Zombies sehen die Hider-Positionen'});iv=zIv(g,zp,T)}}
-  else for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)sc.ev.push({t,k:'ping',x:'Ping: Die Hunter sehen die Hider-Positionen'});
-  zsTimes(g.s,g.R0,g.end).forEach(([t,r])=>sc.ev.push({t,k:'zone',x:'Zone schrumpft: jetzt '+r+' m'+(r<=g.s.rMin?' (Endgröße)':'')}));
+    (RV.st.h2h||[]).forEach(e=>sc.ev.push({t:e.t,k:'duel',i:'vs',hider:e.hider,sd:['t'+e.a,'t'+e.b,'x'],ti:'Kopf an Kopf!',x:`Kopf-an-Kopf: ${tn(e.a)} und ${tn(e.b)} jagen ${nm(e.hider)}`}));
+    (RV.st.snatch||[]).forEach(e=>sc.ev.push({t:e.t,k:'duel',i:'snatch',hider:e.hider,sd:['t'+e.a,'t'+e.b,'x'],ti:'Weggeschnappt!',x:`Weggeschnappt: ${tn(e.b)} vor ${tn(e.a)} bei ${nm(e.hider)}`}))}
+  const g=f.game,zb_=zmb(g);sc.ev.push({t:g.end,k:'end',x:rvWinT(g)||'Spielende',ti:RV.bt?(RV.wt?rvTN_(RV.wt)+' gewinnt':'Spielende'):(rvWinT(g)||'Spielende')});
+  if(zb_){const zp={};Object.values(pl).forEach(p=>zp[p.id]=p);let T=g.R0,iv=zIv(g,zp,T);for(let i=0;i<2000&&T+iv<g.end;i++){T+=iv;sc.ev.push({t:T,k:'ping',x:'📡 Ping!'});iv=zIv(g,zp,T)}}
+  else for(let t=g.R0+g.s.ping*1000;t<g.end;t+=g.s.ping*1000)sc.ev.push({t,k:'ping',x:'📡 Ping!'});
+  zsTimes(g.s,g.R0,g.end).forEach(([t,r])=>sc.ev.push({t,k:'zone',x:'Zone schrumpft auf '+r+' m'+(r<=g.s.rMin?' (Endgröße)':''),ti:'Zone schrumpft auf '+r+' m'+(r<=g.s.rMin?' (Endgröße)':'')}));
   RV.ev=sc.ev.filter(e=>e.t>=g.startAt&&e.t<=g.end).sort((a,b)=>a.t-b.t);RV.aT=null;rvPrep(f,sc.ev);
   RV.sm={};f.players.forEach(p=>RV.sm[p.id]=rvSmooth(f.tracks[p.id]||[]));
   RV.zone=L.circle([g.c.lat,g.c.lng],{radius:g.s.r0,color:KZ.c,weight:2,fillOpacity:KZ.f,interactive:false}).addTo(RV.L);RV.zr=g.s.r0;
@@ -1772,7 +1772,7 @@ window.bcReady=()=>{const f=window.bcReadyGo;window.bcReadyGo=null;if(f){bcPass=
 async function mk(){if(!appReady(mk))return;me.name=($('nm').value.trim()||'Agent').slice(0,16);LS.n=me.name;startGPS();
   if(!pos){const b=$('mkb');b.textContent='GPS wird gesucht…';b.disabled=true;
     gpsErr=null;for(let i=0;i<100&&!pos;i++){await new Promise(r=>setTimeout(r,200));if(gpsErr&&((gpsErr.code===1&&i>4)||i>50))break}
-    if(!pos){const b2=$('mkb')||b;b2.textContent='Spiel erstellen';b2.disabled=false;return toast('Kein GPS – bitte Standort einschalten und erneut tippen')}}
+    if(!pos){const b2=$('mkb')||b;b2.textContent='Spiel erstellen';b2.disabled=false;return toast('Kein GPS – bitte Standort einschalten')}}
   let c='';for(let k=0;k<8;k++){c=Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b&31]).join('');
     try{if(!(await Promise.race([db.ref('games/'+c+'/status').get(),new Promise((_,j)=>setTimeout(j,6000))])).exists())break}catch(e){break}}
   const tmo=new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),12000));
@@ -1823,7 +1823,7 @@ async function autoCol(){if(colBusy||!G||G.status!=='lobby')return;colBusy=1;
     const i=f.ok.find(i=>!same(i));const j=i!=null?i:f.ok[0];if(j!=null)await claimCol(j)}finally{colBusy=0}}
 function palTog(){ui.pal=!ui.pal;panel(1)}
 function palPick(i){const me_=P()[uid]||{};if(Number.isInteger(me_.col)&&me_.col%12===i)return;
-  if(!colFree().ok.includes(i))return toast(colBlk().has(i)?'Teamfarbe – nicht wählbar':'Erst wieder frei, wenn alle Farben gleich oft vergeben sind');
+  if(!colFree().ok.includes(i))return toast(colBlk().has(i)?'Teamfarbe':'Farbe nicht verfügbar');
   claimCol(i).then(ok=>{if(!ok)toast('Farbe nicht wählbar')})}
 const COLN=['','','zu zweit','zu dritt','zu viert','zu fünft','zu sechst'];
 function palUI(){if(G&&bty(G)&&(P()[uid]||{}).role==='hunter')return `<div class=pal><h4>Teamfarbe</h4><small class=mut>Im Kopfgeld-Modus tragen alle Hunter eines Teams die Teamfarbe. Der Teamchef (Krone) wählt sie über den Farbpunkt am Team.</small></div>`;
@@ -1849,11 +1849,11 @@ function tmCols(g,teams){const o={},used=new Set(),T=teams||(g&&g.teams)||{},N=t
   for(let n=1;n<=N;n++)if(o[n]==null){const c=PAL.findIndex((_,i)=>!used.has(i));o[n]=c;used.add(c)}
   return o}
 async function tmJoin(n){if(!G||G.status!=='lobby')return;try{await db.ref(`games/${code}/players/${uid}`).update({role:'hunter',tm:n,tj:now()})}catch(e){toast('Beitritt nicht möglich')}}
-async function tmRename(n){if(tmChef(n)!==uid)return;const v=await dlg({t:'Teamname',x:'Höchstens 20 Zeichen. Alle in der Lobby sehen ihn.',inp:1,max:20,ph:tmName(G,n),ok:'Speichern'});
-  if(v)db.ref(`games/${code}/teams/${n}/name`).set(v.slice(0,20)).catch(()=>toast('Name nicht gespeichert'))}
+async function tmRename(n){if(tmChef(n)!==uid)return;const v=await dlg({t:'Teamname',x:'Höchstens 20 Zeichen',inp:1,max:20,ph:tmName(G,n),ok:'Speichern'});
+  if(v)db.ref(`games/${code}/teams/${n}/name`).set(v.slice(0,20)).catch(()=>toast('Fehler beim Speichern'))}
 function tmPalTog(n){ui.tpal=ui.tpal===n?0:n;panel(1)}
-function tmColPick(n,i){if(tmChef(n)!==uid)return;const tc=tmCols(G);if(Object.entries(tc).some(([m,c])=>+m!==n&&c===i))return toast('Diese Farbe hat schon ein anderes Team');
-  db.ref(`games/${code}/teams/${n}/col`).set(i).then(()=>{ui.tpal=0;panel(1)}).catch(()=>toast('Farbe nicht gespeichert'))}
+function tmColPick(n,i){if(tmChef(n)!==uid)return;const tc=tmCols(G);if(Object.entries(tc).some(([m,c])=>+m!==n&&c===i))return toast('Farbe bereits vergeben');
+  db.ref(`games/${code}/teams/${n}/col`).set(i).then(()=>{ui.tpal=0;panel(1)}).catch(()=>toast('Fehler beim Speichern'))}
 // Lobby: Hunter-Spalte als Teamfelder (Beitreten, Teamchef mit Krone, Name und Farbe nur durch den Chef)
 function tmLobby(g,host,row){const me_=P()[uid]||{},N=tmN(g),tc=tmCols(g);let h='';
   // Jede Agentur als Karte: Farbstreifen + großes Dreieck in Teamfarbe, Name groß, darunter „n Hunter“ (Chef-Hinweis);
@@ -1896,7 +1896,7 @@ function bResHTML(r,mode){const me_=P()[uid]||{},rk=r.tr||[],w=rk.length&&rk[0].
 
 // §MARKER Eigene Kartenmarker (mk*, drawMarks)
 let MK={},mkL=null,mkSeen=null,mkMode=null,mkTmp=null,mkBusy=0,hidM=new Set();
-const MKT={arrow:'ist unterwegs',excl:'hat einen Hider gesichtet',zone:'übernimmt einen Bereich',pin:'hat eine Stecknadel gesetzt'};
+const MKT={arrow:'ist unterwegs',excl:'hat einen Hider gesichtet',zone:'übernimmt einen Bereich',pin:'hat eine Markierung gesetzt'};
 const hkey=()=>'bp_h_'+code+'_'+((G&&G.rn)||0);
 function hLoad(){try{hidM=new Set(JSON.parse(LS[hkey()]||'[]'))}catch(e){hidM=new Set()}}
 function hSave(){try{LS[hkey()]=JSON.stringify([...hidM])}catch(e){}}
@@ -1928,11 +1928,11 @@ function mmTog(){const n=$('mmn');if(n.className==='open'){n.className='';$('mmb
   n.innerHTML=it.map(([k,a,b])=>`<button onclick="mkStart('${k}')">${shape(k,uid)}<span>${a}<small>${b}</small></span></button>`).join('')+`<small style="padding:6px 10px 2px;color:var(--mut)">${used} von 3 Markern gesetzt</small>`;
   n.className='open';$('mmbtn').setAttribute('aria-expanded','true')}
 function mkBar(t,btns){const b=$('mmbar');b.innerHTML=`<span>${t}</span>`+btns;b.style.display='flex'}
-function mkStart(k){$('mmn').className='';if(!mkFree())return toast('Maximal 3 Marker – lösche zuerst einen');mkMode=k;mkUI();
+function mkStart(k){$('mmn').className='';if(!mkFree())return toast('Maximal 3 Marker');mkMode=k;mkUI();
   mkBar(k==='zone'?'Tippe auf die Karte, um die Mitte zu setzen':k==='excl'?'Tippe dorthin, wo du den Hider gesehen hast':k==='arrow'?'Tippe auf das Ziel, zu dem du läufst':'Tippe auf die Karte, um die Nadel zu setzen','<button class=g onclick="mkCancel()">Abbrechen</button>')}
 function mkCancel(){mkMode=null;if(mkTmp){mkTmp.forEach(x=>map.removeLayer(x));mkTmp=null}map.closePopup();$('mmbar').style.display='none';mkUI()}
-function mkPut(o){const id=mkFree();if(!id){toast('Maximal 3 Marker – lösche zuerst einen');return mkCancel()}
-  db.ref(mkB()+'/'+id).set(Object.assign({u:uid,t:now()},o)).then(()=>{},()=>toast('Marker konnte nicht gesetzt werden'));mkCancel()}
+function mkPut(o){const id=mkFree();if(!id){toast('Maximal 3 Marker');return mkCancel()}
+  db.ref(mkB()+'/'+id).set(Object.assign({u:uid,t:now()},o)).then(()=>{},()=>toast('Fehler beim Platzieren'));mkCancel()}
 async function mkTap(ll){if(mkMode==='oz')return ozTap(ll);const k=mkMode,b={k,lat:+ll.lat.toFixed(6),lng:+ll.lng.toFixed(6)};
   if(k==='arrow')return mkPut(b);
   if(k==='pin'){mkMode='pin-wait';const x=await dlg({t:'Stecknadel',x:'Betreff für die anderen Hunter',inp:1,max:40,ph:'z. B. Eingang gesperrt',ok:'Setzen',no:'Abbrechen'});if(!x)return mkCancel();b.x=x.slice(0,40);return mkPut(b)}
@@ -1949,7 +1949,7 @@ async function mkTap(ll){if(mkMode==='oz')return ozTap(ll);const k=mkMode,b={k,l
     mkBar('Ziehe den Punkt am Rand, um die Größe einzustellen','<button class=g onclick="mkCancel()">Abbrechen</button><button onclick="mkZone()">Fertig</button>')}}
 function mkZone(){if(!mkTmp||!mkTmp.get)return;const o=mkTmp.get();mkPut({k:'zone',lat:o.lat,lng:o.lng,r:o.r})}
 function mkExcl(h){if(!mkTmp||!mkTmp.b)return;const b=mkTmp.b;if(h)b.h=h;mkPut(b)}
-function mkDel(id){map.closePopup();db.ref(mkB()+'/'+id).remove().catch(()=>toast('Löschen nicht möglich'))}
+function mkDel(id){map.closePopup();db.ref(mkB()+'/'+id).remove().catch(()=>toast('Fehler beim Löschen'))}
 function mkHide(id){map.closePopup();hidM.add(id);hSave();draw();mkUI()}
 function mkShowAll(){hidM=new Set();hSave();draw();mkUI()}
 function drawMarks(m,t){if(!mkL||m.role!=='hunter')return;const lp=lastPT();
@@ -1976,7 +1976,7 @@ function ctr(){if(pos)db.ref(`games/${code}/c`).set(pos)}
 const byJ=(a,b)=>(a[1].j||0)-(b[1].j||0)||(a[0]<b[0]?-1:1);
 // Host tippt in der Lobby auf einen Mitspieler: Host abgeben oder aus der Lobby entfernen
 async function plMenu(u){const p=P()[u];if(!p||!G||G.host!==uid||G.status!=='lobby')return;
-  const v=await dlg({t:p.name,x:'Was möchtest du tun?',btns:[{l:'Zum Host machen',v:'host',ic:'crown'},{l:'Aus der Lobby entfernen',v:'kick',bad:1}],no:'Abbrechen',ok:null});
+  const v=await dlg({t:p.name,btns:[{l:'Zum Host machen',v:'host',ic:'crown'},{l:'Aus der Lobby entfernen',v:'kick',bad:1}],no:'Abbrechen',ok:null});
   if(v==='host')return toHost(u);if(v==='kick')return kick(u)}
 async function kick(u){const p=P()[u];if(!p||G.host!==uid||G.status!=='lobby')return;
   if(!(await dlg({t:'Spieler entfernen?',x:'<b>'+esc(p.name)+'</b> wird aus der Lobby entfernt. Mit dem Spiel-Code kann er wieder beitreten.',ok:'Entfernen',no:'Abbrechen',bad:1})))return;
@@ -1984,7 +1984,7 @@ async function kick(u){const p=P()[u];if(!p||G.host!==uid||G.status!=='lobby')re
   db.ref('games/'+code).update(up).then(()=>toast(p.name+' wurde entfernt')).catch(()=>toast('Entfernen nicht möglich'))}
 async function toHost(u){const p=P()[u];if(!p||G.host!==uid||!(await dlg({t:'Host abgeben',x:'<b>'+esc(p.name)+'</b> zum Host machen? Du wirst normaler Spieler.',ok:'Host abgeben',no:'Abbrechen'})))return;db.ref(`games/${code}/host`).set(u).then(()=>toast(p.name+' ist jetzt Host'))}
 async function giveUp(){const m=P()[uid];if(!m||m.state!=='alive'||!(await dlg({t:'Aufgeben?',x:'Du scheidest aus und kannst nur noch zuschauen.',ok:'Aufgeben',no:'Weiterspielen',bad:1})))return;
-  db.ref(`games/${code}/players/${uid}`).update({state:'quit',sT:now()});evW(uid+'_q',lbl(m)+' hat aufgegeben')}
+  db.ref(`games/${code}/players/${uid}`).update({state:'quit',sT:now()});evW(uid+'_q',m.name+' hat aufgegeben')}
 async function leaveGame(){const g=G,m=P()[uid]||{};
   if(g.status==='running'&&m.state==='alive'&&!(await dlg({t:'Spiel verlassen?',x:'Das Spiel läuft noch.',ok:'Verlassen',no:'Bleiben',bad:1})))return;
   leaving=true;if(AL.upP)try{await Promise.race([AL.upP,new Promise(r=>setTimeout(r,4000))])}catch(e){}
@@ -1994,7 +1994,7 @@ async function leaveGame(){const g=G,m=P()[uid]||{};
     if(g.host===uid)u.host=others[0][0];
     if(g.status==='lobby'){u['players/'+uid]=null;   // alte Farb-Sperre nur löschen, wenn sie wirklich uns gehört – sonst lehnt die Regel das ganze Update ab (Fehler seit der Farbregel 101)
       Object.entries(g.cols||{}).forEach(([i,v])=>{if(v===uid)u['cols/'+i]=null})}
-    else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:lbl(m)+' hat das Spiel verlassen',u:uid}}
+    else{u['players/'+uid+'/lf']=true;u['players/'+uid+'/lat']=null;u['players/'+uid+'/lng']=null;const k=uid+'_l';evSeen.add(k);u['ev/'+k]={t:now(),x:m.name+' hat das Spiel verlassen',u:uid}}
     await db.ref('games/'+code).update(u)}
   catch(e){leaving=false;toast('Verlassen nicht möglich: '+String(e.message||e).slice(0,50));return}
   leave()}
@@ -2053,11 +2053,11 @@ async function st(){if(stBusy)return;stBusy=true;stChk=true;stP=0;panel(1);const
     await db.ref('games/'+code).update(u);if(bty(g)&&g.s.inf!==false)infPlan(g,startAt).catch(()=>{});stP=100;stEnd()}
   catch(e){stEnd();if(!G||G.status!=='running')toast('Start fehlgeschlagen: '+String(e.message||e).slice(0,60));if(b){b.disabled=false;b.classList.remove('busy');b.textContent='Spiel starten'}}}
 // §FANG cc, rq, ok, no; fin, leave, endNow
-function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;if(zLock(G,uid)){toast('Noch in Verwandlung: Du darfst erst danach fangen');return}
+function cc(){const t=now();if((P()[uid]||{}).state!=='alive')return;if(zLock(G,uid)){toast('Noch in Verwandlung!');return}
   fsCand=null;cand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').sort((a,b)=>String(a[1].name).localeCompare(String(b[1].name)));
-  if(!cand.length)toast('Keine Hider mehr');panel(1)}
+  if(!cand.length)toast('Keine Hider mehr übrig');panel(1)}
 function rq(h){cand=[];const q=P()[h]||{},o=(G.catches||{})[h],c={hunter:uid,t:now(),status:'pending'};if(q.lat){c.lat=q.lat;c.lng=q.lng}
-  if(o&&o.status==='pending'){toast(o.hunter===uid?'Deine Fangmeldung an '+(q.name||'?')+' läuft schon':'Für '+(q.name||'?')+' läuft schon eine Fangmeldung von '+((P()[o.hunter]||{}).name||'einem '+HN(G)));panel(1);return}
+  if(o&&o.status==='pending'){toast(o.hunter===uid?'Fangmeldung an '+(q.name||'?')+' läuft schon':'Fangmeldung an '+(q.name||'?')+' läuft schon ('+((P()[o.hunter]||{}).name||HN(G))+')');panel(1);return}
   db.ref(`games/${code}/catches/${h}`).set(c).then(()=>toast('Fangmeldung an '+(q.name||'?')+' gesendet')).catch(()=>toast('Fangmeldung ging nicht durch (läuft schon oder keine Verbindung)'));panel(1)}
 function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')return;const hq=P()[c.hunter];
   if(!hq||hq.state!=='alive')return db.ref(`games/${code}/catches/${uid}`).remove().catch(()=>{});
@@ -2065,7 +2065,7 @@ function ok(){const c=G.catches&&G.catches[uid];if(!c||c.status!=='pending')retu
   if(why){toast(CW[why]);return db.ref(`games/${code}/catches/${uid}`).update({status:'denied',why})}
   if(zmb(G)){const t=now(),me_=P()[uid]||{},q=pos||(me_.lat?{lat:me_.lat,lng:me_.lng}:null);evSeen.add(uid+'_c');
     return db.ref(`games/${code}`).update(zInf(uid,c.hunter,t,q,{[`catches/${uid}/status`]:'done'}))}
-  evSeen.add(uid+'_c');db.ref(`games/${code}`).update({[`players/${uid}/state`]:'caught',[`players/${uid}/sT`]:now(),[`catches/${uid}/status`]:'done',[`ev/${uid}_c`]:{t:now(),x:('Hider '+((P()[uid]||{}).name||'')+' wurde von '+(hq.name||'einem Hunter')+' gefangen').slice(0,100),u:uid}})}
+  evSeen.add(uid+'_c');db.ref(`games/${code}`).update({[`players/${uid}/state`]:'caught',[`players/${uid}/sT`]:now(),[`catches/${uid}/status`]:'done',[`ev/${uid}_c`]:{t:now(),x:(((P()[uid]||{}).name||'')+' wurde von '+(hq.name||'einem Hunter')+' gefangen').slice(0,100),u:uid}})}
 // Infektion: Rollenwechsel hider → hunter (state bleibt 'alive'), zt Verwandlungszeit, zl Fangort, zb Fänger, zs Start des Countdowns
 function zInf(h,hu,t,q,u){const p=P()[h]||{},o=Object.assign({},u);o[`players/${h}/role`]='hunter';o[`players/${h}/zt`]=t;o[`players/${h}/zs`]=t;o[`players/${h}/zb`]=hu;o[`players/${h}/sT`]=t;
   o[`players/${h}/immUntil`]=null;o[`players/${h}/revealUntil`]=null;o[`players/${h}/out`]=null;if(q&&q.lat)o[`players/${h}/zl`]={lat:q.lat,lng:q.lng};
@@ -2083,12 +2083,12 @@ function zTick(g,m,t){if(!zLock(g,uid)||g.status!=='running'){ZV=null;return}
   const dt=Math.max(0,t-(ZV.lt||t));ZV.lt=t;const zl=m.zl,fresh=pos&&(TEST||Date.now()-lastFix<15000);
   if(!zl||!fresh){ZV.st+=dt;ZV.ph='pause'}
   else{const d=D(pos,zl),was=ZV.in;ZV.in=ZV.in?d<=zRad(g)+ZRH:d<=zRad(g);
-    if(!ZV.in){ZV.ph='out';if(was){lg('zr',[Math.round(d)]);toast('Zurück zum Fangort! Die Verwandlung startet neu.');navigator.vibrate&&navigator.vibrate([200,100,200])}ZV.st=t}
-    else{if(!was)toast('Am Fangort: Verwandlung läuft wieder');ZV.ph='in'}}
+    if(!ZV.in){ZV.ph='out';if(was){lg('zr',[Math.round(d)]);toast('Verwandlung abgebrochen: Kehre zum Fangort zurück!');navigator.vibrate&&navigator.vibrate([200,100,200])}ZV.st=t}
+    else{if(!was)toast('Verwandlung neu gestartet');ZV.ph='in'}}
   const rem=Math.max(0,zDur(g)-(t-ZV.st));ZV.rem=rem;
   try{LS[zKey()]=JSON.stringify(ZV)}catch(e){}
   const e=$('zcd');if(e)e.textContent=ZV.ph==='out'?fmt(zDur(g)):fmt(rem);
-  if(ZV.ph==='in'&&rem<=0&&!ZV.done){ZV.done=1;db.ref(`games/${code}/players/${uid}/zd`).set(now()).then(()=>{toast('Du bist jetzt ein Zombie. Ab jetzt darfst du fangen.');navigator.vibrate&&navigator.vibrate(400)}).catch(()=>{ZV.done=0})}}
+  if(ZV.ph==='in'&&rem<=0&&!ZV.done){ZV.done=1;db.ref(`games/${code}/players/${uid}/zd`).set(now()).then(()=>{toast('Verwandlung abgeschlossen');navigator.vibrate&&navigator.vibrate(400)}).catch(()=>{ZV.done=0})}}
 function no(){db.ref(`games/${code}/catches/${uid}/status`).set('denied')}
 // Fang-Alarm (Variante 7A): Vollbild beim Hider, solange eine Fangmeldung offen ist; nach 30 s gilt der Fang
 let faK=null;
@@ -2097,7 +2097,7 @@ function faSync(g,m,t){let e=$('fa');const c=(g&&g.status==='running'&&m&&m.role
   if(!e){e=document.createElement('div');e.id='fa';e.setAttribute('role','alertdialog');e.setAttribute('aria-modal','true');document.body.appendChild(e)}
   const rem=Math.max(0,Math.ceil((30000-(t-c.t))/1000)),k=c.hunter+'_'+c.t;
   if(faK!==k){faK=k;navigator.vibrate&&navigator.vibrate([400,150,400,150,400]);
-    e.innerHTML=`<div class=fb><div class=fe>FANGMELDUNG</div><div class=fr><div></div></div><div class=ft>${esc(hq.name||'Ein '+HN(g))} meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Ohne Antwort gilt der Fang nach 30 s.</div><div class=row><button class=fy onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`}
+    e.innerHTML=`<div class=fb><div class=fe>FANGMELDUNG</div><div class=fr><div></div></div><div class=ft>${esc(hq.name||'Ein '+HN(g))} meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Gilt automatisch nach 30 s.</div><div class=row><button class=fy onclick="ok()">Ja, erwischt</button><button class=g onclick="no()">Nein</button></div></div>`}
   e.querySelector('.fr').style.setProperty('--p',(rem/30*100).toFixed(1)+'%');e.querySelector('.fr>div').textContent=rem;e.classList.add('on')}
 async function fin(){if(!(await dlg({t:'Spiel auflösen?',x:'Das Spiel wird beendet und alle Daten werden gelöscht.',ok:'Auflösen',no:'Abbrechen',bad:1})))return;try{await db.ref('chats/'+code).remove()}catch(e){}try{await db.ref('analysis/'+code).remove()}catch(e){}try{await db.ref('rp/'+code).remove()}catch(e){}db.ref('games/'+code).remove()}
 function psave(){try{LS['bp_'+code+'_'+(G.rn||0)]=JSON.stringify({ping,xping,lk})}catch(e){}}
@@ -2113,12 +2113,12 @@ const fsKey=p=>p+'_'+code+'_'+((G&&G.rn)||0)+'_'+uid;
 function fsMine(){try{return JSON.parse(LS[fsKey('fs')]||'null')||{l:0,p:{}}}catch(e){return{l:0,p:{}}}}
 // Wartezeit des Hunters: nach jeder Auslösung hbC, auf denselben Hider 2·hbC
 function fsWait(g,h,t){const m=fsMine(),w=Math.max(10,g.s.hbC||60)*1000;let e=m.l?m.l+w:0;if(h&&m.p[h])e=Math.max(e,m.p[h]+2*w);return e>t?e:0}
-function fsBtn(){const g=G,t=now();if(!fsOn(g)||(P()[uid]||{}).state!=='alive')return;if(zLock(g,uid)){toast('Noch in Verwandlung: Du darfst erst danach fangen');return}
-  const w=fsWait(g,null,t);if(w){toast('„Festsetzen“ geht wieder in '+fmt(w-t));return}
+function fsBtn(){const g=G,t=now();if(!fsOn(g)||(P()[uid]||{}).state!=='alive')return;if(zLock(g,uid)){toast('Noch in Verwandlung!');return}
+  const w=fsWait(g,null,t);if(w){toast('Noch '+fmt(w-t));return}
   cand=[];fsCand=Object.entries(P()).filter(([k,p])=>p.role==='hider'&&p.state==='alive').map(([k])=>k).sort((a,b)=>String(P()[a].name).localeCompare(String(P()[b].name)));
-  if(!fsCand.length){fsCand=null;toast('Keine Hider mehr')}panel(1)}
+  if(!fsCand.length){fsCand=null;toast('Keine Hider mehr übrig')}panel(1)}
 function fsGo(h){const g=G,t=now(),q=P()[h];fsCand=null;if(!q){panel(1);return}
-  const w=fsWait(g,h,t);if(w){toast('Auf '+q.name+' erst wieder in '+fmt(w-t));panel(1);return}
+  const w=fsWait(g,h,t);if(w){toast('Noch '+fmt(w-t));panel(1);return}
   const m=fsMine();m.l=t;m.p[h]=t;m.h=h;m.t=t;try{LS[fsKey('fs')]=JSON.stringify(m)}catch(e){}
   const f=(g.fz||{})[h];if(!f||f.t+fsTv(g)<t)db.ref(`games/${code}/fz/${h}`).set({h:uid,t}).catch(()=>{});
   lg('fs',{h,d:pos&&q.lat?Math.round(D(pos,q)):null});panel(1)}
@@ -2149,7 +2149,7 @@ function fsStand(){if(!FSH||FSH.a)return;FSH.a=now();fsSave();db.ref(`fzp/${code
 function fsOv(H,end,t){let e=$('fz');if(!H){if(e)e.remove();return}
   const q=P()[H.h]||{},rem=Math.max(0,Math.ceil((end-t)/1000)),T=fsTv(G)/1000;
   if(!e){e=document.createElement('div');e.id='fz';e.setAttribute('role','alertdialog');e.setAttribute('aria-modal','true');
-    e.innerHTML=`<div class=fb><div class=fe>FESTGESETZT</div><div class=fr><div></div></div><div class=ft>Enttarnt!<br>Bleib stehen</div><div class=who><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><b>${esc(q.name||'Ein '+HN(G))} hat dich im Visier</b></div><div class=fs>Ein ${HN(G)} kommt zu dir. Er muss dich berühren und den Fang melden. Läuft die Zeit ohne Fang ab, bist du frei.</div><button class=fy onclick="fsStand()">Ich bleibe stehen</button></div>`;document.body.appendChild(e)}
+    e.innerHTML=`<div class=fb><div class=fe>FESTGESETZT</div><div class=fr><div></div></div><div class=ft>Enttarnt!<br>Bleib stehen</div><div class=who><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><b>${esc(q.name||'Ein '+HN(G))} hat dich im Visier</b></div><button class=fy onclick="fsStand()">Ich bleibe stehen</button></div>`;document.body.appendChild(e)}
   e.querySelector('.fr').style.setProperty('--p',(rem/T*100).toFixed(1)+'%');e.querySelector('.fr>div').textContent=rem}
 // Alarm: Vibration (Android) bzw. Ton (iPhone), jede Sekunde neu bis „Ich bleibe stehen“
 function fsAudio(){try{if(!fsAud){const C=window.AudioContext||window.webkitAudioContext;if(C)fsAud=new C()}if(fsAud&&fsAud.state==='suspended')fsAud.resume()}catch(e){}}
@@ -2163,31 +2163,31 @@ function fsAlarm(on){if(!on){if(fsAK){fsAK=0;try{navigator.vibrate&&navigator.vi
 const fsSkip=(p,at)=>!!(p&&p.pS)&&Math.abs(p.pS-at)<3000;
 // Panel-Teile
 function fsHunterH(g,t){const m=fsHunt(g,t),w=fsWait(g,null,t);let h='';
-  if(m){const q=P()[m.h]||{};h+=`<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(m.h)};color:${inkOf(m.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>${esc(q.name||'?')} festgesetzt</b><small style="display:block">Berühren und dann „Fang melden“.</small></div><b class=fzn>${cdT(m.t+fsTv(g),'')}</b></div></div>`}
+  if(m){const q=P()[m.h]||{};h+=`<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(m.h)};color:${inkOf(m.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>${esc(q.name||'?')} festgesetzt (noch ${cdT(m.t+fsTv(g),'')})</b></div></div></div>`}
   return [h,w?`<button class=fsb disabled>${cdT(w,'Wieder in ')}</button>`:`<button class=fsb onclick="fsBtn()">Festsetzen</button>`]}
-function fsCandH(g){return `<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du im Visier?</div><div class=cgr>`+fsCand.filter(k=>P()[k]).map(k=>{const p=P()[k];return `<button class=cgt onclick="fsGo('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${letOf(k)}</span><b>${esc(p.name)}</b></button>`}).join('')+`</div><small style="text-align:center;display:block">Hausregel: nur bei Sichtkontakt. Kommt nur an, wenn der Hider höchstens ${fsRv(g)} m entfernt ist. Du erfährst nicht, ob es geklappt hat.</small><button class=ghost style="margin:0" onclick="fsCand=null;panel(1)">Abbrechen</button></div>`}
+function fsCandH(g){return `<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du im Visier?</div><div class=cgr>`+fsCand.filter(k=>P()[k]).map(k=>{const p=P()[k];return `<button class=cgt onclick="fsGo('${k}')"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${letOf(k)}</span><b>${esc(p.name)}</b></button>`}).join('')+`</div><button class=ghost style="margin:0" onclick="fsCand=null;panel(1)">Abbrechen</button></div>`}
 function fsHiderH(g,t){const H=FSH;if(!fsOn(g)||!H||!H.ok||!H.a||H.done)return '';const end=H.t0+fsTv(g);if(t>=end)return '';const q=P()[H.h]||{};
-  return `<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Bleib stehen</b><small style="display:block">${esc(q.name||'Ein '+HN(g))} hat dich im Visier. Ohne Fang bist du danach frei.</small></div><b class=fzn id=fscd>${fmt(end-t)}</b></div></div>`}
+  return `<div class="card fzh"><div style="display:flex;align-items:center;gap:10px"><span class=av style="background:${colOf(H.h)};color:${inkOf(H.h)}">${esc(String(q.name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Bleib stehen</b><small style="display:block">${esc(q.name||'Ein '+HN(g))} hat dich im Visier (noch <span id=fscd>${fmt(end-t)}</span>)</small></div></div></div>`}
 const fsSig=(g,t)=>{if(!fsOn(g))return 0;const m=fsHunt(g,t);return[fsCand,m&&m.t,!!fsWait(g,null,t),FSH&&[FSH.k,FSH.ok,!!FSH.a,FSH.done,t<FSH.t0+fsTv(g)],FSX&&FSX.until]};
 
 // §AUFGABEN Hunter-Boni (hb*), Meeting (mt*), Aufgaben prüfen (chk), Evakuierung (rv*), Immunität, Hider-Aufgabenkarten (hTasks), Zuschauer, Radar, Inventar (hInv)
 const hbRef=id=>db.ref(`games/${code}/hb/${uid}/${id}`);
 function hbChoose(id,k,base){const g=G;if(hbItems(g).length>=(g.s.hbN||2)){hbPick={id,k,base};return panel(1)}hbCommit(id,k,base,null)}
 function hbCommit(id,k,base,drop){const g=G,av=base+(g.s.hbC||0)*1000,u={[id]:{k,av}};if(drop)u[drop+'/d']=now();
-  db.ref(`games/${code}/hb/${uid}`).update(u).then(()=>{hbPick=null;toast('Bonus erhalten: '+HBK[k]);panel(1)}).catch(()=>toast('Das hat nicht geklappt'))}
+  db.ref(`games/${code}/hb/${uid}`).update(u).then(()=>{hbPick=null;toast(HBK[k]+' erhalten');panel(1)}).catch(()=>toast('Fehler'))}
 function hbSwap(drop){if(hbPick)hbCommit(hbPick.id,hbPick.k,hbPick.base,drop)}
-function hbForfeit(id){hbRef(id).set({k:'x'}).then(()=>{hbPick=null;toast('Bonus verfallen gelassen');panel(1)})}
+function hbForfeit(id){const nm=id==='time'?HBK.bm:'Bonus';hbRef(id).set({k:'x'}).then(()=>{hbPick=null;toast(nm+' verfällt');panel(1)})}
 function hbUse(id){const i=hbMine(G)[id];if(!i||i.u||i.d||now()<i.av)return;
   if(i.k==='live'){hbLive=id;return panel(1)}
-  if(i.k==='bm'){if(bmMine(G,now()))return toast('Dein Radar läuft noch');return hbRef(id+'/u').set(now()).then(()=>panel(1))}
+  if(i.k==='bm'){if(bmMine(G,now()))return toast('Radar läuft noch');return hbRef(id+'/u').set(now()).then(()=>panel(1))}
   const t=now(),pts={},grey={},nm=[],ol=[];
   Object.entries(P()).forEach(([u,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
     if(locatable(p,t,u)){pts[u]={lat:p.lat,lng:p.lng,name:p.name};lk[u]=pts[u]}else{(locWhy(p,t,u)==='old'?ol:nm).push(p.name);if(lk[u])grey[u]=lk[u]}});
   hbRef(id+'/u').set(t).then(()=>{xping={t,pts,grey};psave();db.ref(`games/${code}/xp`).push({t});
     blRef={p:Object.entries(pts).map(([k,v])=>[k,+(+v.lat).toFixed(5),+(+v.lng).toFixed(5)])};toast('Extra-Ping!'+(nm.length?' Geschützt: '+nm.join(', '):'')+(ol.length?' Kein Signal: '+ol.join(', '):''));navigator.vibrate&&navigator.vibrate(300);draw();panel(1)})}
 function hbLiveGo(h){const g=G,t=now(),id=hbLive,i=id&&hbMine(g)[id];if(!i||i.u||i.d)return;
-  if(t<hbLock)return toast('Bitte kurz warten ('+Math.ceil((hbLock-t)/1000)+' s)');
-  if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast(locMsg(P()[h],t,h)+'. Dein Bonus bleibt erhalten.')}
+  if(t<hbLock)return toast('Noch '+Math.ceil((hbLock-t)/1000)+' s');
+  if(!locatable(P()[h],t,h)){hbLock=t+10000;return toast(locMsg(P()[h],t,h))}
   const until=t+(g.s.hbL||60)*1000;
   hbRef(id+'/u').set(t).then(()=>{db.ref(`games/${code}/live/${h}/${uid}`).set(until);hbLive=null;toast('Live-Ortung läuft');draw();panel(1)})}
 const mtRef=id=>db.ref(`games/${code}/tasks/${id}/p/${uid}`);
@@ -2196,21 +2196,21 @@ function mtChoice(id,c){const k=G.tasks&&G.tasks[id];if(!k||k.fin||k.ex)return;m
 function mtUndo(id){const k=G.tasks&&G.tasks[id];if(!k||k.fin)return;const my=(k.p||{})[uid]||{},o={ok:false};if(my.c)o.c=my.c;mtRef(id).set(o)}
 function mtConfirm(id){const k=G.tasks&&G.tasks[id];if(!k||k.fin||k.ex||k.sol)return;const my=(k.p||{})[uid]||{},ot=(k.p||{})[k.a===uid?k.b:k.a]||{},d=mtD(k),bon=bonOn(G);
   if(d===null||d>40)return toast('Dein Partner ist nicht nah genug');
-  if(bon&&(!my.c||my.c===ot.c))return toast('Wählt unterschiedliche Belohnungen');
+  if(bon&&(!my.c||my.c===ot.c))return toast('Belohnungen müssen sich unterscheiden');
   const o={ok:true};if(my.c)o.c=my.c;mtRef(id).set(o).then(()=>toast('Bestätigt, warte auf deinen Partner'))}
 function mtTick(g){Object.entries(g.tasks||{}).forEach(([id,k])=>{if(!isMt(id)||k.fin||k.ex||k.sol||(k.a!==uid&&k.b!==uid))return;
   const pa=(k.p||{})[k.a],pb=(k.p||{})[k.b];
   if(pa&&pb&&pa.ok&&pb.ok&&(!bonOn(g)||(pa.c&&pb.c&&pa.c!==pb.c)))db.ref(`games/${code}/tasks/${id}/fin`).set(now()).catch(()=>{})})}
 function chk(id){const k=G.tasks&&G.tasks[id],m=P()[uid]||{};if(!k||!pos||m.state!=='alive')return;
-  if(D(pos,k.loc)>40)return toast('Noch nicht am Ort');
-  if(isMt(id)){if(k.fin||k.ex||k.sol!==uid||now()<k.t0)return;return db.ref(`games/${code}/tasks/${id}/fin`).set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?'. Deine Belohnung: '+(ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')))}
+  if(D(pos,k.loc)>40)return toast('Noch nicht vor Ort');
+  if(isMt(id)){if(k.fin||k.ex||k.sol!==uid||now()<k.t0)return;return db.ref(`games/${code}/tasks/${id}/fin`).set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?': '+(ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')))}
   if(isDd(id)){if(k.fin||k.pick||k.ex||now()<k.t0)return;const ref=db.ref(`games/${code}/tasks/${id}`);
-    if(k.sol===uid)return ref.child('fin').set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?'. Deine Belohnung: '+((k.a===uid)===ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')));
+    if(k.sol===uid)return ref.child('fin').set(now()).then(()=>toast('Aufgabe erledigt'+(solRw(G)?': '+((k.a===uid)===ddBm(G,id)?'Hunter-Radar':'Satellitenbild'):'')));
     const bo=bonOn(G),aBm=ddBm(G,id),bn=x=>x?'Hunter-Radar':'Satellitenbild';
-    if(k.a===uid&&!k.dep&&!k.sol)return ref.child('dep').set({u:uid,t:now()}).then(()=>toast(bo?'Dossier abgelegt. Deine Belohnung: '+bn(aBm):'Datenträger deponiert'));
+    if(k.a===uid&&!k.dep&&!k.sol)return ref.child('dep').set({u:uid,t:now()}).then(()=>toast(bo?'Dossier abgelegt: '+bn(aBm):'Datenträger deponiert'));
     if(k.b===uid&&k.dep&&!k.sol)return ref.child('pick').set({u:uid,t:now()}).then(()=>toast(bo?'Dossier geöffnet: '+bn(!aBm):'Datenträger abgeholt'));
     return}
-  if(id==='sh'){if(Object.keys(k.in||{}).length>=2)return toast('Safehouse bereits vergeben');
+  if(id==='sh'){if(Object.keys(k.in||{}).length>=2)return toast('Safehouse bereits belegt');
     db.ref(`games/${code}/tasks/sh/in/${uid}`).set({t:now()}).then(()=>toast('Eingecheckt'))}
   else db.ref(`games/${code}/players/${uid}/state`).set('safe').then(()=>toast('Evakuiert: Du bist in Sicherheit'))}
 const rvEl=()=>Object.entries(P()).filter(([u,p])=>p.role==='hider'&&p.state==='alive'&&!p.w).map(e=>e[0]);
@@ -2227,7 +2227,7 @@ function rr(id){const k=G.tasks&&G.tasks[id];if(!k||isMt(id))return;if(id==='sh'
   if(isDd(id)){if(k.a!==uid||k.dep||k.sol||k.fin||k.ex)return}else if(Object.keys(k.in||{}).length)return;
   const n=(k.rr||0)+1,alt=Object.values(k.alt||{});if(n>alt.length)return toast('Keine weiteren Orte verfügbar');
   db.ref(`games/${code}/tasks/${id}`).update({rr:n,loc:alt[n-1]})}
-function useImm(id,sec){const m=P()[uid]||{};if((m.immUntil||0)>now())return toast('Schutz läuft bereits');
+function useImm(id,sec){const m=P()[uid]||{};if((m.immUntil||0)>now())return toast('Immunität läuft bereits');
   db.ref(`games/${code}/players/${uid}`).update({immUntil:now()+sec*1000,['used/'+id]:true}).then(()=>toast('Immunität aktiv'))}
 function hTasks(g,t){let h='';const T=g.tasks||{},im=g.s.imm||120;
   ['sh','ev'].forEach(id=>{const k=T[id];if(!k||t<k.t0)return;
@@ -2291,13 +2291,13 @@ function specView(g,t){const T=g.tasks||{},ex=ui.specX||(ui.specX={}),sq=(i,c,l)
     return row(u,p,zs||SL[p.state]||p.state,p.state==='alive'?'hu':'bad',ic_||'<small>keine Boni</small>',(p.zt?'Infiziert nach '+fmt(Math.max(0,p.zt-rs(g)))+(p.zb&&P()[p.zb]?' von '+esc(P()[p.zb].name):'')+(det?'<br>':''):'')+det)}).join('')+`</div>`;
   return h}
 function useRadar(id){const pts=Object.values(P()).filter(p=>p.role==='hunter'&&p.lat).map(p=>({lat:p.lat,lng:p.lng,name:p.name}));
-  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild: '+pts.length+' '+(pts.length===1?HN(G):HNP(G))+' erfasst ('+sbV(G.s)+' s sichtbar)');draw();panel(1)})}
+  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>{radar={t:now(),pts};toast('Satellitenbild aktiv ('+sbV(G.s)+' s)');draw();panel(1)})}
 // Ende eines eigenen Bonus melden (nur wenn er in dieser Sitzung lief): Schutz (Safehouse/Terminal), Live-Standort der Hunter
 const BE={imm:false,live:{}};
 function bnEnd(g,m,t){const al=m.state==='alive';
-  const on=al&&m.role==='hider'&&(m.immUntil||0)>t;if(BE.imm&&!on&&al)toast('Schutz abgelaufen: Du tauchst wieder bei Pings auf');BE.imm=on;
+  const on=al&&m.role==='hider'&&(m.immUntil||0)>t;if(BE.imm&&!on&&al)toast('Immunität abgelaufen');BE.imm=on;
   const L_={};if(al&&m.role==='hunter')Object.entries(g.live||{}).forEach(([h,o])=>{if(o&&o[uid]>t&&(P()[h]||{}).role==='hider')L_[h]=1});
-  Object.keys(BE.live).forEach(h=>{const p=P()[h];if(!L_[h]&&p&&p.state==='alive'&&p.role==='hider')toast('Live-Standort von '+p.name+' abgelaufen')});BE.live=L_}
+  Object.keys(BE.live).forEach(h=>{const p=P()[h];if(!L_[h]&&p&&p.state==='alive'&&p.role==='hider')toast('Live-Standort von '+p.name+' beendet')});BE.live=L_}
 // §RADAR Bonus Radar: Hunter-Radar (Hider, zählt Hunter) / Hider-Radar (Hunter, zählt Hider) im Umkreis; HUD-Zahl, Meldung bei jeder Änderung, Sonar-Kreis (bmOv)
 const bmKey=id=>'bm_'+code+'_'+((G&&G.rn)||0)+'_'+id;
 // eigenes laufendes Radar: Hunter über hb/<uid>/<id>/u, Hider über den Startzeitpunkt im LS (nach Neuladen ohne Eintrag = abgelaufen)
@@ -2306,8 +2306,8 @@ function bmMine(g,t){const m=P()[uid]||{};if(m.state!=='alive'||!g.s)return null
   if(m.role==='hider')for(const i of myItems(g))if(i.type==='bm'&&m.used&&m.used[i.id]){let t0=0;try{t0=+LS[bmKey(i.id)]||0}catch(e){}if(t0&&t-t0<T)return{id:i.id,t0,end:t0+T,h:0}}
   return null}
 const BM={id:null,end:0,in:new Set(),n:-1,ov:null};
-function useBm(id){if(bmMine(G,now()))return toast('Dein Radar läuft noch');try{LS[bmKey(id)]=String(now())}catch(e){}
-  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>panel(1)).catch(()=>toast('Das hat nicht geklappt'))}
+function useBm(id){if(bmMine(G,now()))return toast('Radar läuft noch');try{LS[bmKey(id)]=String(now())}catch(e){}
+  db.ref(`games/${code}/players/${uid}/used/${id}`).set(true).then(()=>panel(1)).catch(()=>toast('Fehler'))}
 // Gegner im Umkreis; Hysterese: drin ab ≤ R, wieder draußen erst ab > R + 15 m
 function bmCount(g,t,a){if(!pos)return null;const R=bmRv(g.s),o=new Set();
   Object.entries(P()).forEach(([u,p])=>{if(u===uid)return;
@@ -2315,7 +2315,7 @@ function bmCount(g,t,a){if(!pos)return null;const R=bmRv(g.s),o=new Set();
     const d=D(pos,p);if(d<=R||(BM.in.has(u)&&d<=R+15))o.add(u)});
   return o}
 function bmTick(g,t){const a=g.status==='running'?bmMine(g,t):null;
-  if(!a){if(BM.id){const exp=t>=BM.end-1500;BM.id=null;BM.in=new Set();BM.n=-1;bmOv(null);if(exp)toast((BM.h?'Hider':'Hunter')+'-Radar abgelaufen');lg('bm',{off:1});lgSync();panel(1)}return ''}
+  if(!a){if(BM.id){const exp=t>=BM.end-1500;BM.id=null;BM.in=new Set();BM.n=-1;bmOv(null);if(exp)toast((BM.h?'Hider':'Hunter')+'-Radar beendet');lg('bm',{off:1});lgSync();panel(1)}return ''}
   const nm=a.h?'Hider-Radar':'Hunter-Radar',gg=a.h?'Hider':'Hunter',first=BM.id!==a.id;
   if(first){BM.id=a.id;BM.h=a.h;BM.end=a.end;BM.in=new Set();BM.n=-1;lg('bm',{on:a.id,h:a.h,R:bmRv(g.s),T:bmTv(g.s)});setTimeout(lgSync,0)}
   BM.end=a.end;const s=bmCount(g,t,a);
@@ -2325,7 +2325,7 @@ function bmTick(g,t){const a=g.status==='running'?bmMine(g,t):null;
     toast(n?`${nm}: ${n} ${gg} in der Nähe`:first?`${nm} aktiv: niemand in der Nähe`:`${nm}: niemand mehr in der Nähe`);
     if(n>Math.max(0,was))navigator.vibrate&&navigator.vibrate([150,80,150])}
   bmOv(pos,bmRv(g.s),n>0);
-  return `<span class="bmh${n?' on':''}">${ic('radar')}Radar <b>${n}</b> · ${fmt(a.end-t)}</span>`}
+  return `<span class="bmh${n?' on':''}">${ic('radar')}Radar · <b>${n}</b> Gegner · ${fmt(a.end-t)}</span>`}
 // Sonar-Kreis als SVG-Overlay (skaliert mit der Karte); Drehung und Puls nur per CSS, kein Neuzeichnen pro Bild
 const BMSVG=(()=>{let w='';const R=49,P=a=>(R*Math.sin(a*Math.PI/180)).toFixed(2)+' '+(-R*Math.cos(a*Math.PI/180)).toFixed(2);
   for(let i=0;i<6;i++)w+=`<path d="M0 0L${P(-6*i)}A${R} ${R} 0 0 0 ${P(-6*(i+1))}Z" fill-opacity="${(.25*(1-i/6)).toFixed(3)}"/>`;
@@ -2338,7 +2338,7 @@ function bmOv(p,R,hit){if(!p){if(BM.ov){map.removeLayer(BM.ov);BM.ov=null}return
 // §LAGEBERICHT Log der Runde (KONZEPT_Log.md, Manuels Wahl: Seitenleiste C). Verlauf = eigene Meldungen (Toast-Historie, lokal in LS
 // blog_<code>_<rn>) + Abgleich mit Meldungen an alle (G.ev); Lage = Restzeit/Zone/Ping + Teams/Hider aus players/catches. Keine DB-Änderung.
 // Nicht ins Log: Bedien-Rückmeldungen (BLX), Chat. Gleiche Meldung binnen 90 s → „×n“. Ping-Einträge speichern die Positionen (letzte 30).
-const BLX=/nicht möglich|nicht geklappt|onnte nicht|Kopiert|Teamfarbe – nicht|Erst wieder frei|Maximal 3 Marker|Replay|Heruntergeladen|Protokoll|Name nicht|Lobby|Beitritt|fehlgeschlagen|Update wird|Noch nicht am Ort|Kein GPS – bitte|Verlassen nicht|Wählt unterschiedliche|bereits vergeben|läuft bereits|Radar läuft noch|Keine weiteren Orte|Live-Ortung läuft|läuft schon|geht wieder in|Noch in Verwandlung|Analyse|Keine Verbindung|Marker konnte|Löschen nicht|Setzen nicht/;
+const BLX=/^Fehler|^Noch |^Teamfarbe$|Farbe nicht verfügbar|Farbe bereits vergeben|Belohnungen müssen|bereits belegt|Hack bereits gestartet|^Nicht in der Zone|^Zu weit weg|nicht möglich|nicht geklappt|onnte nicht|Kopiert|Teamfarbe – nicht|Erst wieder frei|Maximal 3 Marker|Replay|Heruntergeladen|Protokoll|Name nicht|Lobby|Beitritt|fehlgeschlagen|Update wird|Noch nicht am Ort|Kein GPS – bitte|Verlassen nicht|Wählt unterschiedliche|bereits vergeben|läuft bereits|Radar läuft noch|Keine weiteren Orte|Live-Ortung läuft|läuft schon|geht wieder in|Noch in Verwandlung|Analyse|Keine Verbindung|Marker konnte|Löschen nicht|Setzen nicht/;
 let BL=null,blRef=null,blOpen=false,blTab='v',blF='all',blShowL=null;
 const blKey=()=>code&&G?'blog_'+code+'_'+(G.rn||0):null;
 function blLoad(){const k=blKey();if(!k)return null;if(BL&&BL.k===k)return BL;
@@ -2442,8 +2442,8 @@ function infSync(){const g=G,m=g&&P()[uid];const want=infOn(g)&&g.status!=='lobb
 // Meldungen nur lokal bei Huntern: aufgetaucht / getroffen / Funk gestört / Abhören
 function infNote(v){const m=P()[uid]||{};Object.entries(v).forEach(([n,x])=>{const o=infSeen[n]||{};
   if(x.lat!=null&&o.lat==null&&infSeen._init)toast('Ein Informant ist aufgetaucht');
-  if(x.by&&!o.by&&infSeen._init)toast(x.by===uid?'Du hast den Informanten getroffen':tmName(G,x.tm)+' hat den Informanten getroffen');
-  if(x.u&&!o.u&&infSeen._init&&x.tm===m.tm&&x.b==='ab'&&x.by!==uid)toast((P()[x.by]||{}).name+' hört ab: Ihr seht alle Agenturen');
+  if(x.by&&!o.by&&infSeen._init)toast(x.by===uid?'Informant getroffen':tmName(G,x.tm)+' hat den Informanten getroffen');
+  if(x.u&&!o.u&&infSeen._init&&x.tm===m.tm&&x.b==='ab'&&x.by!==uid)toast('Abhören gestartet');
   infSeen[n]=Object.assign({},x)});infSeen._init=1}
 // Zeitpunkte beim Start (Host): 20–80 % der Spielzeit, Mindestabstand 0,8·T/(N+1), notfalls kleiner
 async function infPlan(g,startAt){const s=g.s,N=Math.max(1,Math.min(5,s.infN||1)),T=s.dur*6e4,R0=startAt+(s.head||0)*6e4,a=R0+.2*T,b=R0+.8*T;
@@ -2468,11 +2468,11 @@ function infAb(g,t,tm){const iv=pgK(g,t).iv;return Object.values(INF).some(x=>x&
 function infJam(g,at,tm){if(!at||!tm)return 0;const R0=rs(g),iv=(g.s.ping||60)*1000,js=Object.values(INF).filter(x=>x&&x.b==='st'&&x.u&&x.tg===tm).map(x=>x.u).sort((a,b)=>a-b),used=new Set();
   for(const u of js){let k=Math.floor((u-R0)/iv)+1;while(used.has(k))k++;used.add(k)}return used.has(Math.round((at-R0)/iv))?Math.round(iv/2):0}
 async function infClaim(n){const g=G,m=P()[uid]||{},x=INF[n];if(!x||x.by||!pos||D(pos,x)>INFR)return toast('Zu weit weg');
-  const w={by:uid,tm:m.tm,at:now()};try{await db.ref(`inf/${code}/${n}`).update(w);lg('inf-claim',n);INF[n]=Object.assign({},INF[n],w);gdShow('ib:'+n)}catch(e){toast('Ein anderes Team war schneller')}}
-async function infPick(n,b){try{await db.ref(`inf/${code}/${n}/b`).set(b);lg('inf-pick',[n,b]);INF[n]=Object.assign({},INF[n],{b});gdShow('ib:'+n)}catch(e){toast('Das hat nicht geklappt')}}
+  const w={by:uid,tm:m.tm,at:now()};try{await db.ref(`inf/${code}/${n}`).update(w);lg('inf-claim',n);INF[n]=Object.assign({},INF[n],w);gdShow('ib:'+n)}catch(e){setTimeout(()=>{const y=INF[n]||{};toast(y.tm?tmName(G,y.tm)+' war schneller':'Ein anderes Team war schneller')},800)}}
+async function infPick(n,b){try{await db.ref(`inf/${code}/${n}/b`).set(b);lg('inf-pick',[n,b]);INF[n]=Object.assign({},INF[n],{b});gdShow('ib:'+n)}catch(e){toast('Fehler')}}
 async function infUse(n,tg){const x=INF[n];if(!x||x.by!==uid||!x.b||x.u)return;const u={u:now()};if(x.b==='st'){if(!tg)return;u.tg=tg}
   try{await db.ref(`inf/${code}/${n}`).update(u);lg('inf-use',[n,x.b,tg||null]);gdClose();
-    toast(x.b==='ab'?'Abhören läuft: Ihr seht alle Agenturen':'Störsender gegen '+tmName(G,tg)+' aktiv: Ihr nächster Ping kommt später')}catch(e){toast('Das hat nicht geklappt')}}
+    toast(x.b==='ab'?'Abhören gestartet':'Störsender aktiviert')}catch(e){toast('Fehler')}}
 // HUD: nächster Ping des eigenen Teams inkl. Störsender-Verzögerung
 function infNextP(g,t,pk,m){if(!infOn(g)||m.role!=='hunter')return pk.next-t;const d0=infJam(g,pk.at,m.tm);if(d0&&t<pk.at+d0)return pk.at+d0-t;return pk.next+infJam(g,pk.next,m.tm)-t}
 // Panel (Hunter): Informant in der Nähe, eigener Informanten-Bonus, laufendes Abhören des Teams
@@ -2658,7 +2658,7 @@ function balAcc(g){const s=g.s,{H,X}=balRoster(),k=ui.balK==null?2:ui.balK;
   return acc('bal','bal','Balancing','',b,same?'✓ '+BALN[k]:`<span class=balw><i></i>an ${H} ${H===1?HN(g):HNP(g)} · ${X} Hider anpassen</span>`)}
 function balGo(){if(!G||G.host!==uid||G.status!=='lobby')return;const{H,X}=balRoster();if(!H||!X)return;const k=ui.balK==null?2:ui.balK,c=balCalc(G.s,H,X,k);
   const u=Object.assign({},c.o,{ddN:c.dd,mtN:c.mt});if(md(G)!=='mission')u.shOn=true;if(G.s.hk)Object.assign(u,hkDef(Object.assign({},G.s,u)));
-  db.ref(`games/${code}/s`).update(u).then(()=>{ui.balLast={H,X};ui.balRoll=null;toast('Balancing angewendet');panel(1)}).catch(e=>toast('Konnte nicht speichern: '+(e&&e.code||e)))}
+  db.ref(`games/${code}/s`).update(u).then(()=>{ui.balLast={H,X};ui.balRoll=null;toast('Balancing angewendet');panel(1)}).catch(e=>toast('Fehler beim Speichern ('+(e&&e.code||e)+')'))}
 
 // §LOBBY-UI nf/swt (Einstellungszeilen, sb = Unterpunkt), acc, lobbyUI
 const nf=(k,sb)=>{const f=FD[k],v=G.s[k]??DEF[k]??hkDef(G.s)[k];return `<div class="fl${sb?' sub':''}"><label>${f[0]}</label><div class=num><button class=n onclick="stp('${k}',-1)" aria-label="weniger">−</button><input type=number inputmode=numeric value="${v}" min=${f[1]} max=${f[2]} onchange="setS('${k}',this.value,${f[1]},${f[2]})" aria-label="${f[0]}"><span class=u>${f[4]}</span><button class=n onclick="stp('${k}',1)" aria-label="mehr">+</button></div></div>`};
@@ -2951,7 +2951,7 @@ function gdSync(){let e=$('gd');const g=G,me_=g&&P()[uid];
   const sc=e.firstChild?e.firstChild.scrollTop:0;e.innerHTML=zx(`<div class="dbx gdx" role=dialog aria-modal=true>${b}</div>`);e.firstChild.scrollTop=sc}
 // §RUN-UI Panel im Spiel (Hider/Hunter/Zuschauer)
 function runUI(g,me_,t,host,run){
-  const c=g.catches&&g.catches[uid],hh=md(g)==='mission'?'Erreiche die Evakuierung, sobald sie erscheint, und lass dich nicht fangen.':zmb(g)?'Bleib in der Zone und halte bis zum Ende durch. Wer gefangen wird, wird zum Zombie.':'Bleib in der Zone und lass dich nicht fangen.';
+  const c=g.catches&&g.catches[uid],hh=md(g)==='mission'?'Bleib in der Zone und erreiche die Evakuierung, sobald sie erscheint. Lass dich nicht erwischen!':'Bleib in der Zone und lass dich nicht fangen.';
   const SPT={spec:'Du schaust zu',caught:'Du wurdest gefangen',dq:'Disqualifiziert (GPS-Signal verloren)',safe:'Du bist in Sicherheit',quit:'Du hast aufgegeben'};
   let h='',f='';
   if(isSpec(me_)){
@@ -2964,9 +2964,9 @@ function runUI(g,me_,t,host,run){
     h+=gBonH(g,me_,t)+gTaskH(g,t,me_)}
   else{h=strip;
     if(run&&zl_){const ph=(ZV&&ZV.ph)||'in',r=ZV?ZV.rem:zDur(g);
-      h+=`<div class="card zv ${ph}"><div class=row style="align-items:center;gap:12px"><div style="flex:1;min-width:0"><div class=hd>${ph==='out'?'Zurück zum Fangort!':ph==='pause'?'Verwandlung pausiert':'Verwandlung läuft'}</div><small>${ph==='out'?'Du hast den Kreis verlassen. Die Verwandlung startet neu, sobald du wieder drin bist.':ph==='pause'?'Kein aktueller Standort. Der Countdown wartet.':'Bleib im grünen Kreis am Fangort. Danach darfst du fangen.'}</small></div><b class=zn id=zcd>${fmt(ph==='out'?zDur(g):r)}</b></div></div>`}
+      h+=`<div class="card zv ${ph}"><div class=row style="align-items:center;gap:12px"><div style="flex:1;min-width:0"><div class=hd>${ph==='out'?'Verwandlung abgebrochen: Kehre zum Fangort zurück!':ph==='pause'?'Verwandlung pausiert - kein aktueller Standort':'Verwandlung läuft'}</div>${ph==='in'?`<small>Bleib im grünen Kreis am Fangort (noch <span id=zcd>${fmt(r)}</span>)</small>`:''}</div></div></div>`}
     if(run)Object.entries(g.catches||{}).forEach(([k,c])=>{if(c.hunter!==uid||c.status!=='pending'||!P()[k])return;
-      h+=`<div class="card cwt"><div class=row style="align-items:center;gap:10px"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(P()[k].name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Warte auf ${esc(P()[k].name)}</b><small style="display:block">Ohne Antwort gilt der Fang automatisch.</small></div><b class=cwn>${cdT(c.t+30000,'')}</b></div></div>`});
+      h+=`<div class="card cwt"><div class=row style="align-items:center;gap:10px"><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${esc(String(P()[k].name||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><b>Warte auf ${esc(P()[k].name)} (noch ${cdT(c.t+30000,'')})</b></div></div></div>`});
     const fsx=run&&fsOn(g)&&!zl_?fsHunterH(g,t):null;if(fsx)h+=fsx[0];
     if(run&&fsx&&fsCand&&!cand.length)h+=fsCandH(g);else
     if(run)h+=cand.length?`<div class=card style="display:grid;gap:10px"><div class=hd>Wen hast du gefangen?</div><div class=cgr>`+cand.map(([k,p])=>{const pc=((g.catches||{})[k]||{}).status==='pending';return `<button class="cgt${pc?' off':''}" onclick="rq('${k}')"${pc?' aria-disabled=true':''}><span class=av style="background:${colOf(k)};color:${inkOf(k)}">${letOf(k)}</span><b>${esc(p.name)}</b>${pc?'<small>läuft schon</small>':''}</button>`}).join('')+`</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small><button class=ghost style="margin:0" onclick="cand=[];panel(1)">Abbrechen</button></div>`:(zl_?`<button class=g disabled>Fang melden</button><small style="text-align:center;display:block">Noch in Verwandlung.</small>`:(fsx?`<div class=fsrow><button onclick="cc()">Fang melden</button>${fsx[1]}</div><small style="text-align:center;display:block">„Fang melden“ nach dem Berühren. „Festsetzen“ nur bei Sichtkontakt: zwingt den Hider in ${fsRv(g)} m zum Stehenbleiben.</small>`:`<button onclick="cc()">Fang melden</button><small style="text-align:center;display:block">Gilt nur, wenn du höchstens 40 m vom Hider entfernt bist.</small>`));
@@ -3109,17 +3109,17 @@ const hkRef=()=>db.ref(`games/${code}/tasks/hk`);
 const hkInZone=g=>{const k=hkK(g);return !!(pos&&k&&D(pos,k.loc)<=hkZv(g))};
 let hkSP,hkOutMs=0,hkLT=0,hkWr=0,hkLock=0,lastCm=null,cmWas=false,ozPrev,ozIn=false,ozBusy=0,ozTmp=null;
 function hkJoin(){const g=G,t=now(),m=P()[uid]||{},H=hkSt(g,t);if(!H||m.role!=='hider'||m.state!=='alive'||H.res)return;
-  if(!hkInZone(g))return toast('Du bist nicht in der Terminal-Zone');
+  if(!hkInZone(g))return toast('Nicht in der Zone');
   const fx=()=>{wasOut=false;hkOutMs=0;hkLT=0;db.ref(`games/${code}/players/${uid}`).update({immUntil:0,out:false,revealUntil:0}).catch(()=>{});panel(1);draw()};
   if(H.run){const a=H.run;if(a.p&&a.p[uid])return toast(a.x&&a.x[uid]?'Du bist aus diesem Versuch ausgeschieden':'Du hackst bereits');
-    return hkRef().child('at/'+H.ln+'/p/'+uid).set({t}).then(()=>{evW('hk_h'+H.ln+'_'+uid,'Hider '+m.name+' hilft beim Hack','hk');toast('Du hilfst beim Hack');fx()}).catch(()=>toast('Das hat nicht geklappt'))}
+    return hkRef().child('at/'+H.ln+'/p/'+uid).set({t}).then(()=>{evW('hk_h'+H.ln+'_'+uid,m.name+' hilft beim Hack','hk');toast('Du hilfst beim Hack');fx()}).catch(()=>toast('Fehler'))}
   if(!H.open)return;const n=H.n+1;
-  hkRef().child('at/'+n).set({s:t,u:uid,p:{[uid]:{t}}}).then(()=>{evW('hk_s'+n,'Hider '+m.name+' hackt das Terminal','hk');toast('Du hackst das Terminal. Bleib in der Zone!');fx()}).catch(()=>toast('Der Hack wurde gerade von jemand anderem gestartet'))}
+  hkRef().child('at/'+n).set({s:t,u:uid,p:{[uid]:{t}}}).then(()=>{evW('hk_s'+n,m.name+' hackt das Terminal','hk');toast('Hack gestartet. Bleib in der Zone!');fx()}).catch(()=>toast('Hack bereits gestartet'))}
 function hkLeave(H){const g=G,t=now();
   hkRef().child('at/'+H.ln+'/x/'+uid).set(t).then(()=>{db.ref(`games/${code}/players/${uid}`).update({revealUntil:t+(g.s.hbL||60)*1000}).catch(()=>{});
-    toast('Du hast die Terminal-Zone verlassen: Dein Standort ist '+(g.s.hbL||60)+' s sichtbar');navigator.vibrate&&navigator.vibrate([200,100,200]);panel(1)}).catch(()=>{})}
+    toast('Terminal-Zone verlassen: Standort für '+(g.s.hbL||60)+' s sichtbar');navigator.vibrate&&navigator.vibrate([200,100,200]);panel(1)}).catch(()=>{})}
 function hkCmUse(){const g=G;if(hkHolder(g)!==uid)return;
-  hkRef().child('cm').set({u:uid,t:now()}).then(()=>{toast('Gegenüberwachung aktiv');panel(1)}).catch(()=>toast('Das hat nicht geklappt'))}
+  hkRef().child('cm').set({u:uid,t:now()}).then(()=>{toast('Gegenüberwachung aktiv');panel(1)}).catch(()=>toast('Fehler'))}
 // Sperrgebiet setzen: Kreis auf die Karte legen und bestätigen
 function ozStart(){if(ozHolder(G)!==uid)return;if(mkMode)mkCancel();$('mmn').className='';mkMode='oz';mkUI();
   mkBar('Tippe auf die Karte, wo das Sperrgebiet liegen soll','<button class=g onclick="mkCancel()">Abbrechen</button>')}
@@ -3131,18 +3131,18 @@ function ozTap(ll){const g=G,t=now();
   mkTmp=[c,mk];mkTmp.oz={lat:+ll.lat.toFixed(6),lng:+ll.lng.toFixed(6)};
   mkBar(`Sperrgebiet ${r} m · Vorwarnung ${fmt(Math.round((g.s.hbC||0)/2)*1000)} · aktiv ${fmt(hkTv(g)*1000)}`,'<button class=g onclick="mkCancel()">Abbrechen</button><button onclick="ozGo()">Bestätigen</button>')}
 function ozGo(){if(!mkTmp||!mkTmp.oz||ozHolder(G)!==uid)return mkCancel();const o=mkTmp.oz;
-  hkRef().child('oz').set({u:uid,t:now(),lat:o.lat,lng:o.lng}).then(()=>{toast('Sperrgebiet gesetzt');panel(1)}).catch(()=>toast('Setzen nicht möglich'));mkCancel()}
+  hkRef().child('oz').set({u:uid,t:now(),lat:o.lat,lng:o.lng}).then(()=>{toast('Sperrgebiet platziert');panel(1)}).catch(()=>toast('Fehler beim Platzieren'));mkCancel()}
 // Sekundentakt: Fortschritt schreiben, Zone verlassen, Versuch beenden, Meldungen. Liefert HUD-Text.
 function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.now(),tg=hkTv(g)*1000,k=H.k;
   const act=hkAct(g,uid);
-  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.state==='alive'&&(m.role==='hider'||m.role==='hunter')){toast(m.role==='hider'?'Terminal verfügbar: Ihr könnt es jetzt hacken!':'Terminal aktiv: Die Hider können es jetzt hacken');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
+  if(hkSP===undefined)hkSP=H.seen;else if(H.seen&&!hkSP){hkSP=true;if(m.state==='alive'&&(m.role==='hider'||m.role==='hunter')){toast(m.role==='hider'?'Terminal entdeckt':'Terminal für Hider aktiv');navigator.vibrate&&navigator.vibrate([200,100,200])}draw();panel(1)}
   if(act&&H.run){const a=H.run,fresh=!!pos&&nw-lastFix<10000,dt=hkLT?Math.min(3000,nw-hkLT):0;hkLT=nw;
     if(fresh){const outs=D(pos,k.loc)-(typeof gAcc==='number'?gAcc:0)>hkZv(g);hkOutMs=outs?hkOutMs+dt:0}
     if(hkOutMs>=10000){hkOutMs=0;hkLeave(H)}
     else{
       if(fresh&&nw-hkWr>=2500){const pg=a.pg||{v:0,t:a.s},v=Math.min(tg,Math.round(pg.v+Math.max(0,Math.min(t-pg.t,6000))*hkRate(a,t)));
         if(v>(a.pg?a.pg.v:-1)){hkWr=nw;hkRef().child('at/'+H.ln+'/pg').set({v,t}).catch(()=>{})}}
-      if(hkOutMs>0)h+=`<span class=w>Zurück in die Terminal-Zone! ${Math.max(0,Math.ceil((10000-hkOutMs)/1000))} s</span>`}}
+      if(hkOutMs>0)h+=`<span class=w>Zurück zum Terminal! ${Math.max(0,Math.ceil((10000-hkOutMs)/1000))} s</span>`}}
   else{hkOutMs=0;hkLT=0}
   if(H.run)h+=`<span>${ic('hack')}Hack ${Math.round(hkProg(g,H.run,t)*100)} %</span>`;
   // Versuch beenden (jeder prüft mit, das erste gültige Schreiben gewinnt)
@@ -3156,30 +3156,30 @@ function hkTick(g,m,t){const H=hkSt(g,t);if(!H)return'';let h='';const nw=Date.n
       else if(n>=hkNv(g)){const hh=hkNear(g,lu,t);up.res={k:'d3',t,a:String(n)};if(hh)up.res.h=hh}
       if(up.res&&up.res.h===null)delete up.res.h;
       hkRef().update(up).then(()=>{
-        if(caught)evW('hk_df','Terminal-Zone verteidigt','hk');
-        else if(n>=hkNv(g))evW('hk_d3','Terminal gesichert – Zone verteidigt','hk');
+        if(caught)evW('hk_df','Terminal verteidigt','hk');
+        else if(n>=hkNv(g))evW('hk_d3','Terminal gesichert','hk');
         else{const r=hkNv(g)-n;evW('hk_ab'+n,`Hack abgebrochen (noch ${r} Versuch${r>1?'e':''})`,'hk')}}).catch(()=>{})}}
   // Immunität nach erfolgreichem Hack (nur wer noch beteiligt war)
   if(H.res&&H.res.k==='ok'&&H.res.el&&H.res.el[uid]&&m.state==='alive'&&!evSeen.has('hk_imm')){evSeen.add('hk_imm');const hbc=(g.s.hbC||0)*1000;
-    if(hbc>0&&H.res.t+hbc>t)db.ref(`games/${code}/players/${uid}`).update({immUntil:H.res.t+hbc}).then(()=>toast('Terminal gehackt! Du bist '+fmt(H.res.t+hbc-t)+' geschützt')).catch(()=>{})}
+    if(hbc>0&&H.res.t+hbc>t)db.ref(`games/${code}/players/${uid}`).update({immUntil:H.res.t+hbc}).then(()=>toast('Hack erfolgreich! Du bist '+fmt(H.res.t+hbc-t)+' geschützt')).catch(()=>{})}
   // Gegenüberwachung
   const cmT=k.cm?k.cm.t:0,cmOn=hkCmOn(g,t);
   if(lastCm===null)lastCm=cmT;
-  else if(cmT&&cmT!==lastCm){lastCm=cmT;if(t-cmT<15000){if(m.role==='hunter'){toast('Eure Standorte sind enttarnt!');navigator.vibrate&&navigator.vibrate([300,100,300])}else if(m.role==='hider')toast('Gegenüberwachung aktiv: Du siehst die Hunter')}}
-  if(cmOn!==cmWas){if(cmWas&&!cmOn&&m.state==='alive'&&(m.role==='hider'||m.role==='hunter'))toast(m.role==='hunter'?'Gegenüberwachung abgelaufen: Ihr seid nicht mehr enttarnt':'Gegenüberwachung abgelaufen');cmWas=cmOn;draw()}
+  else if(cmT&&cmT!==lastCm){lastCm=cmT;if(t-cmT<15000){if(m.role==='hunter'){toast('Standorte enttarnt!');navigator.vibrate&&navigator.vibrate([300,100,300])}else if(m.role==='hider')toast('Gegenüberwachung aktiv: Du siehst die Hunter')}}
+  if(cmOn!==cmWas){if(cmWas&&!cmOn&&m.state==='alive'&&(m.role==='hider'||m.role==='hunter'))toast(m.role==='hunter'?'Überwachung beendet':'Gegenüberwachung beendet');cmWas=cmOn;draw()}
   if(cmOn){const rem=fmt(cmT+hkRv(g)*1000-t);h+=m.role==='hunter'?`<span class=w>${ic('live')}Enttarnt ${rem}</span>`:`<span>${ic('live')}Gegenüberwachung ${rem}</span>`}
   // Sperrgebiet
   const op=ozPh(g,t),pk=op?op.p:null;
   if(ozPrev===undefined)ozPrev=pk;
   else if(pk!==ozPrev){ozPrev=pk;draw();panel(1);
     if(pk==='warn'&&m.role==='hider'&&m.state==='alive'){toast('Sperrgebiet! Aktiv in '+fmt(op.w-t));navigator.vibrate&&navigator.vibrate([200,100,200])}
-    else if(pk==='warn'&&m.role==='hunter'&&m.state==='alive'&&k.oz.u!==uid)toast('Sperrgebiet gesetzt');
+    else if(pk==='warn'&&m.role==='hunter'&&m.state==='alive'&&k.oz.u!==uid)toast('Sperrgebiet platziert');
     else if(pk==='on'&&m.state==='alive')toast('Sperrgebiet aktiv');
-    else if(pk==='end'&&m.role)toast('Sperrgebiet aufgehoben')}
+    else if(pk==='end'&&m.role)toast('Sperrgebiet beendet')}
   if(pk==='warn')h+=`<span class=w>${ic('zone')}Sperrgebiet in ${fmt(op.w-t)}</span>`;
   else if(pk==='on'){h+=`<span>${ic('zone')}Sperrgebiet ${fmt(op.e-t)}</span>`;
     const inn=m.role==='hider'&&m.state==='alive'&&pos&&D(pos,k.oz)<=ozRv(g)&&(m.immUntil||0)<=t&&!act;
-    if(inn){h+=`<span class=w>Du wirst geortet!</span>`;if(!ozIn){ozIn=true;toast('Du bist im Sperrgebiet: Die Hunter sehen dich');navigator.vibrate&&navigator.vibrate([300,100,300])}}else ozIn=false}
+    if(inn){h+=`<span class=w>Du wirst geortet! (Sperrgebiet)</span>`;if(!ozIn){ozIn=true;toast('Live-Standort wird geteilt (Sperrgebiet)!');navigator.vibrate&&navigator.vibrate([300,100,300])}}else ozIn=false}
   else ozIn=false;
   return h}
 // Karten-Hinweise und Karten für Hider und Hunter
@@ -3353,8 +3353,8 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
   const selfOk=netOkSince&&nw-netOkSince>15000&&lastAck&&nw-lastAck<15000;
   if(!TEST&&m.role&&conn&&selfOk&&nw>connSince+8000&&nw>skipUntil&&t>=g.startAt+15000){
     Object.entries(P()).forEach(([k,p])=>{if(k===uid||p.state!=='alive'||!p.ts)return;const age=t-p.ts;
-      if(age>gwv(g)*1000)evW(k+'_w_'+p.ts,lbl(p)+' hat das Signal verloren',k);
-      if(dqOn(g)&&age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',lbl(p)+' wurde disqualifiziert (Signal verloren)',k)}})}
+      if(age>gwv(g)*1000)evW(k+'_w_'+p.ts,p.name+' hat das Signal verloren',k);
+      if(dqOn(g)&&age>gdv(g)*1000&&!evSeen.has(k+'_d')){db.ref(`games/${code}/players/${k}`).update({state:'dq',sT:now()}).catch(()=>{});evW(k+'_d',p.name+' wurde disqualifiziert (Signal verloren)',k)}})}
   if(t<g.startAt)h=`<span>Start in ${fmt(g.startAt-t)}</span>`;
   else if(t<R0)h=m.role==='hunter'?`<span>${HNP(g)} starten in ${fmt(R0-t)}</span>`:`<span>Headstart: noch ${fmt(R0-t)}</span>`;
   else{const el=t-R0,nextS=g.s.shrink*6e4-el%(g.s.shrink*6e4),pk=pgK(g,t),nextP=infNextP(g,t,pk,m);
@@ -3368,28 +3368,28 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     const ng=netGap();
     if(ng>GW*1000){h+=dqOn(g)?`<span class=w>Keine Internetverbindung! DQ in ${Math.max(0,GD-Math.floor(ng/1000))} s</span>`:`<span class=w>Keine Internetverbindung!</span>`;if(!netW){netW=1;lg('netwarn',1);toast('Keine Internetverbindung');navigator.vibrate&&navigator.vibrate([200,100,200])}}
     else if(netW&&ng<5000){netW=0;lg('netwarn',0);toast('Internetverbindung wieder da');rcn()}
-    if(dqOn(g)&&gap>GD*1000){db.ref(`games/${code}/players/${uid}`).update({state:'dq',sT:now()});evW(uid+'_d',lbl(m)+' wurde disqualifiziert (Signal verloren)')}
+    if(dqOn(g)&&gap>GD*1000){db.ref(`games/${code}/players/${uid}`).update({state:'dq',sT:now()});evW(uid+'_d',m.name+' wurde disqualifiziert (Signal verloren)')}
     if(m.role==='hider'&&pos){const out=!hkAct(g,uid)&&D(pos,g.c)>Rad(g,t);
       if(out&&!wasOut){wasOut=true;db.ref(`games/${code}/players/${uid}`).update({out:true,revealUntil:0});write(1)}
       if(!out&&wasOut){wasOut=false;db.ref(`games/${code}/players/${uid}`).update({out:false,revealUntil:t+g.s.pen*6e4})}
       if(out)h+=`<span class=w>Außerhalb der Zone! Dein Standort ist sichtbar</span>`;
-      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Sichtbar für ${HNP(g)}: ${fmt(m.revealUntil-t)}</span>`;
+      else if(m.revealUntil>t)h+=`<span class=w>${ic('ping')}Live-Ortung für ${fmt(m.revealUntil-t)} (Zone)</span>`;
       const lim=(g.s.ot||0)*6e4;
       if(lim>0){const nw=Date.now(),dt=oaT?Math.min(3000,nw-oaT):0;oaT=nw;if(oaL===null)oaL=m.oa||0;
         if(out&&gap<=GW*1000)oaL+=dt;
         if(oaL!==oaLast&&t>=oaW){oaW=t+5000;oaLast=oaL;db.ref(`games/${code}/players/${uid}`).update({oa:Math.round(oaL)}).catch(()=>{})}
         const rem=lim-oaL;
         if(out||oaL>0)h+=`<span class="${out?'w':''}">${ic('zone')}Außerhalb erlaubt: ${fmt(Math.max(0,rem))}</span>`;
-        if(rem<=60000&&rem>0&&!oaWarn){oaWarn=true;toast('Achtung: weniger als 1 Minute außerhalb der Zone übrig');navigator.vibrate&&navigator.vibrate([200,100,200])}
+        if(rem<=60000&&rem>0&&!oaWarn){oaWarn=true;toast('Weniger als 1 Minute außerhalb der Zone übrig!');navigator.vibrate&&navigator.vibrate([200,100,200])}
         if(rem>60000)oaWarn=false;
-        if(rem<=0){db.ref(`games/${code}/players/${uid}`).update({oa:Math.round(oaL),state:'dq',sT:now()}).catch(()=>{});evW(uid+'_o',lbl(m)+' wurde disqualifiziert (zu lange außerhalb der Zone)')}}}}
+        if(rem<=0){db.ref(`games/${code}/players/${uid}`).update({oa:Math.round(oaL),state:'dq',sT:now()}).catch(()=>{});evW(uid+'_o',m.name+' wurde disqualifiziert (zu lange außerhalb der Zone)')}}}}
   // Zonenzeit: alle prüfen mit (falls der Hider selbst nicht mehr schreibt)
   if(m.role&&t>=g.startAt&&(g.s.ot||0)>0&&t>=dqLock){const lm=g.s.ot*6e4+5000;
     Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||(p.oa||0)<=lm)return;dqLock=t+4000;
-      db.ref(`games/${code}/players/${id}`).update({state:'dq',sT:now()}).catch(()=>{});evW(id+'_o',lbl(p)+' wurde disqualifiziert (zu lange außerhalb der Zone)',id)})}
+      db.ref(`games/${code}/players/${id}`).update({state:'dq',sT:now()}).catch(()=>{});evW(id+'_o',p.name+' wurde disqualifiziert (zu lange außerhalb der Zone)',id)})}
   if(isSpec(m)&&(ping||radar||xping)){ping=radar=xping=null;draw()}
   bnEnd(g,m,t);faSync(g,m,t);chQSync();cdTick(t);zTick(g,m,t);zLast(g,t);fsTick(g,m,t);
-  if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Schutz ${fmt(m.immUntil-t)}</span>`;
+  if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Immunität ${fmt(m.immUntil-t)}</span>`;
   if(m.role==='hider'&&m.state==='alive'){const vis=myTk(g,t).join();
     if(vis!==lastTV){const was=lastTV.split(',');lastTV=vis;
       vis.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{toast(tkMsg(x));navigator.vibrate&&navigator.vibrate([200,100,200])});
@@ -3399,17 +3399,17 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
       ids.split(',').filter(x=>x&&!was.includes(x)&&t-T[x].t0<20000).forEach(x=>ms.add(x==='sh'?'Safehouse':x==='ev'?'Evakuierung':x[0]==='m'?'Meeting':'Dead Drop'));
       ms.forEach(n=>note(n+' gestartet'))}}
   if(m.role==='hunter'&&m.state==='alive'){const cs=cmpIds(g,t).join();if(cs!==lastCT){const was=lastCT===null?cs.split(','):lastCT.split(',');lastCT=cs;
-      cs.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{note((x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert: Der Ort ist auf der Karte');navigator.vibrate&&navigator.vibrate(200)});draw()}}
-  if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild abgelaufen')}
+      cs.split(',').filter(x=>x&&!was.includes(x)).forEach(x=>{note((x[0]==='m'?'Meeting':'Dead Drop')+' kompromittiert');navigator.vibrate&&navigator.vibrate(200)});draw()}}
+  if(radar&&t-radar.t>=sbV(g.s)*1000){radar=null;draw();toast('Satellitenbild beendet')}
   if(m.role==='hunter'&&m.state==='alive'){let act=0;Object.entries(g.live||{}).forEach(([hid,o])=>{const un=o&&o[uid];if(un>t&&(P()[hid]||{}).role==='hider'){act=1;h+=`<span>${ic('live')}${esc((P()[hid]||{}).name||'?')} ${fmt(un-t)}</span>`}});if(act)draw()}
   if(m.role==='hider'&&m.state==='alive'){
     const lv=Math.max(0,...Object.values((g.live||{})[uid]||{}));
-    if(lv>t){h+=`<span class=w>${ic('live')}Live geortet ${fmt(lv-t)}</span>`;if(lv>lastLv&&lv-t>1500){toast('Du wirst live geortet!');navigator.vibrate&&navigator.vibrate([300,100,300])}}
+    if(lv>t){h+=`<span class=w>${ic('live')}Live-Ortung für ${fmt(lv-t)}</span>`;if(lv>lastLv&&lv-t>1500){toast('Du wirst live geortet!');navigator.vibrate&&navigator.vibrate([300,100,300])}}
     lastLv=Math.max(lastLv,lv);
     const xs=Object.values(g.xp||{}).map(e=>e.t),mx=xs.length?Math.max(...xs):0;
-    if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('Extra-Ping! Die '+HNP(g)+' orten gerade alle Hider.');navigator.vibrate&&navigator.vibrate(300)}}
+    if(lastXp===null)lastXp=mx;else if(mx>lastXp){lastXp=mx;toast('📡 Extra-Ping!');navigator.vibrate&&navigator.vibrate(300)}}
   if(m.role&&t>=R0){const zk=zsStep(g.s,t-R0);if(zsK===null)zsK=zk;else if(zk>zsK){const r0_=RadS(g.s,(zk-1)*g.s.shrink*6e4),r1_=RadS(g.s,zk*g.s.shrink*6e4);zsK=zk;
-    if(r1_<r0_&&t-(R0+zk*g.s.shrink*6e4)<10000){note('Zone schrumpft: jetzt '+Math.round(r1_)+' m'+(r1_<=g.s.rMin?' (Endgröße)':''));draw()}}}
+    if(r1_<r0_&&t-(R0+zk*g.s.shrink*6e4)<10000){note('Zone schrumpft auf '+Math.round(r1_)+' m'+(r1_<=g.s.rMin?' (Endgröße)':''));draw()}}}
   h+=hkTick(g,m,t);
   h+=bmTick(g,t);
   if(m.role&&t>=g.startAt&&t>=ddLock){const up=ddPlan(g.tasks,P(),md(g)==='mission',t,!!g.s.tsol),ks=Object.keys(up);
@@ -3421,13 +3421,13 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     if(k>=1&&k!==lastK){const fr=t-pk.at<5000;lastK=k;if(fr){const q=P()[uid];
       const pts={};
       if(q&&((q.immUntil||0)>t||hkAct(g,uid)||fsSkip(q,pk.at)))toast('Ping ausgesetzt: '+(hkAct(g,uid)?'Du hackst gerade':fsSkip(q,pk.at)?'Du bist entkommen':'Du bist geschützt'));
-      else if(q&&q.lat&&!liveNow(g,uid,t)){pts[uid]={lat:q.lat,lng:q.lng,name:q.name};navigator.vibrate&&navigator.vibrate(150);toast('Ping gesendet: '+HNP(g)+' sehen deinen Standort')}
+      else if(q&&q.lat&&!liveNow(g,uid,t)){pts[uid]={lat:q.lat,lng:q.lng,name:q.name};navigator.vibrate&&navigator.vibrate(150);toast('📡 Ping!')}
       // Mitspieler genau so, wie die Hunter sie beim Ping sehen (ohne Geschützte und nicht aktuelle)
       if(hpOn(g))Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||!p.lat||(p.immUntil||0)>t||hkAct(g,id)||fsSkip(p,pk.at)||liveNow(g,id,t)||(!TEST&&t-(p.ts||0)>30000))return;pts[id]={lat:p.lat,lng:p.lng,name:p.name}});
       if(Object.keys(pts).length){ping={k,t:now(),pts};psave();draw()}}}}
   // Hunter: Ping-Snapshot
   if(m.role==='hunter'&&m.state==='alive'&&t>=R0){const pk=pgK(g,t),k=pk.k,jd=infOn(g)?infJam(g,pk.at,m.tm):0;
-    if(k>=1&&k!==lastK&&jd&&t<pk.at+jd){if(infJK!==k){infJK=k;toast('Euer Funk wird gestört – Ping kommt in '+fmt(pk.at+jd-t))}}
+    if(k>=1&&k!==lastK&&jd&&t<pk.at+jd){if(infJK!==k){infJK=k;toast('Funk gestört - Ping in '+fmt(pk.at+jd-t))}}
     else if(k>=1&&k!==lastK){const fr=t-(pk.at+jd)<5000;lastK=k;if(fr){ping={k,t:now(),pts:{},grey:{}};xping=null;const nm=[],old=[],offl=!TEST&&netGap()>gwv(g)*1000;
       Object.entries(P()).forEach(([id,p])=>{if(p.role!=='hider'||p.state!=='alive')return;
         if(fsSkip(p,pk.at)){if(lk[id])ping.grey[id]=lk[id];return}
@@ -3469,7 +3469,7 @@ async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){
   const av=appVer();if(c&&c.v&&Date.now()-c.t<3*36e5&&!(av&&!verLt(av,c.v)))UPD=c.v;
   else try{const r=await fetch(REL,{headers:{Accept:'application/vnd.github+json'}});if(r.ok){const j=await r.json(),v=String(j.tag_name||'').replace(/^v/,'');if(/^\d+(\.\d+)*$/.test(v)&&(j.assets||[]).some(a=>a.name==='BlownCover.apk')){UPD=v;LS.updC=JSON.stringify({v,t:Date.now()})}}}catch(e){}
   updSync();
-  if(updNew()&&!updAsked&&!G&&!LS.c){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). ${updIn()?'Die App lädt es herunter, danach bestätigst du die Installation.':'Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt.'} Deine Einstellungen bleiben erhalten.`,ok:'Jetzt laden',no:'Später'}))updGo()}}
+  if(updNew()&&!updAsked&&!G&&!LS.c){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). ${updIn()?'Bitte installiere die neue Version.':'Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt. Deine Einstellungen bleiben erhalten.'}`,ok:'Jetzt laden',no:'Später'}))updGo()}}
 // §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});

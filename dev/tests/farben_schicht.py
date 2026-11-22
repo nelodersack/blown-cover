@@ -17,7 +17,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     # 14. Spieler will eine schon doppelte Farbe → gesperrt; eine einfach belegte → erlaubt
     ev("uid='u13';G=__T.games.FARB");d=ev(CNT).index(2);e=ev(CNT).index(1)
     ev("palPick(%d)"%d);pg.wait_for_timeout(200);print('doppelte gewählt:',ev("P().u13.col"),ev("$('toast').innerText"))
-    assert ev("P().u13.col")is None and 'gleich oft' in ev("$('toast').innerText")
+    assert ev("P().u13.col")is None and 'Farbe nicht verfügbar' in ev("$('toast').innerText")
     ev("palPick(%d)"%e);pg.wait_for_timeout(200);assert ev("P().u13.col")==e
     for i in range(14,24):auto(i)
     n=ev(CNT);print('24 Spieler:',n);assert n==[2]*12, n

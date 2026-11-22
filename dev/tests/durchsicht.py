@@ -42,15 +42,15 @@ for W,H in [(390,844),(360,640)]:
     assert ev("document.documentElement.scrollWidth<=innerWidth") and ev("(()=>{const v=document.querySelector('#pb .balw').getBoundingClientRect();return v.right<=innerWidth-8})()")
     pg.screenshot(path=OUT+'/durchsicht_lobby_%d.png'%W);pe(errs)
 
-# 2 Meldungen: zwei untereinander, gleiche nicht doppelt, dritte verdrängt die älteste
+# 2 Meldungen (Konzept B): neueste oben, gleiche nicht doppelt, höchstens drei
 with app(390,844) as (pg,ev,errs):
     game(ev,pg,'u2','running')
     ev("document.getElementById('toast').innerHTML='';toast('Eins');toast('Zwei')");pg.wait_for_timeout(100)
-    assert ev("[...document.querySelectorAll('#toast .t')].map(e=>e.textContent)")==['Eins','Zwei']
+    assert ev("[...document.querySelectorAll('#toast .t')].map(e=>e.textContent)")==['Zwei','Eins']
     ev("toast('Zwei')");assert ev("document.querySelectorAll('#toast .t').length")==2
-    ev("toast('Drei')");assert ev("[...document.querySelectorAll('#toast .t')].map(e=>e.textContent)")==['Zwei','Drei']
+    ev("toast('Drei')");assert ev("[...document.querySelectorAll('#toast .t')].map(e=>e.textContent)")==['Drei','Zwei','Eins']
     pg.screenshot(path=OUT+'/durchsicht_meldungen.png')
-    pg.wait_for_timeout(3900);assert ev("document.querySelectorAll('#toast .t').length")==0
+    pg.wait_for_timeout(5000);assert ev("document.querySelectorAll('#toast .t').length")==0
     pe(errs)
 
 # 3 Zombie: Grün und Texte

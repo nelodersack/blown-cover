@@ -21,6 +21,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     ev("RV.t=%d;RV.speed=50;rvPlay()"%(R0+4*60000+50000));pg.wait_for_timeout(1600)
     n=ev("[...document.querySelectorAll('.rvn')].map(e=>e.innerText)");pill=ev("($('rvpill')||{}).innerText||''")
     print('Etiketten:',n,'Pille:',pill,'Toasts:',ev("document.querySelectorAll('#toast .t').length"))
-    assert any('fängt Lena' in x for x in n) and 'Ping' in pill
+    assert any(x.strip().endswith('Fang!') for x in n) and not any('fängt' in x for x in n) and 'Ping' in pill
+    assert ev("RV.ev.some(e=>e.ti==='Fang!'&&/fängt Lena/.test(e.x))")   # Titel auf der Karte, ausführlich im Panel
     ev("RV.play=false");shot(pg,'meldungen_replay.png')
     print('errors:',errs[:5]);assert not errs

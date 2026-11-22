@@ -33,7 +33,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     print('Knöpfe als Chef von Team 1:',ev("document.querySelectorAll('.tmk2')[0].querySelectorAll('.lib').length"),'bei Team 2:',ev("document.querySelectorAll('.tmk2')[1].querySelectorAll('.lib').length"))
     assert ev("document.querySelectorAll('.tmk2')[0].querySelectorAll('.lib').length")==2 and ev("document.querySelectorAll('.tmk2')[1].querySelectorAll('.lib').length")==0
     ev("tmPalTog(1)");pg.wait_for_timeout(200);shot(pg,'kopfgeld_lobby.png')
-    ev("tmColPick(1,1)");pg.wait_for_timeout(200);print('fremde Teamfarbe:',ev("$('toast').innerText"));assert 'anderes Team' in ev("$('toast').innerText")
+    ev("tmColPick(1,1)");pg.wait_for_timeout(200);print('fremde Teamfarbe:',ev("$('toast').innerText"));assert 'bereits vergeben' in ev("$('toast').innerText")
     ev("tmColPick(1,5)");pg.wait_for_timeout(300);print('neue Farbe Team 1:',ev("tmCols(G)[1]"));assert ev("tmCols(G)[1]")==5
     # Wechsel: u3 (Team 1) geht zu Team 3 → Chef von Team 3 bleibt u2
     ev("uid='u3';G=__T.games.KOPF;tmJoin(3)");pg.wait_for_timeout(300);ev("uid='u0'");print('Team 3:',[m[0] for m in ev("tmMem(3)")],'Chef',ev("tmChef(3)"))

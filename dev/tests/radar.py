@@ -39,31 +39,31 @@ with app() as (pg,ev,errs):
     print('R/T auto',ev("[bmRv(G.s),bmTv(G.s)]"));assert ev("[bmRv(G.s),bmTv(G.s)]")==[100,120]
     mv(ev,'u1',300)
     ev("useBm('m1m')");pg.wait_for_timeout(1500);ev("$('panel').classList.add('c');map.setView([47.0705,15.4405],17,{animate:false})");pg.wait_for_timeout(600)
-    print('HUD',hud(ev));assert 'Radar 0' in hud(ev)
+    print('HUD',hud(ev));assert 'Radar · 0 Gegner' in hud(ev)
     assert ev("!!document.querySelector('.leaflet-overlay-pane svg.bmr')") and not ev("document.querySelector('.leaflet-overlay-pane svg.bmr').classList.contains('hit')")
     shot(pg,'radar_such.png')
     mv(ev,'u1',60);pg.wait_for_timeout(1300)
-    print('HUD',hud(ev));assert 'Radar 1' in hud(ev) and ev("document.querySelector('.leaflet-overlay-pane svg.bmr').classList.contains('hit')")
-    mv(ev,'u5',90);pg.wait_for_timeout(1300);assert 'Radar 2' in hud(ev)
+    print('HUD',hud(ev));assert 'Radar · 1 Gegner' in hud(ev) and ev("document.querySelector('.leaflet-overlay-pane svg.bmr').classList.contains('hit')")
+    mv(ev,'u5',90);pg.wait_for_timeout(1300);assert 'Radar · 2 Gegner' in hud(ev)
     shot(pg,'radar_kontakt.png')
-    mv(ev,'u5',110);pg.wait_for_timeout(1300);print('Hysterese',hud(ev));assert 'Radar 2' in hud(ev)   # 110 m ≤ 100+15: bleibt drin
-    mv(ev,'u5',130);pg.wait_for_timeout(1300);assert 'Radar 1' in hud(ev)
-    mv(ev,'u1',300);pg.wait_for_timeout(1300);assert 'Radar 0' in hud(ev) and not ev("document.querySelector('.leaflet-overlay-pane svg.bmr').classList.contains('hit')")
+    mv(ev,'u5',110);pg.wait_for_timeout(1300);print('Hysterese',hud(ev));assert 'Radar · 2 Gegner' in hud(ev)   # 110 m ≤ 100+15: bleibt drin
+    mv(ev,'u5',130);pg.wait_for_timeout(1300);assert 'Radar · 1 Gegner' in hud(ev)
+    mv(ev,'u1',300);pg.wait_for_timeout(1300);assert 'Radar · 0 Gegner' in hud(ev) and not ev("document.querySelector('.leaflet-overlay-pane svg.bmr').classList.contains('hit')")
     ts=ev("__ts.filter(x=>/Radar/.test(x))");print('Meldungen',ts)
     assert ts[0].startswith('Hunter-Radar aktiv') and any('2 Hunter' in x for x in ts) and ts[-1]=='Hunter-Radar: niemand mehr in der Nähe'
     # zweites Radar nicht gleichzeitig
-    ev("__ts=[]");ev("useBm('d1a')");assert 'Dein Radar läuft noch' in ev("__ts")
+    ev("__ts=[]");ev("useBm('d1a')");assert 'Radar läuft noch' in ev("__ts")
     # Neuladen: Startzeit aus LS
-    ev("BM.id=null");pg.wait_for_timeout(1200);assert 'Radar 0' in hud(ev)
+    ev("BM.id=null");pg.wait_for_timeout(1200);assert 'Radar · 0 Gegner' in hud(ev)
     # Ablauf
     ev("LS[bmKey('m1m')]=String(now()-119000)");pg.wait_for_timeout(2500)
-    print('nach Ablauf',hud(ev));assert 'Radar' not in hud(ev) and not ev("!!document.querySelector('.leaflet-overlay-pane svg.bmr')") and 'Hunter-Radar abgelaufen' in ev("__ts")
+    print('nach Ablauf',hud(ev));assert 'Radar' not in hud(ev) and not ev("!!document.querySelector('.leaflet-overlay-pane svg.bmr')") and 'Hunter-Radar beendet' in ev("__ts")
     # Satellitenbild
-    ev("useRadar('d1a')");pg.wait_for_timeout(500);assert any(x.startswith('Satellitenbild: 2 Hunter erfasst') for x in ev("__ts")),ev("__ts")
+    ev("useRadar('d1a')");pg.wait_for_timeout(500);assert any(x.startswith('Satellitenbild aktiv') for x in ev("__ts")),ev("__ts")
     # Ende-Meldungen: Satellitenbild und Schutz
-    ev("radar.t=now()-59000");pg.wait_for_timeout(2500);assert 'Satellitenbild abgelaufen' in ev("__ts"),ev("__ts")
+    ev("radar.t=now()-59000");pg.wait_for_timeout(2500);assert 'Satellitenbild beendet' in ev("__ts"),ev("__ts")
     ev("__T.games.K7QF.players.u2.immUntil=now()+1500;notify()");pg.wait_for_timeout(3500)
-    assert any(x.startswith('Schutz abgelaufen') for x in ev("__ts")),ev("__ts")
+    assert any(x.startswith('Immunität abgelaufen') for x in ev("__ts")),ev("__ts")
     # Meeting-Wahl: Knöpfe
     ev("__T.games.K7QF.tasks.m1={t0:Date.now()-1000,a:'u2',b:'u3',loc:{lat:47.072,lng:15.442},rr:0};notify()");pg.wait_for_timeout(800)
     pb=ev("$('pb').innerText");assert 'Wähle deinen Bonus' in pb,pb
@@ -86,12 +86,12 @@ with app() as (pg,ev,errs):
     # Lena 50 m, Max 80 m (immun), Tom weit weg
     ev("pos={lat:47.0705,lng:15.4405}");mv(ev,'u3',80);ev("__T.games.K7QF.players.u3.immUntil=Date.now()+60000;notify()")
     ev("hbUse('time')");pg.wait_for_timeout(1500)
-    print('HUD',hud(ev));assert 'Radar 1' in hud(ev)   # Lena (0 m) ja, Max immun nein
-    ev("__T.games.K7QF.players.u3.immUntil=0;notify()");pg.wait_for_timeout(1300);assert 'Radar 2' in hud(ev)
-    ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(1300);assert 'Radar 1' in hud(ev)
+    print('HUD',hud(ev));assert 'Radar · 1 Gegner' in hud(ev)   # Lena (0 m) ja, Max immun nein
+    ev("__T.games.K7QF.players.u3.immUntil=0;notify()");pg.wait_for_timeout(1300);assert 'Radar · 2 Gegner' in hud(ev)
+    ev("__T.games.K7QF.players.u2.state='caught';notify()");pg.wait_for_timeout(1300);assert 'Radar · 1 Gegner' in hud(ev)
     print('Meldungen',ev("__ts.filter(x=>/Radar/.test(x))"))
     assert ev("__ts").count('Hider-Radar: 1 Hider in der Nähe')>=1
     shot(pg,'radar_hunter.png')
     ev("__T.games.K7QF.live={u3:{u1:now()+1500}};notify()");pg.wait_for_timeout(3500)
-    assert 'Live-Standort von Max abgelaufen' in ev("__ts"),ev("__ts")
+    assert 'Live-Standort von Max beendet' in ev("__ts"),ev("__ts")
     print('errors:',errs[:5]);assert not [e for e in errs if 'PE:' in e]
