@@ -1226,11 +1226,11 @@ function rpBuild(){const S=RP.snap,ids=Object.keys(S.players).sort((a,b)=>(S.pla
     const p=S.players[k];players.push({id:id[k],name:p.name,role:p.role,col:p.col,tm:p.tm||null,tmn:p.tmn||null,state:p.state,sT:p.sT,lf:p.lf,zt:p.zt||null,zb:p.zb?mp(p.zb):null})});
   const log=RP.log.filter(e=>!/^players\//.test(e[1])||id[e[1].split('/')[1]]).map(e=>[e[0],mpP(e[1]),mp(e[2])]);
   // Funk zusammenführen: Nachrichten nach Kanal+Zeit+Absender+Text, Marker nach ID+Art des Ereignisses (jedes Teammitglied liefert dasselbe)
-  const fs=Object.assign({},RP.gf);if(RP.of)fs[uid]=RP.of;const ch=[],mk=[],sc=new Set(),sm=new Set();
+  const fs=Object.assign({},RP.gf);if(RP.of)fs[uid]=RP.of;const ch=[],sc=new Set();let mk=[];
   Object.values(fs).forEach(F=>{if(!F)return;Object.entries(F.cs||{}).forEach(([cn,a])=>{let cm=cn;if(cn.startsWith('d:')){const z=cn.split(':'),pr=(z[2]||'').split('_').map(x=>id[x]);if(pr.length!==2||!pr[0]||!pr[1])return;cm='d:'+z[1]+':'+pr.join('_')}
     (a||[]).forEach(x=>{const u=id[x[1]];if(!u)return;const q=cn+'|'+x[0]+'|'+x[1]+'|'+x[2];if(sc.has(q))return;sc.add(q);ch.push([x[0],u,cm,x[2]])})});
-    (F.mk||[]).forEach(x=>{const q=x[2]+x[1];if(sm.has(q))return;sm.add(q);if(x[1]==='+'){if(!id[x[8]])return;mk.push(x.slice(0,8).concat([id[x[8]],x[9]?id[x[9]]||null:null]))}else mk.push(x.slice(0,3))})});
-  ch.sort((a,b)=>a[0]-b[0]);mk.sort((a,b)=>a[0]-b[0]);
+    (F.mk||[]).forEach(x=>{if(x[1]==='+'){if(!id[x[8]])return;mk.push(x.slice(0,8).concat([id[x[8]],x[9]?id[x[9]]||null:null]))}else mk.push(x.slice(0,3))})});
+  ch.sort((a,b)=>a[0]-b[0]);mk=mkMerge(mk);
   return{format:'blown-cover-replay',v:2,code:S.code,round:S.rn,generated:new Date().toISOString(),
     game:{s:S.s,c:S.c,teams:S.teams||null,startAt:S.startAt,R0:S.startAt+S.s.head*6e4,end:S.end,winner:S.winner},players,tracks,log,funk:ch.length||mk.length?{ch,mk}:null}}
 function rpDl(){if(!RP||!RP.snap)return;try{const f=rpBuild(),d=new Date(),z=n=>String(n).padStart(2,'0'),a=document.createElement('a');
@@ -1330,7 +1330,20 @@ function rvConv(o){
   const TM={};(o.game.teams||[]).forEach(x=>TM[x.n]={name:x.name,col:Math.max(0,PALN.indexOf(x.color))});
   const players=o.players.map(p=>({id:p.id,name:p.name,role:p.role,col:p.team&&TM[p.team]?TM[p.team].col:Math.max(0,PALN.indexOf(p.color)),tm:p.team||null,tmn:p.teamName||null,lf:p.left,zt:p.zt||null,zb:p.zb||null}));
   const tracks={};Object.entries(o.tracks||{}).forEach(([k,a])=>tracks[k]=a.filter(x=>x[1]!=null).map(x=>[x[0],x[1],x[2],x[3]]));
-  return{format:'blown-cover-replay',v:2,code:o.code,round:o.round,game:{s,c:o.game.center,teams:o.game.teams?TM:null,startAt,R0,end,winner:win},players,tracks,log}}
+  return{format:'blown-cover-replay',v:2,code:o.code,round:o.round,game:{s,c:o.game.center,teams:o.game.teams?TM:null,startAt,R0,end,winner:win},players,tracks,log,funk:rvAnFunk(o,players,startAt,end)}}
+// Funk aus einer Analyse-Datei (chat = [kanal aus Sicht des Geräts, absender-name, rolle, text, t], von = Geräte, die es sahen; mk+/mk-):
+// Privat „dm:X“ → Paar aus Absender, X und den sehenden Geräten; Kanal „all“ (Lobby) bleibt weg
+function rvAnFunk(o,players,t0,t1){const byN={},side=p=>p.tm?'t'+p.tm:p.role,ch=[],mk=[];players.forEach(p=>{if(!byN[p.name])byN[p.name]=p});const ids=new Set(players.map(p=>p.id));
+  (o.timeline||[]).forEach(x=>{const k=x[3],d=x[4];if(x[0]<t0-5000||x[0]>t1+5000)return;
+    if(k==='chat'&&Array.isArray(d)){const u=byN[d[1]];if(!u||d[0]==='all'||typeof d[3]!=='string')return;const t=d[4]||x[0];let c=d[0];
+      if(String(c).startsWith('dm:')){const pr=[...new Set([u.id,c.slice(3)].concat(String(x[2]).split(',')))].filter(q=>ids.has(q));const o2=pr.find(q=>q!==u.id);if(!o2)return;c='d:'+side(u)+':'+[u.id,o2].sort().join('_')}
+      ch.push([t,u.id,c,d[3].slice(0,200)])}
+    else if(k==='mk+'&&Array.isArray(d)&&ids.has(d[1])&&Number.isFinite(d[3]))mk.push([x[0],'+',d[0],d[2],+(+d[3]).toFixed(5),+(+d[4]).toFixed(5),d[5]||null,d[6]?String(d[6]).slice(0,40):null,d[1],null]);
+    else if(k==='mk-'&&typeof d==='string')mk.push([x[0],'-',d])});
+  ch.sort((a,b)=>a[0]-b[0]);const m=mkMerge(mk);return ch.length||m.length?{ch,mk:m}:null}
+// Marker-Ereignisse mehrerer Geräte zusammenführen: dasselbe Ereignis (ID + Art, bei „+“ auch Ort) binnen 10 s nur einmal.
+// Marker-IDs werden wiederverwendet (uid_0 …), darum nicht nur nach ID entdoppeln.
+function mkMerge(a){const o=[],last={};a.slice().sort((p,q)=>p[0]-q[0]).forEach(x=>{const k=x[2]+x[1]+(x[1]==='+'?x[4]+','+x[5]:''),l=last[k];if(l!=null&&x[0]-l<10000)return;last[k]=x[0];o.push(x)});return o}
 const rvD=(a,b)=>{const la=(a[0]+b[0])/2*Math.PI/180;return Math.hypot((b[0]-a[0])*111195,(b[1]-a[1])*111195*Math.cos(la))};
 // Zustand zu einem Zeitpunkt (Protokoll bis t angewendet)
 function rvSetP(o,p,v){const a=p.split('/');let c=o;for(let i=0;i<a.length-1;i++){if(c[a[i]]==null||typeof c[a[i]]!=='object'){if(v==null)return;c[a[i]]={}}c=c[a[i]]}if(v==null)delete c[a[a.length-1]];else c[a[a.length-1]]=v}
@@ -1448,7 +1461,9 @@ function rvPrep(f,ev){const pl=RV.pl,PUB={catch:1,ping:1,zone:1,end:1,out:1};
   const F=f.funk||{},cs=c=>/^t\d$/.test(c)?c:c==='hunter'?'h':c==='hider'?'x':'';
   RV.ch=(F.ch||[]).filter(x=>pl[x[1]]).map(x=>{const o={t:x[0],u:x[1],x:x[3]};if(String(x[2]).startsWith('d:')){const z=x[2].split(':'),pr=(z[2]||'').split('_');o.sd=cs(z[1]);o.to=pr[0]===x[1]?pr[1]:pr[0]}else o.sd=cs(x[2]);return o})
     .filter(x=>x.sd).sort((a,b)=>a.t-b.t);RV.ch.forEach((x,i)=>x.i=i);RV.chBy={};RV.ch.forEach(x=>(RV.chBy[x.u]=RV.chBy[x.u]||[]).push(x));
-  const mk={};(F.mk||[]).forEach(x=>{if(x[1]==='+'){if(pl[x[8]]&&!mk[x[2]])mk[x[2]]={id:x[2],t0:x[0],k:x[3],lat:x[4],lng:x[5],r:x[6],x:x[7],u:x[8],h:x[9],t1:f.game.end}}else if(mk[x[2]]&&x[0]<mk[x[2]].t1)mk[x[2]].t1=x[0]});
+  // Marker-IDs werden wiederverwendet (uid_0 …): jedes „+“ beginnt einen eigenen Abschnitt, „−“ beendet den offenen
+  const mk=[],op={};(F.mk||[]).slice().sort((p,q)=>p[0]-q[0]).forEach(x=>{const o=op[x[2]];if(o&&x[0]<o.t1)o.t1=x[0];op[x[2]]=null;
+    if(x[1]==='+'&&pl[x[8]]){const n={id:x[2]+'#'+mk.length,t0:x[0],k:x[3],lat:x[4],lng:x[5],r:x[6],x:x[7],u:x[8],h:x[9],t1:f.game.end};mk.push(n);op[x[2]]=n}});
   try{RV.bub=LS.rvBub!=='0'}catch(e){RV.bub=true}
   RV.mki=Object.values(mk).filter(x=>['arrow','excl','zone','pin'].includes(x.k));RV.mki.forEach(x=>{if(x.k==='excl'){const n=RV.pt.find(p=>p>x.t0);if(n&&n<x.t1)x.t1=n}});RV.fm={}}
 const rvImm=(id,t)=>{const a=RV.imm[id];let v=0;if(a)for(const x of a){if(x[0]>t)break;v=x[1]}return v};

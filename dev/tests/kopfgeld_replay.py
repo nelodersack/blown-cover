@@ -38,13 +38,13 @@ with app(width=412,height=915) as (pg,ev,errs):
     assert 'Sieg: Die Füchse' in ev("$('pb').querySelector('.rvop').innerText")
     # Alle, Minute 9:30
     ev("RV.t=__R0+9.5*6e4;rvDraw()");pg.wait_for_timeout(300)
-    al=ev("Object.keys(RV.m).filter(k=>RV.m[k]).sort()");fm=ev("Object.keys(RV.fm).sort()")
+    al=ev("Object.keys(RV.m).filter(k=>RV.m[k]).sort()");fm=ev("Object.keys(RV.fm).map(k=>k.split('#')[0]).sort()")
     print('Alle: Marker',al,'Funkmarker',fm,'Funk:',ev("$('rvK').innerText").replace('\n',' | '))
     assert len(al)==9 and fm==['m1','m2','m3']
     shot(pg,'kopfgeld_replay_alle.png')
     # Sicht Agentur 1
     ev("rvView('t1');RV.t=__R0+9.5*6e4;rvDraw()");pg.wait_for_timeout(300)
-    vm=ev("Object.fromEntries(Object.keys(RV.m).filter(k=>RV.m[k]).map(k=>[k,RV.m[k]._k]))");fm=ev("Object.keys(RV.fm).sort()")
+    vm=ev("Object.fromEntries(Object.keys(RV.m).filter(k=>RV.m[k]).map(k=>[k,RV.m[k]._k]))");fm=ev("Object.keys(RV.fm).map(k=>k.split('#')[0]).sort()")
     print('Agentur 1:',vm,fm,'Funk:',ev("$('rvK').innerText").replace('\n',' | '))
     assert set(vm)=={'p1','p4','p7','p8','p9'} and all(vm[k].startswith('ping') for k in ('p7','p8','p9')), vm
     assert fm==['m1'] and 'Füchse sind schneller' in ev("$('rvK').innerText") and 'Teich' not in ev("$('rvK').innerText") and 'an Anna' in ev("$('rvK').innerText")
@@ -57,7 +57,7 @@ with app(width=412,height=915) as (pg,ev,errs):
     ev("RV.t=__R0+11.5*6e4;rvDraw()");x=ev("RV.m.p9&&RV.m.p9._k");print('nach Extra-Ping:',x);assert x and x.startswith('xping')
     # Sicht Füchse: kein Extra-Ping (gehört Agentur 1)
     ev("rvView('t2');RV.t=__R0+11.5*6e4;rvDraw()");x=ev("RV.m.p9&&RV.m.p9._k");print('Füchse:',x);assert x and x.startswith('ping')
-    assert ev("Object.keys(RV.fm).sort().join()")=='m3'
+    assert ev("Object.keys(RV.fm).map(k=>k.split('#')[0]).sort().join()")=='m3'
     # Sicht Hider: keine Hunter
     ev("rvView('x');RV.t=__R0+9.5*6e4;rvDraw()");vm=ev("Object.keys(RV.m).filter(k=>RV.m[k]).sort()");print('Hider:',vm)
     assert vm==['p7','p8','p9'] and 'zwei Teams' in ev("$('rvK').innerText")
