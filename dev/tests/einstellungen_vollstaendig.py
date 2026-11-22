@@ -1,7 +1,7 @@
 # Test: Jede Einstellung (FD und Schalter) ist in den Einstellungs-Unterseiten oder im Spieler-Reiter erreichbar (nichts geht beim Umbau verloren)
 import sys,os,re;sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from harness import app,shot
-SW=['rnd','zP','zB','fs','tsol','shOn','bon','hbOn','an','dq','hp','rp','hk']
+SW=['rnd','zP','zB','fs','tsol','shOn','bon','hbOn','an','dq','hp','rp','hk','inf']
 with app(390,844) as (pg,ev,errs):
     ev("""(()=>{__T['.info']={connected:true};notify();const T=Date.now();const s=Object.assign({mode:'zombie',taskR:0,shOn:true,bon:true,hbOn:true,hbN:2,gw:20,gd:60,hk:true,fs:true,dq:true,ot:5},preOf(60),hkDef(preOf(60)));
       __T.games={K7QF:{host:'u1',status:'lobby',rn:0,c:{lat:47.07,lng:15.44},s,players:{u1:{name:'Anna',role:'hunter',state:'alive',j:1,col:0,lat:47.07,lng:15.44,ts:T},u2:{name:'Lena',role:'hider',state:'alive',j:2,col:1,lat:47.07,lng:15.44,ts:T},u3:{name:'Max',role:'hider',state:'alive',j:3,col:2,lat:47.07,lng:15.44,ts:T},u4:{name:'Ben',role:'hider',state:'alive',j:4,col:3,lat:47.07,lng:15.44,ts:T}},cols:{0:'u1',1:'u2',2:'u3',3:'u4'}}};
@@ -29,6 +29,8 @@ with app(390,844) as (pg,ev,errs):
         ev("ui.ed=null;edGo('evT')");pg.wait_for_timeout(120);grab()
     # Kopfgeld: Teamzahl im Spieler-Reiter, beim Auslosen auch Teamgröße
     ev("subGo(null);__T.games.K7QF.s.mode='bounty';__T.games.K7QF.s.rnd=true;notify()");pg.wait_for_timeout(300);ev("tabGo('lt','players')");pg.wait_for_timeout(250);grab()
+    # Kopfgeld: Informanten im Bereich Boni
+    ev("tabGo('lt','set')");pg.wait_for_timeout(200);ev("subGo('bon')");pg.wait_for_timeout(250);grab();ev("ui.ed=null;edGo('infN')");pg.wait_for_timeout(120);grab()
     fd=ev("Object.keys(FD)")
     miss=[k for k in fd+SW if k not in seen]
     print('fehlt:',miss)

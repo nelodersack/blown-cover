@@ -58,6 +58,27 @@ T('Fang starten: Ergebnis schreibt Hider',true,base(),'u3','set','/fzp/K7QF/u3',
  T('Kopfgeld: Teamname durch Mitglied (Lobby)',true,kb({status:'lobby'}),'u1','set',G+'/teams/1/name','Die Füchse');
  T('Kopfgeld: Teamname durch fremdes Team',false,kb({status:'lobby'}),'u4','set',G+'/teams/1/name','Hack');
  T('Kopfgeld: Teamfarbe ungültig',false,kb({status:'lobby'}),'u1','set',G+'/teams/1/col',12);
+ // Informanten (inf/<code>/<n>): u1 = Host/Team 1, u4 = Team 2
+ const ki=(x)=>{const d=kb();d.inf={K7QF:{1:Object.assign({t:N-60000},x||{})}};return d};const I='/inf/K7QF/1';
+ T('Informanten: Hunter liest',true,ki(),'u4','read','/inf/K7QF');
+ T('Informanten: Hider liest nicht',false,ki(),'u2','read','/inf/K7QF');
+ T('Informanten: Host plant Zeiten',true,kb(),'u1','set','/inf/K7QF',{1:{t:N+60000},2:{t:N+90000}});
+ T('Informanten: Nicht-Host plant',false,kb(),'u4','set','/inf/K7QF',{1:{t:N+60000}});
+ T('Informanten: Hunter setzt Ort',true,ki(),'u4','update',I,{lat:47.07,lng:15.44});
+ T('Informanten: Hider setzt Ort',false,ki(),'u2','update',I,{lat:47.07,lng:15.44});
+ T('Informanten: Ort überschreiben',false,ki({lat:47,lng:15}),'u4','update',I,{lat:47.07,lng:15.44});
+ T('Informanten: Hunter trifft',true,ki({lat:47,lng:15}),'u4','update',I,{by:'u4',tm:2,at:N});
+ T('Informanten: zweites Treffen',false,ki({lat:47,lng:15,by:'u1',tm:1,at:N-1}),'u4','update',I,{by:'u4',tm:2,at:N});
+ T('Informanten: fremdes Team angeben',false,ki({lat:47,lng:15}),'u4','update',I,{by:'u4',tm:1,at:N});
+ T('Informanten: Treffen ohne Ort',false,ki(),'u4','update',I,{by:'u4',tm:2,at:N});
+ T('Informanten: Hider trifft',false,ki({lat:47,lng:15}),'u2','update',I,{by:'u2',tm:2,at:N});
+ T('Informanten: Bonus wählen',true,ki({lat:47,lng:15,by:'u4',tm:2,at:N}),'u4','set',I+'/b','st');
+ T('Informanten: fremder wählt Bonus',false,ki({lat:47,lng:15,by:'u1',tm:1,at:N}),'u4','set',I+'/b','st');
+ T('Informanten: Störsender auf Team 1',true,ki({lat:47,lng:15,by:'u4',tm:2,at:N,b:'st'}),'u4','update',I,{u:N,tg:1});
+ T('Informanten: Störsender aufs eigene Team',false,ki({lat:47,lng:15,by:'u4',tm:2,at:N,b:'st'}),'u4','update',I,{u:N,tg:2});
+ T('Informanten: Abhören zweimal',false,ki({lat:47,lng:15,by:'u4',tm:2,at:N,b:'ab',u:N-1}),'u4','update',I,{u:N});
+ T('Informanten: Spieler räumt in neuer Lobby',true,(()=>{const d=ki();d.games.K7QF.status='lobby';return d})(),'u4','set','/inf/K7QF',null);
+ T('Informanten: Spieler räumt im laufenden Spiel',false,ki(),'u4','set','/inf/K7QF',null);
  T('Kopfgeld: Team beitreten (Lobby)',true,kb({status:'lobby'}),'u2','update',G+'/players/u2',{role:'hunter',tm:2,tj:N});
  T('Kopfgeld: Team 5 ungültig',false,kb({status:'lobby'}),'u2','update',G+'/players/u2',{role:'hunter',tm:5,tj:N});
  T('Kopfgeld: Team wechseln im laufenden Spiel',false,kb(),'u1','set',G+'/players/u1/tm',2);
