@@ -348,6 +348,15 @@ button.gb:active{transform:none;filter:none}button.gb .gci{transition:transform 
 #chq{padding:6px 10px 0}#chq button.qr{min-height:30px;padding:4px 10px;font-size:12px}
 #chr{padding:8px 10px 10px}#chr input{min-height:38px;font-size:16px}#chr button#chs{width:38px;min-height:38px;height:38px}
 #chat.kb{left:8px;right:8px;width:auto;max-width:none;top:auto;bottom:var(--kbb,8px);max-height:var(--kbh,60vh)}
+/* §CSS-FENSTER verschiebbar/größenveränderbar: Griff .wrs (Ecke), ↺ .wrst nur bei eigener Lage (.cust); Lobby-Panel beim Tippen ausblenden */
+#chh,.blh{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.drag #chh,.drag .blh{cursor:grabbing}.drag{transition:none!important}
+.whb{display:flex;gap:6px;align-items:center;flex:none}.wrst{display:none!important}.cust .wrst{display:grid!important;place-items:center}.wrst .ic{width:15px;height:15px}
+#chh .whb button{width:30px;height:30px;min-height:0;padding:0;margin:0;border-radius:50%;background:var(--panel2);border:0;color:var(--mut);display:grid;place-items:center}
+.wrs{position:absolute;right:2px;bottom:2px;width:22px;height:22px;touch-action:none;cursor:nwse-resize;z-index:2;background:linear-gradient(135deg,transparent 52%,var(--mut) 52%,var(--mut) 58%,transparent 58%,transparent 70%,var(--mut) 70%,var(--mut) 76%,transparent 76%);opacity:.55;border-bottom-right-radius:12px}
+#chat.kb .wrs{display:none}
+#chat.cust #chm,#blg.cust .bll{flex:1 1 auto}
+#chh,#chp,#chq,#chr,#blg .blh,#blg .blf{flex:none}#chm{min-height:0}
+body.chkb #panel{visibility:hidden}
 /* §CSS-REPLAY-SICHT Blickwinkel (rvv), Ergebniszeile (rvop), Funk-Karte (rvfk), Teampunkt (tdot) */
 .rvh{margin:2px 0 0;font-size:24px;line-height:1.15}.rvop{display:block;margin-top:-6px}.rvop b{font-weight:600;color:var(--fg)}
 .rvv{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -14px 0;padding:0 14px}.rvv::-webkit-scrollbar{display:none}
@@ -576,7 +585,7 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 <button id=lgk onclick="blToggle()" aria-label="Lagebericht"></button>
 <button id=upb onclick="updGo()" aria-label="App laden"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><i></i></button><button id=cb onclick="chToggle()" aria-label="Chat"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span id=cbn></span></button>
 <button id=mmbtn onclick="mmTog()" aria-expanded="false" aria-label="Marker"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg></button><div id=mmn></div><button id=mmc onclick="mkShowAll()"></button><div id=mmbar></div>
-<div id=chat><div id=chh><span id=cht>Team-Chat</span><button onclick="chToggle(false)">✕</button></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
+<div id=chat><div id=chh><span id=cht>Team-Chat</span><span class=whb><button class=wrst onclick="winReset('chat')" aria-label="Ausgangsposition"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button><button onclick="chToggle(false)">✕</button></span></div><div id=chp style="display:none;gap:6px;flex-wrap:wrap;padding:6px 14px 0"></div><div id=chm></div>
 <div id=chro style="display:none;padding:10px 14px 14px;border-top:1px solid #333;color:#aaa;font-size:13px">Nur lesen. Schreiben kannst du nur im Kanal „Ausgeschieden“.</div>
 <div id=chq></div><div id=chr><input id=chi maxlength=200 placeholder="Nachricht…" onkeydown="if(event.key==='Enter')chSend()" onfocus="chKb(true)" onblur="setTimeout(()=>{if(document.activeElement!==$('chi'))chKb(false)},150)"><button id=chs onclick="chSend()" aria-label="Senden"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div></div>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
@@ -2318,7 +2327,7 @@ function blSync(){const b=$('lgk');if(!b)return;const on=!!(G&&code&&!RV&&(G.sta
   if(!b.firstChild)b.innerHTML=ic('list')+'<i></i>';const bl=blLoad();b.classList.toggle('new',!!bl&&!blOpen&&bl.a.some(e=>e.t>bl.seen))}
 function blToggle(){blOpen?blClose():blOpenF()}
 function blOpenF(){if(chOpen)chToggle(false);blClear();blFill();blOpen=true;let el=$('blg');if(!el){el=document.createElement('div');el.id='blg';el.setAttribute('role','dialog');el.setAttribute('aria-label','Lagebericht');document.body.appendChild(el)}
-  el.classList.add('on');blRender();const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
+  el.classList.add('on');blRender();winInit(el,'.blh');winApply(el);const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
 function blClose(){blOpen=false;const el=$('blg');if(el)el.classList.remove('on');const b=blLoad();if(b){b.seen=now();blSave()}blSync()}
 const blCat=x=>{const c=tCat(x);return{c:c[0],i:c[1]}},blTm=t=>{const d=t-rs(G);return(d<0?'−':'')+fmt(Math.abs(d))};
 // was ein Eintrag beim Antippen zeigt: Ping-Positionen, Fangort, bekannter Ort (Terminal, eigenes Safehouse)
@@ -2329,7 +2338,7 @@ function blLoc(e){const T=G.tasks||{},m=P()[uid]||{},hi=m.role==='hider'||m.role
   if(/Terminal|hackt|gehackt/.test(e.x)&&T.hk&&T.hk.loc)return[T.hk.loc.lat,T.hk.loc.lng];
   if(hi&&/Safehouse/.test(e.x)&&T.sh&&T.sh.loc)return[T.sh.loc.lat,T.sh.loc.lng];return null}
 function blRender(){const el=$('blg');if(!el||!G)return;const b=blLoad()||{a:[]};
-  let h=`<div class=blh><b>Log</b><span class=blt role=tablist><button role=tab class="${blTab==='v'?'on':''}" onclick="blTab='v';blRender()">Verlauf</button><button role=tab class="${blTab==='l'?'on':''}" onclick="blTab='l';blRender()">Lage</button></span><button class=blx onclick="blClose()" aria-label="Schließen">✕</button></div>`;
+  let h=`<div class=blh><b>Log</b><span class=blt role=tablist><button role=tab class="${blTab==='v'?'on':''}" onclick="blTab='v';blRender()">Verlauf</button><button role=tab class="${blTab==='l'?'on':''}" onclick="blTab='l';blRender()">Lage</button></span><span class=whb><button class="blx wrst" onclick="winReset('blg')" aria-label="Ausgangsposition"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button><button class=blx onclick="blClose()" aria-label="Schließen">✕</button></span></div>`;
   if(blTab==='v'){const F=[['all','Alle',''],['catch','Fang','catch'],['ping','Ping','ping'],['extra','Boni','extra'],['box','Aufgaben','box']];
     h+=`<div class=blf>${F.map(([k,l,i])=>`<button class="${blF===k?'on':''}" onclick="blF='${k}';blRender()">${i?ic(i):''}${l}</button>`).join('')}</div><div class=bll>`;
     const a=b.a.filter(e=>blF==='all'||blCat(e.x).i===blF);
@@ -2338,7 +2347,7 @@ function blRender(){const el=$('blg');if(!el||!G)return;const b=blLoad()||{a:[]}
       :`<p class=mut style="font-size:13px;padding:10px 4px">${b.a.length?'Keine Einträge in dieser Auswahl.':'Noch keine Meldungen in dieser Runde.'}</p>`;
     h+='</div>'}
   else h+=`<div class=bls id=blS></div>`+blLage();
-  el.innerHTML=h;if(blTab==='l')blStats()}
+  el.innerHTML=h+'<div class=wrs aria-hidden=true></div>';if(blTab==='l')blStats()}
 function blStats(){const el=$('blS');if(!el||!G)return;const g=G,t=now(),R0=rs(g);let v;
   if(g.status==='over')v=[['Restzeit','vorbei'],['Zone',Math.round(Rad(g,g.end||t))+' m'],['Verkleinerung','–'],['Ping','–']];
   else if(t<R0)v=[['Headstart','noch '+fmt(R0-t)],['Zone',Math.round(g.s.r0)+' m'],['Verkleinerung','–'],['Ping','–']];
@@ -2370,6 +2379,23 @@ function blGo(i){const b=blLoad();const e=b&&b.a[i];if(!e)return;blClose();blCle
   else{const c=blCatch(e);const p=c?[c[1].lat,c[1].lng]:blLoc(e);if(!p){blClear();return}pts=[p];
     if(c)L.marker(p,{icon:L.divIcon({className:'mkw',html:shape('catch',c[0]),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:2500,interactive:false}).addTo(L_)}
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts).pad(.3),{maxZoom:17});else map.setView(pts[0],Math.max(map.getZoom(),17));}
+// §FENSTER Chat und Log verschieben (an der Kopfzeile ziehen) und Größe ändern (Ecke unten rechts); je Fenster in LS win_<id> gemerkt,
+// ↺ in der Kopfzeile setzt zurück. Beim Tippen (.kb) gilt die feste Lage über der Tastatur. Immer innerhalb des Bildschirms.
+const WINK=['left','top','width','height','right','bottom','maxHeight','maxWidth'];
+function winGet(id){try{return JSON.parse(LS['win_'+id]||'null')}catch(e){return null}}
+function winSet(el,g){const W=innerWidth,H=innerHeight,w=Math.min(Math.max(220,g.w),W-8),h=Math.min(Math.max(120,g.h),H-8),x=Math.min(Math.max(4,g.x),W-w-4),y=Math.min(Math.max(4,g.y),H-h-4);
+  Object.assign(el.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',right:'auto',bottom:'auto',maxHeight:'none',maxWidth:'none'});return{x,y,w,h}}
+function winApply(el){if(!el||el.classList.contains('kb'))return;const g=winGet(el.id);el.classList.toggle('cust',!!g);if(!g){WINK.forEach(k=>el.style[k]='');return}winSet(el,g)}
+function winReset(id){try{LS.removeItem('win_'+id)}catch(e){}winApply($(id))}
+function winInit(el,hd){if(el._win)return;el._win=1;
+  el.addEventListener('pointerdown',e=>{if(el.classList.contains('kb'))return;const rs=e.target.closest('.wrs');
+    if(!rs&&(!e.target.closest(hd)||e.target.closest('button,input,a')))return;e.preventDefault();e.stopPropagation();
+    const r0=el.getBoundingClientRect(),x0=e.clientX,y0=e.clientY;let g=null;el.classList.add('drag');
+    const mv=ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0;g=winSet(el,rs?{x:r0.left,y:r0.top,w:r0.width+dx,h:r0.height+dy}:{x:r0.left+dx,y:r0.top+dy,w:r0.width,h:r0.height});el.classList.add('cust')};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);el.classList.remove('drag');
+      if(g)try{LS['win_'+el.id]=JSON.stringify(g)}catch(e){}};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})}
+addEventListener('resize',()=>{['chat','blg'].forEach(id=>{const el=$(id);if(el&&el._win)winApply(el)})});
 // §CHAT
 // Chat: in der Lobby ein Kanal „all“ für alle (keine Privatnachrichten, Rolle neben dem Namen, bei Auslosen ohne Rolle);
 // ab Spielstart Teamkanal, private Nachrichten innerhalb des Teams; Ausgeschiedene lesen alles und schreiben nur in "out"
@@ -2393,10 +2419,11 @@ function chTabs(){const cs=chChans(),mt=mates(),dm=isDm(chCur),nm=u=>esc((P()[u]
   $('chp').innerHTML=dm?mt.map(u=>`<button class="s ${'dm:'+u===chCur?'on':'g'}" onclick="chShow('dm:${u}')">${nm(u)}${dmUn[u]?' ●':''}</button>`).join(' ')+(G&&rpOn(G)?'<small class=chpn>Privatnachrichten sind nach der Runde im Replay sichtbar.</small>':''):'';
   $('chp').style.display=dm?'flex':'none'}
 function chOpenDm(u){chToggle(true);chShow('dm:'+u)}
-function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);if(chOpen&&blOpen)blClose();if(!chOpen)chKb(false);
+function chToggle(o){chOpen=o===undefined?!chOpen:o;$('chat').classList.toggle('open',chOpen);if(chOpen){const c=$('chat');if(!c.querySelector('.wrs'))c.insertAdjacentHTML('beforeend','<div class=wrs aria-hidden=true></div>');winInit(c,'#chh');winApply(c)}if(chOpen&&blOpen)blClose();if(!chOpen)chKb(false);
   chQSync();if(chOpen){chUnread=0;Object.keys(dmUn).forEach(u=>{if(chCur!=='dm:'+u)chUnread+=dmUn[u]});chBadge();const b=$('chm');b.scrollTop=b.scrollHeight}}
 // Tastatur: Karte wird breit und sitzt direkt darüber. visualViewport kennt die Tastatur (iOS); schrumpft stattdessen das Fenster (Android-WebView), reicht bottom:8px.
-function chKb(on){const c=$('chat');if(!c)return;if(!on){c.classList.remove('kb');return}const v=window.visualViewport,H=innerHeight,vh=v?v.height:H,off=v?v.offsetTop:0,kb=Math.max(0,H-vh-off);
+function chKb(on){const c=$('chat');if(!c)return;document.body.classList.toggle('chkb',!!on);if(!on){c.classList.remove('kb');winApply(c);return}
+  ['left','top','width','height','right','bottom','maxHeight','maxWidth'].forEach(k=>c.style[k]='');const v=window.visualViewport,H=innerHeight,vh=v?v.height:H,off=v?v.offsetTop:0,kb=Math.max(0,H-vh-off);
   c.style.setProperty('--kbb',(kb+8)+'px');c.style.setProperty('--kbh',Math.max(160,vh-72)+'px');c.classList.add('kb');const b=$('chm');if(b)b.scrollTop=b.scrollHeight}
 if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(chOpen&&$('chat').classList.contains('kb'))chKb(true)});
 function chPath(ch){const m=P()[uid]||{};return isDm(ch)?`chats/${code}/dm/${chTeam(m)||m.role}/${pairKey(ch.slice(3))}`:`chats/${code}/${ch}`}
