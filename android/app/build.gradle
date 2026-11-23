@@ -10,8 +10,8 @@ android {
         applicationId 'at.blowncover.app'
         minSdk 26
         targetSdk 34
-        versionCode 24
-        versionName '0.3.8'
+        versionCode 25
+        versionName '0.3.9'
     }
 
     // Feste Signatur, damit sich spätere APKs über die installierte App drüberinstallieren lassen.

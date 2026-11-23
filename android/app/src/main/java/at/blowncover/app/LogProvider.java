@@ -52,7 +52,10 @@ public class LogProvider extends ContentProvider {
         String n = u.getLastPathSegment();
         if (n == null || n.contains("/") || n.contains("..")) throw new FileNotFoundException();
         // APK fürs App-Update liegt in cache/update (Updater), alles andere in cache/logs.
-        File f = n.endsWith(".apk") ? new File(Updater.dir(getContext()), n) : new File(new File(getContext().getCacheDir(), "logs"), n);
+        // .apk = App-Update (cache/update), .pdf = Spielanleitung (cache/docs, seit v0.3.9), sonst Logs (cache/logs).
+        File f = n.endsWith(".apk") ? new File(Updater.dir(getContext()), n)
+                : n.endsWith(".pdf") ? new File(DocOpener.dir(getContext()), n)
+                : new File(new File(getContext().getCacheDir(), "logs"), n);
         if (!f.exists()) throw new FileNotFoundException();
         return f;
     }
@@ -66,6 +69,7 @@ public class LogProvider extends ContentProvider {
     public String getType(Uri uri) {
         String n = uri.getLastPathSegment();
         if (n != null && n.endsWith(".apk")) return "application/vnd.android.package-archive";
+        if (n != null && n.endsWith(".pdf")) return "application/pdf";
         return n != null && n.endsWith(".json") ? "application/json" : "text/plain";
     }
 

@@ -43,6 +43,7 @@ Mit der Zurück-Taste geht die App in den Hintergrund (sie läuft weiter). Beend
 ## 5. Diagnose und Log
 **Lange auf das App-Icon drücken → „Diagnose“.** Dort: Dienst-Status, Bereitschaft (mit „Beheben“), Protokoll, **„Log teilen (Datei)“**, „Dienst beenden“, „Zurück zum Spiel“.
 Die App lädt immer die Live-Seite, seit v0.3.1 unter **https://blowncover.app/** (die alte Adresse nelodersack.github.io/blown-cover/ leitet dorthin weiter und bleibt ebenfalls in der App). Links zu anderen Seiten öffnen sich im normalen Browser. Die App-Anbindung steckt seit v0.2.6 direkt in `index.html` (im Browser ohne Wirkung).
+Seit v0.3.9 öffnet „Volle Spielanleitung (PDF)“ die PDF direkt in der PDF-Ansicht des Handys (`BlownNative.openPdf(url)`, nur blowncover.app/*.pdf; Zwischenspeicher `cache/docs`, 1 Tag frisch, ohne Netz ältere Fassung).
 Seit v0.3.8 fragt die App beim ersten Öffnen der Replay-Liste einmal nach dem Ordner „Dokumente/Blown Cover/Replays“ (Android-Ordnerfreigabe), damit auch von Hand kopierte Replays erscheinen; später in der Diagnose unter „Replay-Ordner“.
 Seit v0.3.7 kann die Website die gespeicherten Replays selbst auflisten und öffnen (`BlownNative.replays()`, `BlownNative.readReplay(id)`) – für einen eigenen Auswahlbildschirm statt der Android-Dateiauswahl.
 Seit v0.3.6 landen Replays in **Dokumente/Blown Cover/Replays** und Analysen in **Dokumente/Blown Cover/Analysen** (vorher „Downloads“); „Replay abspielen“ öffnet die Dateiauswahl direkt dort.

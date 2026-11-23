@@ -719,6 +719,17 @@ public class GameActivity extends Activity {
         }
 
         /** Speichert eine Datei der Seite (Text) in „Dokumente/Blown Cover/…“ (ab Android 10), sonst Teilen-Menü. */
+        /** Spielanleitung (PDF von blowncover.app) in der PDF-Ansicht des Handys öffnen (seit v0.3.9). */
+        @JavascriptInterface
+        public void openPdf(final String url) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    DocOpener.open(GameActivity.this, url);
+                }
+            });
+        }
+
         /** App-Update ohne Browser (seit v0.3.4): lädt die APK aus den GitHub-Releases und öffnet den Installer. */
         @JavascriptInterface
         public void update(final String url) {
