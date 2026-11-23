@@ -198,7 +198,7 @@ if __name__ == '__main__':
     vid = os.path.join(CL, 'video.mp4')
     run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', lst, '-c', 'copy', vid])
     # Tonspur: Sätze an ihren Zeitpunkten
-    sr = 22050; track = np.zeros(int((t + 0.5) * sr), np.float32)
+    sr, _ = read_wav(os.path.join(WORK, META['1'][0]['file'])); track = np.zeros(int((t + 0.5) * sr), np.float32)
     for n, (st, cues) in starts.items():
         for (a, z), m in zip(cues, META[str(n)]):
             _, x = read_wav(os.path.join(WORK, m['file'])); i = int((st + a) * sr); track[i:i + len(x)] += x
