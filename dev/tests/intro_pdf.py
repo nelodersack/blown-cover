@@ -18,16 +18,16 @@ with app(390, 844, hash='', init=NB) as (pg, ev, errs):
     pg.click('a.slink'); pg.wait_for_timeout(300)
     assert ev("__pdf") == [ev("location.origin") + '/spielregeln.pdf'], ev("__pdf")
     assert ev("location.href") == url0, 'Seite gewechselt'
-    print('App v0.3.9 ok:', ev("__pdf"), 'errors:', errs)
+    print('App v0.3.9 ok:', ev("__pdf")); print('errors:', errs)
 
 with app(390, 844, hash='', init=OLD) as (pg, ev, errs):
     last_step(pg, ev)
     assert ev("inPdf()") is True
     assert 'github.com' in ev("document.querySelector('a.slink').href")
-    print('App alt ok, errors:', errs)
+    print('App alt ok'); print('errors:', errs)
 
 with app(390, 844, hash='') as (pg, ev, errs):
     last_step(pg, ev)
     assert ev("inPdf()") is True
     assert ev("document.querySelector('a.slink').href").endswith('/spielregeln.pdf')
-    print('Browser ok, errors:', errs)
+    print('Browser ok'); print('errors:', errs)
