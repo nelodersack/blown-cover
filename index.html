@@ -3568,11 +3568,18 @@ function inAll(o={}){const P_=Object.assign({},INX,o.p||{});['a','b'].forEach(k=
 // Alles auf der Karte, im HUD und in den Fenstern wird aus t und der Ansicht berechnet (igDraw), darum kann „Zurück“ an jeden Haltepunkt springen.
 // Ansichten: all = Übersicht (alle live), h = Anna (Hunter), x = Hider (Tom bis zu seinem Fang, danach Max).
 const IG={end:3600,p0:360,pi:180,sh:[243,603,963],r:[320,260,200,140],ct:640,im:[1010,1190],sh0:900,shIn:1000,xp:745,SH:[20,-20]},
-  IGW={a:[[-300,-100,-120],[362,-100,-120],[560,40,140],[628,0,170],[700,0,170],[1500,60,20],[2500,-60,60],[3600,30,30]],
-    b:[[-300,-130,20],[400,-110,30],[900,60,-60],[2000,-40,80],[3600,20,-30]],
-    l:[[-300,90,-90],[0,150,-170],[362,150,-170],[600,110,-60],[1100,60,-110],[2000,20,-90],[3000,40,-40],[3600,10,-60]],
-    m:[[-300,-20,100],[0,-140,170],[362,-140,170],[600,-60,110],[905,-60,110],[1000,20,-20],[1300,-10,10],[2500,-50,40],[3600,-40,60]],
-    t:[[-300,120,60],[0,200,190],[255,200,190],[300,170,150],[362,170,150],[500,-20,190],[3600,-20,190]]};
+  // Ankerpunkte [t, Nord, Ost, 'f' = gerade zum nächsten Anker]; dazwischen läuft jeder weiter (igBuild: Zwischenziele alle 45 s, Hunter ±85 m, Hider ±60 m, in der Zone)
+  IGA={a:[[-300,-100,-120,'f'],[0,-100,-120],[362,-70,-60,'f'],[560,40,140,'f'],[628,0,170,'f'],[640,0,170,'f'],[700,10,160],[3600,30,30]],
+    b:[[-300,-130,20,'f'],[0,-130,20],[3600,20,-30]],
+    l:[[-300,90,-90,'f'],[0,150,-170],[3600,10,-60]],
+    m:[[-300,-20,100,'f'],[0,-140,170],[860,-60,110],[905,-55,100,'f'],[1000,20,-20,'f'],[1015,20,-20],[3600,-40,60]],
+    t:[[-300,120,60,'f'],[0,190,170],[180,195,185,'f'],[262,205,195,'f'],[300,170,150],[600,-20,190,'f'],[3600,-20,190,'f']]},
+  IGW=igBuild();
+// Wege bauen: zwischen zwei Ankern alle 45 s ein Zwischenziel um die gerade Linie (±45 m, fester Zufall), immer 20 m innerhalb der Zone
+function igBuild(){let s=7;const rnd=()=>{s=(s*16807)%2147483647;return s/2147483647},o={};
+  Object.entries(IGA).forEach(([k,A])=>{const w=[];A.forEach((a,i)=>{w.push([a[0],a[1],a[2]]);const b=A[i+1];if(!b||a[3]==='f')return;
+    for(let tt=a[0]+45;tt<b[0]-25;tt+=45){const q=(tt-a[0])/(b[0]-a[0]);const amp=k==='a'||k==='b'?170:120;let n=a[1]+(b[1]-a[1])*q+(rnd()-.5)*amp,e=a[2]+(b[2]-a[2])*q+(rnd()-.5)*amp;
+      const lim=igR(tt+45)-20,d=Math.hypot(n,e);if(d>lim){n*=lim/d;e*=lim/d}w.push([tt,n,e])}});o[k]=w});return o}
 function igPos(k,t){const w=IGW[k];if(t<=w[0][0])return[w[0][1],w[0][2]];
   for(let i=1;i<w.length;i++)if(t<=w[i][0]){const a=w[i-1],b=w[i],q=(t-a[0])/(b[0]-a[0]);return[a[1]+(b[1]-a[1])*q,a[2]+(b[2]-a[2])*q]}
   const l=w[w.length-1];return[l[1],l[2]]}
@@ -3589,9 +3596,9 @@ const igSnap=tp=>tp==null?{}:Object.fromEntries(['l','m','t'].filter(k=>!igCaugh
 function igEv(t){const p=[];for(let tp=IG.p0;tp<=IG.end;tp+=IG.pi)p.push(tp);const E=[[0,{all:'Vorsprung vorbei: die Jagd beginnt',h:'Vorsprung vorbei: die Jagd beginnt',x:'Vorsprung vorbei: die Jagd beginnt'}],
   [IG.sh[0],{all:'Hider Tom ist außerhalb der Zone',h:'Hider Tom ist außerhalb der Zone',x:'Du bist außerhalb der Zone – die Hunter sehen dich live'}],
   [IG.ct,{all:'Anna hat Tom gefangen',h:'Tom gefangen',x:'Du bist gefangen und schaust ab jetzt zu'}],
-  [IG.ct+22,{h:'Bonus Extra-Ping: einsetzbar nach 1:30'}],[IG.xp,{h:'Extra-Ping: alle Hider geortet',x:'Extra-Ping! Die Hunter sehen, wo du gerade bist'}],
-  [IG.sh0,{x:'Neue Aufgabe: Safehouse'}],[IG.shIn,{x:'Safehouse: Platz 1, Immunität 3:00'}],[IG.im[0],{x:'Immunität eingesetzt'}],[IG.im[1],{x:'Immunität vorbei'}]];
-  p.forEach(tp=>E.push([tp,{h:'Ping! Du siehst jetzt die Hider',x:igImm(igHx(tp),tp)?'Ping: Du bist immun, die Hunter sehen dich nicht':'Ping! Die Hunter sehen, wo du gerade bist'}]));
+  [IG.ct+22,{h:'Bonus Extra-Ping: einsetzbar nach 1:30',all:'Anna wählt den Extra-Ping'}],[IG.xp,{all:'Anna setzt den Extra-Ping ein',h:'Extra-Ping: alle Hider geortet',x:'Extra-Ping! Die Hunter sehen, wo du gerade bist'}],
+  [IG.sh0,{x:'Neue Aufgabe: Safehouse',all:'Neue Aufgabe für die Hider: Safehouse'}],[IG.shIn,{x:'Safehouse: Platz 1, Immunität 3:00',all:'Max checkt im Safehouse ein'}],[IG.im[0],{x:'Immunität eingesetzt',all:'Max setzt seine Immunität ein'}],[IG.im[1],{x:'Immunität vorbei'}]];
+  p.forEach(tp=>E.push([tp,{all:'Ping: Die Hunter sehen, wo die Hider gerade sind',h:'Ping! Du siehst jetzt die Hider',x:igImm(igHx(tp),tp)?'Ping: Du bist immun, die Hunter sehen dich nicht':'Ping! Die Hunter sehen, wo du gerade bist'}]));
   return E}
 const IGE=igEv();
 // Zustand zum Zeitpunkt t in Ansicht v zeichnen
@@ -3606,7 +3613,8 @@ function igDraw(t,v,tips){if(!IN)return;IN.t=t;const want={},put=(id,kind,k,p,ti
   if(v==='x'){const me=igHx(t),sn=igSnap(igLP(t));
     if(igCaught(me,t))put('ct','catch',null,ct,'gefangen');else put(me,igImm(me,t)?'imm':'me',me,igPos(me,t));
     X.forEach(k=>{if(sn[k]&&!igCaught(k,t))put('p'+k,k===me?'pingme':'ping',k,sn[k])});
-    if(me==='m'&&t>=IG.sh0&&t<IG.shIn){if(!IN.shc){IN.shc=L.circle(inLL(IG.SH),{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15,interactive:false}).addTo(IN.L)}put('sh','t-sh',null,IG.SH)}}
+    }
+  if((v==='all'||(v==='x'&&igHx(t)==='m'))&&t>=IG.sh0&&t<IG.shIn){if(!IN.shc){IN.shc=L.circle(inLL(IG.SH),{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15,interactive:false}).addTo(IN.L)}put('sh','t-sh',null,IG.SH)}
   if(IN.shc&&!want.sh){IN.L.removeLayer(IN.shc);IN.shc=null}
   Object.keys(IN.mk).forEach(id=>{if(!want[id])inDel(id)});
   // HUD wie im Spiel
@@ -3616,9 +3624,9 @@ function igDraw(t,v,tips){if(!IN)return;IN.t=t;const want={},put=(id,kind,k,p,ti
 function igBox(t,v){let h='',c='',key='';const ct=IG.ct;
   if(t>=IG.end){key='res';c='res';const rw=(k,s,cl)=>`<div class=rp>${inAv(k)}<b>${INP[k][0]}</b><small class=${cl}>${s}</small></div>`;
     h=`<h2>Hider gewinnen</h2>${rw('l','frei','ok')}${rw('m','frei','ok')}${rw('t','gefangen '+fmt(ct*1000),'bad')}${rw('a','1 Fang','')}${rw('b','—','')}`}
-  else if(v==='h'&&t>=ct-12&&t<ct){if(t<ct-4){key='cg'+(t>=ct-8);h=inCatchGrid(t>=ct-8?'t':'')}else{key='cw';h=`<div class=hd>Fang gemeldet</div><div class=wt><i></i>Warte auf Tom …</div>`}}
+  else if(v!=='x'&&t>=ct-12&&t<ct){if(t<ct-4){key='cg'+(t>=ct-8);h=inCatchGrid(t>=ct-8?'t':'')}else{key='cw';h=`<div class=hd>Fang gemeldet</div><div class=wt><i></i>Warte auf Tom …</div>`}}
   else if(v==='x'&&igHx(t)==='t'&&t>=ct-10&&t<ct){key='fa';c='fa';h=inAlarm()}
-  else if(v==='h'&&t>=ct+10&&t<ct+22){const s=t>=ct+16;key='bw'+s;h=`<div class=hd>Bonus wählen</div><div class=bw><div${s?'':' class=on'}>${ic('live')}Live-Standort<small>einen Hider 70 s verfolgen</small></div><div${s?' class=on':''}>${ic('extra')}Extra-Ping<small>sofort alle Hider orten</small></div></div>`}
+  else if(v!=='x'&&t>=ct+10&&t<ct+22){const s=t>=ct+16;key='bw'+s;h=`<div class=hd>Bonus wählen</div><div class=bw><div${s?'':' class=on'}>${ic('live')}Live-Standort<small>einen Hider 70 s verfolgen</small></div><div${s?' class=on':''}>${ic('extra')}Extra-Ping<small>sofort alle Hider orten</small></div></div>`}
   if(key===IN.bk)return;IN.bk=key;inBox(h,c);if(key==='fa'){const r=$('inbx').querySelector('.fr');if(r){const s=Math.round(30-(t-(ct-10))*3);r.style.setProperty('--p',(s/30*100)+'%');r.firstChild.textContent=s}}}
 // Abspielen bis zum nächsten Haltepunkt: segs = [[bis t, ms]…], Meldungen beim Überfahren
 function igPlay(segs,done){const g=IN.gen,v=()=>inV();let i=0,t0=IN.t,s0=performance.now();IN.play=1;
@@ -3630,7 +3638,7 @@ const INS=[
  {k:'Grundspiel',t:'Zwei Seiten',c:'Hier jagen Anna und Ben. Lena, Max und Tom verstecken sich.',x:()=>`Die <b>Hider</b> (Kreise ${inSym('hider','l')}) verstecken sich und müssen bis zum Ablauf der Zeit frei bleiben. Die <b>Hunter</b> (Dreiecke ${inSym('hunter','a')}) jagen sie und müssen alle fangen, bevor die Zeit abläuft. Zu Beginn haben die Hider ein paar Minuten <b>Vorsprung</b>.`,g:{t:-300,v:'all',tips:1}},
  {k:'Grundspiel',t:'Die Zone',x:()=>`Der <b>rote Kreis</b> ist das Spielfeld. Er wird in regelmäßigen Abständen kleiner (siehe Mitte oben). Der <b>gestrichelte Kreis</b> zeigt immer die nächste Größe an.`,g:{t:200,v:'all',go:[[0,3500],[200,2500]]}},
  {k:'Grundspiel',t:'Außerhalb der Zone',x:()=>`Ein Hider, der sich außerhalb der Zone befindet, ist für die Hunter <b>live sichtbar</b> – auch noch 2 Minuten nach der Rückkehr. Wer zu lange außerhalb bleibt, scheidet ganz aus.`,g:{t:262,v:'all',go:[[262,3500]]}},
- {k:'Grundspiel',t:'Der Ping',c:'In der Übersicht siehst du, wo die Hider wirklich sind.',x:()=>`In regelmäßigen Abständen (siehe rechts oben) verrät ein <b>Ping</b> den Huntern den <b>punktuellen</b> Standort der Hider. Der Punkt bleibt bis zum nächsten Ping stehen und dient als Orientierung – die Hider bewegen sich natürlich weiter.`,g:{t:363,v:'h',go:[[300,2000],[363,2500]]}},
+ {k:'Grundspiel',t:'Der Ping',c:v=>v==='all'?'Die Ping-Punkte siehst du in der Sicht von Anna oder Tom.':'In der Übersicht siehst du, wo die Hider wirklich sind.',x:()=>`In regelmäßigen Abständen (siehe rechts oben) verrät ein <b>Ping</b> den Huntern den <b>punktuellen</b> Standort der Hider. Der Punkt bleibt bis zum nächsten Ping stehen und dient als Orientierung – die Hider bewegen sich natürlich weiter.`,g:{t:363,v:'h',go:[[300,2000],[363,2500]]}},
  {k:'Grundspiel',t:'Fangen',x:()=>`Zum Fangen <b>berührt</b> der Hunter den Hider in echt und drückt <b>Fang melden</b> in der App. Der Hider bestätigt oder lehnt ab – sonst gilt der Fang nach 30 Sekunden automatisch. Wer gefangen ist, hat ab dann Einsicht in die Positionen aller anderen und schaut zu.`,g:{t:630,v:'h',go:[[540,3500],[630,3500]]}},
  {k:'Grundspiel',t:'Boni',x:()=>`Nach jedem Fang <b>wählt</b> der Hunter als Belohnung einen von zwei <b>Boni</b>: entweder einen einzigen Hider über einen kurzen Zeitraum hinweg <b>live</b> orten oder einen <b>Extra-Ping</b>, der wie der reguläre Ping alle Hider punktuell anzeigt. Diese Boni können dann zu einem beliebigen späteren Zeitpunkt eingesetzt werden.`,g:{t:657,v:'h',go:[[657,4000]]}},
  {k:'Grundspiel',t:'Aufgaben',c:'Die anderen Aufgaben erklärt die App, sobald sie kommen.',x:()=>`Im Lauf der Runde erscheinen <b>Aufgaben</b> für Hider als lila Quadrate. Sie sind freiwillig, bringen aber Vorteile.`,g:{t:905,v:'x',go:[[740,2500],[760,2000],[905,3000]]}},
@@ -3650,7 +3658,7 @@ const INS=[
   x:()=>LINKC?`Du bist schon eingeladen: Gib deinen Namen ein und tritt der Lobby bei. Dort wählst du deine Seite.`:`Der Host erstellt das Spiel, legt die Zone fest und teilt den Link. Alle anderen öffnen den Link und wählen ihr Team.`,
   l:()=>[['phone','<b>App (nur Android):</b> Der Bildschirm darf aus sein.<br><b>Browser (iPhone):</b> Seite offen und Bildschirm an lassen, <b>sonst fehlt das GPS</b>.'],['gps','Standort auf „genau“, WLAN und Energiesparmodus aus, mobile Daten an.'],['batt','Akku voll laden, eine Powerbank schadet nicht.'],['shield','Auf den Verkehr achten, keine Privatgrundstücke betreten.']],
   set(){inZone(320);inAll();IN.h={};$('hud').innerHTML=''}}];
-const inV=()=>{const s=INS[IN.i];return IN.v[IN.i]||(s.g?s.g.v:(s.vw||s.tabs||[[null]])[0][0])};
+const inV=()=>{const s=INS[IN.i];return s.g?(IN.gv||'all'):IN.v[IN.i]||(s.vw||s.tabs||[[null]])[0][0]};
 const igVw=()=>[['all','Übersicht'],['h','Anna · Hunter'],['x',INP[igHx(IN.t==null?0:IN.t)][0]+' · Hider']];
 function inBtn(){const b=$('inb');if(!b)return;b.style.display=!G&&!RV&&!IN&&!RL.on?'inline-flex':'none';b.classList.toggle('new',!LS.inS)}
 function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().addTo(map),c:map.getCenter(),zm:map.getZoom(),f:0,zs:map.options.zoomSnap};map.options.zoomSnap=.1;LS.inS='1';
@@ -3663,14 +3671,15 @@ function inClose(go){if(!IN)return;IN.gen++;map.removeLayer(IN.L);$('hud').inner
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
 function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=0;IN.bk=null;IN.shc=null;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
-  const s=INS[i];if(s.g){delete IN.v[i];IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit()}
+  const s=INS[i];if(s.g){IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit()}
 // Weiter: im Introspiel bis zum nächsten Haltepunkt abspielen (Karte bleibt stehen), sonst Schritt wechseln
 function inNext(){if(!IN||IN.play)return;const n=INS[IN.i+1];if(!n)return;if(!(n.g&&INS[IN.i].g&&n.g.go))return inStep(IN.i+1,1);
-  IN.i++;IN.gen++;delete IN.v[IN.i];$('toast').innerHTML='';IN.play=1;inCard(1);igPlay(n.g.go,()=>{IN.play=0;igDraw(n.g.t,inV(),n.g.tips);const b=$('intro').querySelector('.innx');if(b){b.disabled=false;b.innerHTML='Weiter'}})}
+  IN.i++;IN.gen++;$('toast').innerHTML='';IN.play=1;inCard(1);igPlay(n.g.go,()=>{IN.play=0;igDraw(n.g.t,inV(),n.g.tips);const b=$('intro').querySelector('.innx');if(b){b.disabled=false;b.innerHTML='Weiter'}})}
 // Text der Karte neu (wenn er vom Fortschritt der Szene abhängt, IN.fl)
 function inTxt(){const s=INS[IN.i],e=$('intro').querySelector('.inp');if(e)e.innerHTML=s.x(inV())}
-function inView(v){const s=INS[IN.i];IN.v[IN.i]=v;if(!s.g)return inStep(IN.i);IN.bk=null;$('toast').innerHTML='';if(!IN.play)igDraw(IN.t,v,s.g.tips&&IN.t===s.g.t);
-  $('intro').querySelectorAll('.seg button').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)})}
+function inView(v){const s=INS[IN.i];if(s.g)IN.gv=v;else IN.v[IN.i]=v;if(!s.g)return inStep(IN.i);IN.bk=null;$('toast').innerHTML='';if(!IN.play)igDraw(IN.t,v,s.g.tips&&IN.t===s.g.t);
+  $('intro').querySelectorAll('.seg button').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  const ce=$('intro').querySelector('.inc');if(ce&&typeof s.c==='function')ce.textContent=s.c(v)}
 function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],c=typeof s.c==='function'?s.c(v):s.c,last=IN.i===n-1;
   const ab=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal';
   $('intro').innerHTML=`<div class=inpr><div class=inbar>${INS.map((_,j)=>`<i class="${j<=IN.i?'on':''}"></i>`).join('')}</div><small>${IN.i+1}/${n}</small><button class=inq onclick="inClose()" aria-label="Erklärung schließen"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
