@@ -47,3 +47,22 @@ with app(390, 844, hash='?c=ABCD') as (pg, ev, errs):
     assert 'Lobby ABCD beitreten' in ev("$('intro').textContent")
     print('errors:', errs)
     assert not errs
+
+# Introspiel: durchspielen bis „Wer gewinnt?“, Haltepunkte und Zurück
+with app(390, 844, hash='') as (pg, ev, errs):
+    pg.wait_for_timeout(500)
+    pg.click('#inb'); pg.wait_for_timeout(300)
+    gs = ev("INS.map((s,i)=>s.g?i:-1).filter(i=>i>=0)")
+    for i in gs[1:]:
+        ev("inNext()")
+        for _ in range(60):
+            if not ev("IN.play"): break
+            pg.wait_for_timeout(300)
+        assert ev("IN.i") == i and abs(ev("IN.t") - ev(f"INS[{i}].g.t")) < .01, (i, ev("IN.t"))
+    assert 'Hider gewinnen' in ev("$('inbx').textContent")
+    ev(f"inStep({gs[4]},-1)"); pg.wait_for_timeout(200)
+    for v in ['all', 'h', 'x']:
+        ev(f"inView('{v}')"); pg.wait_for_timeout(100)
+    assert ev("$('inbx').classList.contains('on')"), 'Fangmeldung fehlt beim Hider'
+    print('errors:', errs)
+    assert not errs
