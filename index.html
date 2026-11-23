@@ -3645,7 +3645,7 @@ function igBox(t,v){let h='',c='',key='';const ct=IG.ct;
 function igPlay(segs,done){const g=IN.gen,v=()=>inV();let i=0,t0=IN.t,s0=performance.now();IN.play=1;
   const st=n=>{if(!IN||IN.gen!==g)return;const sg=segs[i],q=Math.min(1,(n-s0)/sg[1]),t=t0+(sg[0]-t0)*q,sp=(sg[0]-t0)/Math.max(1,sg[1])*1000;
     if(sp<120)IGE.forEach(([te,m])=>{const x=m[v()];if(x&&te>IN.t&&te<=t)inToast(x)});
-    igDraw(t,v());if(q<1)return requestAnimationFrame(st);i++;if(i<segs.length){t0=sg[0];s0=n;return requestAnimationFrame(st)}IN.play=0;if(done)done()};
+    igDraw(t,v());igFocus(t,v());if(q<1)return requestAnimationFrame(st);i++;if(i<segs.length){t0=sg[0];s0=n;return requestAnimationFrame(st)}IN.play=0;if(done)done()};
   requestAnimationFrame(st)}
 const INS=[
  {k:'Grundspiel',t:'Zwei Seiten',c:'Hier jagen Anna und Ben. Lena, Max und Tom verstecken sich.',x:()=>`Die <b>Hider</b> (Kreise ${inSym('hider','l')}) verstecken sich und müssen bis zum Ablauf der Zeit frei bleiben. Die <b>Hunter</b> (Dreiecke ${inSym('hunter','a')}) jagen sie und müssen alle fangen, bevor die Zeit abläuft. Zu Beginn haben die Hider ein paar Minuten <b>Vorsprung</b>.`,g:{t:-300,v:'all',tips:1}},
@@ -3684,14 +3684,14 @@ function inClose(go){if(!IN)return;IN.gen++;map.removeLayer(IN.L);$('hud').inner
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
 function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=0;IN.bk=null;IN.shc=null;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
-  const s=INS[i];if(s.g){IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit()}
+  const s=INS[i],fz=s.g?igFz(s.g.t,inV()):null,ch=fz!==IN.fz;IN.fz=fz;if(s.g){IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit(ch&&IN.f)}
 // Weiter: im Introspiel bis zum nächsten Haltepunkt abspielen (Karte bleibt stehen), sonst Schritt wechseln
 function inNext(){if(!IN||IN.play)return;const n=INS[IN.i+1];if(!n)return;if(!(n.g&&INS[IN.i].g&&n.g.go))return inStep(IN.i+1,1);
   IN.gen++;$('toast').innerHTML='';IN.play=1;const b=$('intro').querySelector('.innx');if(b){b.disabled=true;b.innerHTML='<span class=insp></span>'}const bk=$('intro').querySelector('.inbk');if(bk){const i0=IN.i;bk.onclick=()=>inStep(i0,0)}
-  igPlay(n.g.go,()=>{IN.play=0;IN.i++;igDraw(n.g.t,inV(),n.g.tips);inCard(1)})}
+  igPlay(n.g.go,()=>{const g=IN.gen,fin=()=>{if(!IN||IN.gen!==g)return;IN.play=0;IN.i++;igDraw(n.g.t,inV(),n.g.tips);inCard(1)},w=(IN.fe||0)-performance.now();IN.play=1;if(w>0)setTimeout(fin,w);else fin()})}
 // Text der Karte neu (wenn er vom Fortschritt der Szene abhängt, IN.fl)
 function inTxt(){const s=INS[IN.i],e=$('intro').querySelector('.inp');if(e)e.innerHTML=s.x(inV())}
-function inView(v){const s=INS[IN.i];if(s.g)IN.gv=v;else IN.v[IN.i]=v;if(!s.g)return inStep(IN.i);IN.bk=null;$('toast').innerHTML='';if(!IN.play)igDraw(IN.t,v,s.g.tips&&IN.t===s.g.t);
+function inView(v){const s=INS[IN.i];if(s.g)IN.gv=v;else IN.v[IN.i]=v;if(!s.g)return inStep(IN.i);IN.bk=null;$('toast').innerHTML='';if(!IN.play){igDraw(IN.t,v,s.g.tips&&IN.t===s.g.t);igFocus(IN.t,v)}
   $('intro').querySelectorAll('.seg button').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
   const ce=$('intro').querySelector('.inc');if(ce&&typeof s.c==='function')ce.textContent=s.c(v)}
 function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],c=typeof s.c==='function'?s.c(v):s.c,last=IN.i===n-1;
@@ -3710,8 +3710,14 @@ function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(
   else{const x=a[IN.a];if(x[1]()!==false){IN.a++;if(x[2])IN.run=performance.now()+x[2]}IN.busy=Date.now()+600}
   const b=$('inact');if(b)b.innerHTML=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal'}
 // Karte auf die Szene: Zone über der Erklärkarte, unter dem HUD
-function inFit(){const R=340,dl=R/111320,dn=R/(111320*Math.cos(INC[0]*Math.PI/180)),b=L.latLngBounds([INC[0]-dl,INC[1]-dn],[INC[0]+dl,INC[1]+dn]),h=$('intro').offsetHeight;
-  const o={paddingTopLeft:[12,62],paddingBottomRight:[12,h+12]};if(!IN.f){IN.f=1;map.flyToBounds(b,Object.assign({duration:1.1},o))}else map.fitBounds(b,Object.assign({animate:true,duration:.35},o))}
+// Fokus (Manuel 23.11.): bei Momenten an einem bestimmten Ort gleitet die Karte langsam dorthin und danach zurück auf die ganze Zone.
+// IGZ = [von t, bis t, Mitte [Nord, Ost], halbe Breite m, Ansichten, Abstand oben px (Platz fürs Demo-Fenster)]; die Fahrt dauert 1,6 s, „Weiter“ hält erst, wenn sie fertig ist.
+const IGZ=[[215,290,[175,165],120,'all h x'],[585,690,[-10,180],90,'all h x',250],[855,1090,[-15,40],120,'all x']],
+  igFz=(t,v)=>{const z=IGZ.findIndex(z=>t>=z[0]&&t<z[1]&&z[4].split(' ').includes(v));return z<0?null:z};
+function inFit(fly){const z=IN.fz!=null?IGZ[IN.fz]:null,c=z?inLL(z[2]):INC,R=z?z[3]:340,dl=R/111320,dn=R/(111320*Math.cos(c[0]*Math.PI/180)),b=L.latLngBounds([c[0]-dl,c[1]-dn],[c[0]+dl,c[1]+dn]),h=$('intro').offsetHeight;
+  const o={paddingTopLeft:[12,z&&z[5]||62],paddingBottomRight:[12,h+12]};if(!IN.f||fly){const d=IN.f?1.6:1.1;IN.f=1;IN.fe=performance.now()+d*1000+80;map.flyToBounds(b,Object.assign({duration:d,easeLinearity:.2},o))}else map.fitBounds(b,Object.assign({animate:true,duration:.35},o))}
+// Fokus zum Zeitpunkt t prüfen; bei Wechsel sanft hinfahren
+function igFocus(t,v){if(!IN)return;const z=igFz(t,v);if(z===IN.fz)return;IN.fz=z;inFit(1)}
 // §UPDATE App-Version prüfen (GitHub Releases): in der App bei älterer Version Dialog beim Öffnen + Kartenknopf `#upb` mit orangem Punkt,
 // nur auf dem Startbildschirm (nie in Lobby/Spiel); Android-Browser: derselbe Knopf ohne Punkt. Neueste Version höchstens alle 3 h abfragen.
 const APK='https://github.com/nelodersack/blown-cover/releases/latest/download/BlownCover.apk',REL='https://api.github.com/repos/nelodersack/blown-cover/releases/latest';
