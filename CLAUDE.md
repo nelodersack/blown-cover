@@ -99,6 +99,7 @@ Eine neue Einstellung braucht: `FD` (oder Schalter), Standardwert (`DEF`/`PRE`/`
 - APK bauen und auf dem Gerät testen macht Manuel. Kein Android-SDK in der Umgebung (javac gegen android.jar aus `Sable/android-platforms`).
 - Commit-Nachrichten auf Deutsch.
 - **Werkzeuge gehören ins Repo, nie nur ins Scratchpad:** Rechenmodelle, Generatoren, Bauskripte (z. B. Spielregeln-PDF, Demo-Replay) nach `dev/` committen – das Scratchpad verschwindet mit der Sitzung (so ging am 15.11. das Balancing-Modell verloren).
+- **Spielregeln-PDF (Kurzanleitung + Vollversion, Dossier-Stil):** Texte in `dev/doku/anleitung/content.py`, bauen mit `python3 dev/doku/anleitung/build.py`, Screenshots mit `dev/doku/screens.py` + `ausschnitte.py`. Anleitung in `dev/doku/README.md`. Ändert sich eine Regel oder ein Standardwert in der App, die PDFs mitziehen und Manuel neu liefern.
 - **Bei Formel-Umbauten** alte Grenzen und Sonderfälle der ersetzten Zeile bewusst übernehmen oder ausdrücklich streichen (CHANGELOG), nie stillschweigend.
 
 ## Website-Dateien

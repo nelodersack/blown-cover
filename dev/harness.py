@@ -35,12 +35,15 @@ def app(width=400, height=800, page='index.html', hash='#test', init=None):
             u = r.request.url
             if 'vendor/firebase-' in u:
                 return r.fulfill(body=STUB if 'app-compat' in u else '', content_type='application/javascript')
+            if os.environ.get('MAP') and ('openfreemap' in u or 'maplibre' in u):
+                return r.continue_()
             if 'maplibre' in u and u.endswith('.js'):
                 return r.fulfill(body='', content_type='application/javascript')
             if u.startswith('file:'):
                 return r.continue_()
             return r.abort()
         pg.route('**/*', route)
+        pg.add_init_script("addEventListener('DOMContentLoaded',()=>{try{new MutationObserver(()=>{document.querySelectorAll('body>div').forEach(d=>{if((d.textContent||'').startsWith('TESTMODUS'))d.remove()})}).observe(document.body,{childList:true})}catch(e){}})")
         if init:
             pg.add_init_script(init)
         wlog = os.environ.get('WLOG')            # Schreibprotokoll für die Regelprüfung (dev/rules/)
