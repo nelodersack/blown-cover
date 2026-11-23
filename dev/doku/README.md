@@ -22,3 +22,6 @@ Die fertigen Ausschnitte liegen in `anleitung/img/` (im Repo, damit die PDFs ohn
 ## Gestaltung
 `anleitung/base.css` (Raster, Bausteine) + `anleitung/dossier.css` (Behördenakte: IBM Plex Serif/Mono, Einstufung „GEHEIM“, Formular-Kopfzeile,
 Lichtbilder mit zweiteiliger Büroklammer `img/klammer_vorne.svg`/`klammer_hinten.svg`, Papier `img/paper.jpg` aus `papier.py`).
+
+## Erklärvideo
+Siehe `dev/doku/video/README.md` (Szenen aus der echten App, Stimme offline, Dossier-Rahmen).
