@@ -613,7 +613,7 @@ body.inx #intro{display:flex;flex-direction:column;gap:12px}#intro>*{flex:none}#
 #inbx .wt{display:flex;gap:10px;align-items:center;justify-content:center;color:var(--mut);font:500 14px var(--f-b)}#inbx .wt i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--fg);animation:inSp .8s linear infinite}
 .leaflet-tooltip.intt{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font:600 12px/1.35 var(--f-b);box-shadow:0 2px 8px #0006;white-space:nowrap}
 .leaflet-tooltip.intt::before{display:none}
-.mkw.ghost{opacity:.4}.mkw.ghost svg{filter:none}
+.mkw.ghost{opacity:.4}.mkw.pingS{opacity:.45}.mkw.pingS svg{filter:none}.mkw.ghost svg{filter:none}
 .inm.ping svg,.inm.pingme svg,.inm.xping svg,.inm.catch svg,.inm.imm svg{animation:inPop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes inPop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}@keyframes inUp{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}@keyframes inSp{to{transform:rotate(360deg)}}
 #intro .inbody{display:grid;gap:12px;animation:inFd .22s ease-out}@keyframes inFd{from{opacity:0;transform:translateX(var(--dx,0))}to{opacity:1;transform:none}}
@@ -797,7 +797,7 @@ async function anDl(){if(anB||!G||G.host!==uid)return;anB=1;toast('Analysedaten 
   catch(e){toast('Analyse nicht möglich: '+String((e&&e.message)||e).slice(0,50))}finally{anB=0}}
 // §STATE Globale Variablen, Verbindung (lastAck, netGap, rcn), Grundhelfer (now, $, esc, D, P, lbl, gwE, dqOn, hpOn), Meldungen (evW, note)
 let off=0,uid,code,G=null,pos=null,lastFix=0,lastW=0,wasOut=false,lastK=0,zsK=null,ping=null,cand=[],lastSig='',fitted=false,wl,cm=null,drag=0,lastKey='';
-let wrOld=0,connLost=0,netW=0,lastRcn=0,lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
+let sping=null,wrOld=0,connLost=0,netW=0,lastRcn=0,lk={},lastTV='',lastHT=null,radar=null,ddLock=0,endLock=0,xping=null,hbPick=null,hbLive=null,hbLock=0,lastXp=null,lastLv=0;
 let oaL=null,oaT=0,oaW=0,oaLast=-1,oaWarn=false,dqLock=0,stBusy=false,rvLock=0,rstD=false,lastRn=0,evSince=0,evSeen=new Set(),nq=[],nB=0,conn=false,connSince=0,lastTick=Date.now(),skipUntil=0,hostLock=0,resMode=null,tt=0,leaving=false,lgOpen=false,popKey=null,redrawing=false,reop=null;
 let me={name:LS.n||''};
 // Einladungslink blowncover.app/CODE (404.html leitet auf ?c=CODE um): Code merken, Adresse aufräumen
@@ -1025,7 +1025,7 @@ function shape(k,pid,hid){const sv=b=>`<svg style="overflow:visible" viewBox="0 
   L_=pid?letOf(pid):'',I_=pid?inkOf(pid):'#fff';
   if(pid){switch(k){
     case'me':return sv(`<circle cx="18" cy="18" r="14" fill="none" stroke="#1e7cf0" stroke-width="2"/><circle cx="18" cy="18" r="10" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,22,12));
-    case'hider':case'ping':case'pingme':case'live':case'out':return sv(`<circle cx="18" cy="18" r="${k==='pingme'?12:10}" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,k==='pingme'?23:22.5,k==='pingme'?15:13));
+    case'hider':case'ping':case'pingS':case'pingme':case'live':case'out':return sv(`<circle cx="18" cy="18" r="${k==='pingme'?12:10}" fill="${C}" stroke="${W}" stroke-width="2.5"/>`+tx(L_,I_,k==='pingme'?23:22.5,k==='pingme'?15:13));
     case'hunter':case'mate':return sv(`<polygon points="18,5 31,29 5,29" fill="${C}" stroke="${W}" stroke-width="2.5" stroke-linejoin="round"/>`+tx(L_,I_,25,13)+(zBadge(pid)?`<circle cx="29.5" cy="8.5" r="5.5" fill="#58c322" stroke="${W}" stroke-width="2"/>`:''));
     case'xping':return sv(`<circle cx="18" cy="18" r="15" fill="none" stroke="${C}" stroke-width="2"/><circle cx="18" cy="18" r="12" fill="none" stroke="${C}" stroke-width="2"/><circle cx="18" cy="18" r="8.5" fill="${C}" stroke="${W}" stroke-width="2"/>`+tx(L_,I_,22,11));
     case'stale':return sv(`<circle cx="18" cy="18" r="9" fill="#7a8696" fill-opacity=".65" stroke="#4f5967" stroke-width="2.5" stroke-dasharray="4 3"/>`+tx(L_,'#2c3744',22,12));
@@ -1513,6 +1513,7 @@ function rvPrep(f,ev){const pl=RV.pl,PUB={catch:1,ping:1,zone:1,end:1,out:1};
   const mk=[],op={};(F.mk||[]).slice().sort((p,q)=>p[0]-q[0]).forEach(x=>{const o=op[x[2]];if(o&&x[0]<o.t1)o.t1=x[0];op[x[2]]=null;
     if(x[1]==='+'&&pl[x[8]]){const n={id:x[2]+'#'+mk.length,t0:x[0],k:x[3],lat:x[4],lng:x[5],r:x[6],x:x[7],u:x[8],h:x[9],t1:f.game.end};mk.push(n);op[x[2]]=n}});
   try{RV.bub=LS.rvBub!=='0'}catch(e){RV.bub=true}
+  try{RV.pg=LS.rvPg!=='0'}catch(e){RV.pg=true}
   RV.mki=Object.values(mk).filter(x=>['arrow','excl','zone','pin'].includes(x.k));RV.mki.forEach(x=>{if(x.k==='excl'){const n=RV.pt.find(p=>p>x.t0);if(n&&n<x.t1)x.t1=n}});RV.fm={}}
 const rvImm=(id,t)=>{const a=RV.imm[id];let v=0;if(a)for(const x of a){if(x[0]>t)break;v=x[1]}return v};
 function rvSeen(p,t,S,pos_){const V=RV.view;if(V==='all'||rvSide(p)===V)return 1;const g=RV.f.game;
@@ -1529,6 +1530,14 @@ function rvSeen(p,t,S,pos_){const V=RV.view;if(V==='all'||rvSide(p)===V)return 1
   const hk=(S.tasks||{}).hk,cm=hk&&hk.cm;if(cm&&cm.t<=t&&t<cm.t+hkRv({s:g.s})*1000)return{k:'live'};
   let st=0;RV.sat.forEach(u=>{if(u<=t&&t<u+sbV(g.s)*1000)st=u});if(st){const a=rvAt(RV.sm[p.id]||[],st,30000);if(a&&!a[2])return{k:'sat',pos:a}}
   return null}
+// Replay „Alle“: letzter Ping je Hider als blasser Punkt (Schalter „Pings“, RV.pg, gemerkt in LS.rvPg)
+function rvPgS(p,t,rl,out){RV.pm=RV.pm||{};let m=RV.pm[p.id],pos=null,ts=0;
+  if(RV.view==='all'&&RV.pg!==false&&rl==='hider'&&!out){const pt=RV.pt;let lo=0,hi=pt.length;while(lo<hi){const k=(lo+hi)>>1;if(pt[k]<=t)lo=k+1;else hi=k}if(lo)ts=pt[lo-1];
+    if(ts&&!(rvImm(p.id,ts)>ts)){const a=rvAt(RV.sm[p.id]||[],ts,30000);if(a&&!a[2])pos=a}}
+  if(!pos){if(m&&RV.L.hasLayer(m))RV.L.removeLayer(m);return}
+  if(!m)m=RV.pm[p.id]=L.marker([pos[0],pos[1]],{icon:L.divIcon({className:'mkw pingS',html:shape('pingS',p.id),iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:-300,keyboard:false,interactive:false});
+  if(m._ts!==ts){m._ts=ts;m.setLatLng([pos[0],pos[1]])}if(!RV.L.hasLayer(m))m.addTo(RV.L)}
+function rvPgT(){RV.pg=RV.pg===false;try{LS.rvPg=RV.pg?'1':'0'}catch(e){}panel(1);rvDraw()}
 function rvBubT(){RV.bub=RV.bub===false;try{LS.rvBub=RV.bub?'1':'0'}catch(e){}panel(1);rvDraw()}
 function rvView(v){if(!RV||RV.view===v)return;RV.view=v;
   Object.values(RV.ln).forEach(L_=>{(L_.c||[]).forEach(pl=>pl&&RV.L.removeLayer(pl));L_.c=[];L_.s=[];L_.k=-1;if(L_.sh){RV.L.removeLayer(L_.sh);L_.sh=null}});RV.lnI={};
@@ -1692,6 +1701,7 @@ function rvDraw(){if(!RV)return;const f=RV.f,g=f.game,t=RV.t,S=rvState(t);
       m=RV.m[p.id]=L.marker([pos_[0],pos_[1]],{icon:L.divIcon({className:'mkw'+(lv&&k!=='stale'?' live':'')+cl,html:shape(k,p.id)+ring,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:out||k==='ping'||k==='xping'?0:500,keyboard:false,rvz:1}).addTo(RV.L);m._k=key;
       m.bindPopup(()=>rvInfo(p.id,RV.t),{closeButton:false,className:'bcp',autoPan:false,offset:[0,-14],maxWidth:240});if(op)m.openPopup()}
     else m.setLatLng([P0[0],P0[1]]);
+    rvPgS(p,t,rl,out);
     if(m.isPopupOpen()&&(!m._pt||Math.abs(m._pt-t)>900)){m._pt=t;m.getPopup().setContent(rvInfo(p.id,t))}});
   // Fangort: Handschellen bleiben dort stehen, der Gefangene selbst läuft (falls er sich weiter bewegt) grau gestrichelt weiter
   RV.cm=RV.cm||{};Object.values(RV.pl).forEach(p=>{if(p.role!=='hider'||p.state!=='caught'||!p.sT)return;const on=t>=p.sT;let m=RV.cm[p.id];
@@ -1755,7 +1765,7 @@ function rvPanel(){const f=RV.f,g=f.game,el=$('pb');$('panel').classList.toggle(
     el.innerHTML=hd+tabs+vw+`
      <div class=tlo id=rvT onpointerdown="rvScrub(event)"><span class=bar></span><span class=fill id=rvF></span>${vis.filter(e=>RVC[e.k]).map(e=>`<span class="t${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;background:${e.c||RVC[e.k]}"></span>`).join('')}<span class=win id=rvW style="width:${w/T*100}%"></span></div>
      <div class=tld id=rvD onpointerdown="rvDrag(event)"><div class=st id=rvS style="width:${T/w*100}%"><span class=bar></span>${mt}${vis.map(e=>e.k==='ping'?`<span class=pg style="left:${Y(e.t)}%"></span>`:e.k==='zone'?`<span class=rvzs style="left:${Y(e.t)}%"></span>`:'').join('')}${vis.map(e=>RVC[e.k]&&e.k!=='ping'&&e.k!=='zone'?`<span class="ev${e.hu?' hu':e.k==='task'?' sq':''}" style="left:${Y(e.t)}%;--c:${e.c||RVC[e.k]}">${e.hu?RVTRI:''}${ic(e.i||RVI[e.k])}</span>`:'').join('')}</div><span class=ph id=rvP></span></div>
-     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'off':RV.tr==='off'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':RV.tr==='off'?'aus':'5 Min'}</b></span>${RV.ch.length?`<span class="chip rvtr" role=button onclick="rvBubT()" aria-label="Sprechblasen umschalten">Sprechblasen: <b>${RV.bub===false?'aus':'an'}</b></span>`:''}${RVF.filter(([k])=>k!=='duel'||RV.bt).map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
+     <div class=rvch><span class="chip rvtr" role=button onclick="rvTr(RV.tr==='all'?'off':RV.tr==='off'?'short':'all')" aria-label="Spuren umschalten">Spuren: <b>${RV.tr==='all'?'ganz':RV.tr==='off'?'aus':'5 Min'}</b></span>${RV.view==='all'?`<span class="chip rvtr" role=button onclick="rvPgT()" aria-label="Pings umschalten">Pings: <b>${RV.pg===false?'aus':'an'}</b></span>`:''}${RV.ch.length?`<span class="chip rvtr" role=button onclick="rvBubT()" aria-label="Sprechblasen umschalten">Sprechblasen: <b>${RV.bub===false?'aus':'an'}</b></span>`:''}${RVF.filter(([k])=>k!=='duel'||RV.bt).map(([k,l])=>`<span class="chip${RV.hide&&RV.hide[k]?' off':''}" role=button aria-pressed="${!(RV.hide&&RV.hide[k])}" onclick="rvHide('${k}')"><span class=ci style="color:${RVC[k]}">${ic(RVI[k])}</span>${l} <b>${n(k)}</b></span>`).join('')}</div>
      <div class=ctl><button class=pp onclick="rvPlay()" aria-label="${RV.play?'Pause':'Abspielen'}">${RV.play?'❚❚':'▶'}</button><div class=seg style="flex:1">${[1,2,5,10].map(v=>`<button class="${RV.speed===v?'on':''}" style="flex:1" onclick="rvSpeed(${v})">${v}×</button>`).join('')}</div></div>
      <div class=card id=rvC style="padding:9px 12px;gap:2px"></div>${RV.ch.length?`<div class="card rvfk" id=rvK><div class=fkh>${ic('chat')}Funk</div><div class=fkm></div></div>`:''}`}
   else{const st=RV.st,nm=k=>(RV.bt&&RV.pl[k]&&RV.pl[k].tm?`<span class=tdot style="background:${rvTeamCol(RV.pl[k].tm)}"></span>`:'')+esc(st.nm(k)),J=(t,k)=>t?`<button class=jp onclick="event.stopPropagation();rvJump(${t},'${k||''}')">▶ ${rvTm(t,g.R0)}</button>`:'';
@@ -3289,13 +3299,13 @@ function mkr(kind,ll,key,tip,pid,hid){const low=kind==='arrow'||kind==='excl'||k
   m.on('popupopen',()=>{if(!redrawing)popKey=key});if(key===popKey)reop=m;return m}
 map.on('popupclose',()=>{if(!redrawing)popKey=null;if(typeof mkMode!=='undefined'&&mkMode==='excl-wait')mkMode='excl'});
 const STX={caught:'gefangen',dq:'Signal verloren',quit:'aufgegeben',safe:'in Sicherheit'};
-const LG={me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-ddc':['Kompromittiert','Magenta: Die Hunter kennen den Ort dieser Aufgabe'],'t-hk':['Terminal-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],zb:['Verwandelt','grüner Punkt: war Hider, ist jetzt Zombie'],zr:['Verwandlung','grün gestrichelt: hier bleiben, bis der Countdown abläuft'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
+const LG={pingS:['Letzter Ping','blass: dort sahen die Hunter den Hider'],me:['Du','blauer Ring, deine Farbe'],mate:['Dein Team','Dreieck: Hunter'],hider:['Hider','Kreis'],hunter:['Hunter','Dreieck'],out:['Standort sichtbar','pulsiert: Hider außerhalb der Zone oder in der Strafzeit'],pingme:['Dein letzter Ping','so sahen dich die Hunter'],ping:['Ping','Standort zum Ping-Zeitpunkt, Farbe und Buchstabe des Hiders'],xping:['Extra-Ping','Doppelring'],live:['Live-Standort','pulsiert'],arrow:['Unterwegs','Pfeil: Hunter läuft dorthin, weg bei 40 m'],excl:['Hider gesichtet','Rufzeichen, weg beim nächsten Ping'],zone:['Bereich','gestrichelt: Hunter kümmert sich darum'],pin:['Stecknadel','Betreff beim Antippen'],next:['Nächste Zone','grau gestrichelt: so klein wird die Zone'],stale:['Nicht aktuell','grau gestrichelt: nicht ortbar, Signal verloren oder ausgeschieden'],catch:['Fangort','Handschellen, rot'],'t-sh':['Safehouse','mit 40-m-Kreis'],'t-ev':['Evakuierung',''],'t-dd':['Dead Drop',''],'t-mt':['Meeting',''],'t-ddc':['Kompromittiert','Magenta: Die Hunter kennen den Ort dieser Aufgabe'],'t-hk':['Terminal-Zone','Kreis: Hider hacken hier, Hunter bewachen sie'],oz:['Sperrgebiet','Hider darin werden live geortet, sobald aktiv'],zb:['Verwandelt','grüner Punkt: war Hider, ist jetzt Zombie'],zr:['Verwandlung','grün gestrichelt: hier bleiben, bis der Countdown abläuft'],bm:['Radar','grüner Kreis, nur für dich: Nadel dreht = niemand im Umkreis, pulsiert = Gegner in der Nähe']};
 function lgToggle(){lgOpen=!lgOpen;lgSync()}
 function lgSync(){const b=$('lgb'),l=$('lg'),m=(G&&P()[uid])||{};
   if(!G||G.status!=='running'||!m.role){b.style.display='none';l.className='';return}
   b.style.display='grid';b.innerHTML=ic('info');b.setAttribute('aria-label','Legende');b.setAttribute('aria-expanded',lgOpen);
   const T=G.tasks||{},tk=[];if(T.sh)tk.push('t-sh');if(T.ev)tk.push('t-ev');if(Object.keys(T).some(isDd))tk.push('t-dd');if(Object.keys(T).some(isMt))tk.push('t-mt');if(G.s&&G.s.tsol)tk.push('t-ddc');if(T.hk)tk.push('t-hk');if(T.hk&&T.hk.oz)tk.push('oz');
-  const ks=isSpec(m)?['hider','hunter','out','next','stale','catch'].concat(tk):m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(hpOn(G)?['ping']:[],tk,['hunter','next']);
+  const ks=isSpec(m)?['hider','pingS','hunter','out','next','stale','catch'].concat(tk):m.role==='hunter'?['me','mate','ping','xping','live','out','arrow','excl','zone','pin','next','stale','catch']:['me','pingme'].concat(hpOn(G)?['ping']:[],tk,['hunter','next']);
   if(BM.id)ks.push('bm');
   const zb=zmb(G),LZ=zb?Object.assign({},LG,{mate:['Deine Horde','Dreieck: Zombies'],hunter:['Zombie','Dreieck'],pingme:['Dein letzter Ping','so sahen dich die Zombies']}):LG;
   if(zb){let i=ks.indexOf('hunter');if(i<0)i=ks.indexOf('mate');ks.splice(i<0?ks.length:i+1,0,'zb');if(m.zt&&!m.zd)ks.push('zr')}
@@ -3337,6 +3347,7 @@ function draw(){if(mvg&&Date.now()-mvT<1500){pendD=true;return}redrawing=true;re
     else if(m.role==='hunter'&&p.role==='hunter'&&bty(g)&&p.tm!==m.tm&&infAb(g,t,m.tm))mkr('hunter',ll,'p'+k,()=>[lbl(p),'abgehört'],k)
     else if(m.role==='hider'&&p.role==='hunter'&&p.state==='alive'&&FSX&&FSX.h===k&&FSX.until>t)mkr('hunter',ll,'p'+k,()=>[lbl(p),'live, bis du nicht mehr geschützt bist'],k);
     else if(m.role==='hunter'&&p.role==='hider'&&p.state==='alive'&&(p.out||p.revealUntil>t))mkr('out',ll,'p'+k,()=>['Hider '+p.name,p.out?'außerhalb der Zone, Standort sichtbar':'Strafzeit, Standort sichtbar'],k)});
+  if(spec&&sping)Object.entries(sping.pts).forEach(([id,q])=>{const p=P()[id];if(!p||p.state!=='alive')return;mkr('pingS',[q.lat,q.lng],'sp'+id,()=>['Ping: '+p.name,'Stand beim letzten Ping '+ago(sping.t)],id)});
   if(infOn(g)&&(m.role==='hunter'||spec))infOpen().forEach(([n,x])=>mkr('inf',[x.lat,x.lng],'inf'+n,()=>['Informant','Wer zuerst da ist (30 m), bekommt Abhören oder Störsender'],null));
   if(ping){const own=m.role==='hider';
     Object.entries(ping.pts).forEach(([id,p])=>{const q=P()[id];if(!q||q.zt)return;
@@ -3379,7 +3390,7 @@ function onData(){
   if(G&&G.status==='lobby'&&G.chk&&G.chk!==lastChk&&!(G.host===uid)){lastChk=G.chk;if(now()-G.chk<15000)fixNow()}
   if(!leaving&&code&&!P()[uid]){leaving=true;toast('Du wurdest aus der Runde entfernt');setTimeout(leave,1200);return}
   if(G.status==='over'&&G.players&&!onData.pc){onData.pc=1;pclean(1);if(FSH)db.ref(`fzp/${code}/${uid}`).remove().catch(()=>{});db.ref(`games/${code}/players/${uid}`).update({lat:null,lng:null}).catch(()=>{})}else if(G.status!=='over')onData.pc=0;
-  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;FSH=null;FSX=null;fsCand=null;ping=radar=xping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;lastCT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
+  if((G.rn||0)!==lastRn||!rstD){rstD=true;lastRn=G.rn||0;FSH=null;FSX=null;fsCand=null;ping=radar=xping=null;sping=null;lk={};lastK=0;zsK=null;lastTV='';lastHT=null;lastCT=null;netW=0;cand=[];hbPick=hbLive=null;wasOut=false;lastLv=0;lastXp=null;oaL=null;oaWarn=false;oaLast=-1;ddLock=0;endLock=0;evSeen=new Set();lastCm=null;cmWas=false;ozPrev=undefined;ozIn=false;hkOutMs=0;hkLT=0;hkLock=0;hkSP=undefined;onData.l=0;lastSig='';MK={};mkSeen=null;if(mkL){mkL.off();mkL=null}hidM=new Set();pclean();try{const sv=JSON.parse(LS['bp_'+code+'_'+lastRn]||'null');if(sv){ping=sv.ping||null;xping=sv.xping||null;lk=sv.lk||{}}}catch(e){}}
   if(G.status==='running'&&!onData.l){onData.l=1;lock()}
   if(G.status==='lobby'&&P()[uid]&&!Number.isInteger(P()[uid].col)&&!P()[uid].w)autoCol();tmCheck();infSync();
   panel();draw();chatSync();mkSync();faSync(G,P()[uid],now());
@@ -3436,6 +3447,8 @@ setInterval(()=>{if(!G){if(BM.ov)bmOv(null);BM.id=null;return}const g=G,t=now(),
     Object.entries(P()).forEach(([id,p])=>{if(id===uid||p.role!=='hider'||p.state!=='alive'||(p.oa||0)<=lm)return;dqLock=t+4000;
       db.ref(`games/${code}/players/${id}`).update({state:'dq',sT:now()}).catch(()=>{});evW(id+'_o',p.name+' wurde disqualifiziert (zu lange außerhalb der Zone)',id)})}
   if(isSpec(m)&&(ping||radar||xping)){ping=radar=xping=null;draw()}
+  // Zuschauer: letzten Ping als blasse Punkte festhalten (so sieht man, woran sich die Hunter orientieren)
+  if(isSpec(m)&&t>=R0){const pk=pgK(g,t);if(pk.k>=1&&(!sping||sping.k!==pk.k)&&t-pk.at<5000){const pts={};Object.entries(P()).forEach(([id,p])=>{if(p.role!=='hider'||p.state!=='alive'||!p.lat||(p.immUntil||0)>t||hkAct(g,id)||fsSkip(p,pk.at))return;pts[id]={lat:p.lat,lng:p.lng}});sping={k:pk.k,t:now(),pts};draw()}}
   bnEnd(g,m,t);faSync(g,m,t);chQSync();cdTick(t);zTick(g,m,t);zLast(g,t);fsTick(g,m,t);
   if(m.role==='hider'&&m.state==='alive'&&(m.immUntil||0)>t)h+=`<span>Immunität ${fmt(m.immUntil-t)}</span>`;
   if(m.role==='hider'&&m.state==='alive'){const vis=myTk(g,t).join();
@@ -3605,7 +3618,7 @@ const IGE=igEv();
 function igDraw(t,v,tips){if(!IN)return;IN.t=t;const want={},put=(id,kind,k,p,tip)=>{want[id]=1;inMk(id,kind,k,p,tip||'')};
   if(!IN.z)inZone(igR(t),igNR(t));else{IN.z.setRadius(igR(t));IN.nz.setRadius(igNR(t)||1)}IN.nz.setStyle({opacity:igNR(t)?.85:0});
   const H=['a','b'],X=['l','m','t'],ct=igPos('t',IG.ct),outTip=k=>{if(k!=='t'||t<IG.sh[0])return'';return igOut(k,t)?'Tom · live sichtbar':'Tom · noch 2 Min sichtbar'};
-  if(v==='all'){H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
+  if(v==='all'){const sn=igSnap(igLP(t));X.forEach(k=>{if(sn[k]&&!igCaught(k,t))put('s'+k,'pingS',k,sn[k])});H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
     X.forEach(k=>{if(igCaught(k,t)){put('ct','catch',null,ct,'Tom gefangen');return}put(k,igImm(k,t)?'imm':igVis(k,t)?'out':'hider',k,igPos(k,t),tips?INP[k][0]:igVis(k,t)?outTip(k):'')})}
   if(v==='h'){put('a','me','a',igPos('a',t));put('b','mate','b',igPos('b',t));const lp=igLP(t),sn=igSnap(lp),xs=t>=IG.xp&&(lp==null||lp<IG.xp)?igSnap(IG.xp):null;
     X.forEach(k=>{if(igCaught(k,t))return;if(xs&&xs[k])put('x'+k,'xping',k,xs[k]);else if(sn[k])put('p'+k,'ping',k,sn[k]);if(igVis(k,t))put(k,'out',k,igPos(k,t),outTip(k))});
@@ -3674,7 +3687,8 @@ function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=
   const s=INS[i];if(s.g){IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit()}
 // Weiter: im Introspiel bis zum nächsten Haltepunkt abspielen (Karte bleibt stehen), sonst Schritt wechseln
 function inNext(){if(!IN||IN.play)return;const n=INS[IN.i+1];if(!n)return;if(!(n.g&&INS[IN.i].g&&n.g.go))return inStep(IN.i+1,1);
-  IN.i++;IN.gen++;$('toast').innerHTML='';IN.play=1;inCard(1);igPlay(n.g.go,()=>{IN.play=0;igDraw(n.g.t,inV(),n.g.tips);const b=$('intro').querySelector('.innx');if(b){b.disabled=false;b.innerHTML='Weiter'}})}
+  IN.gen++;$('toast').innerHTML='';IN.play=1;const b=$('intro').querySelector('.innx');if(b){b.disabled=true;b.innerHTML='<span class=insp></span>'}const bk=$('intro').querySelector('.inbk');if(bk){const i0=IN.i;bk.onclick=()=>inStep(i0,0)}
+  igPlay(n.g.go,()=>{IN.play=0;IN.i++;igDraw(n.g.t,inV(),n.g.tips);inCard(1)})}
 // Text der Karte neu (wenn er vom Fortschritt der Szene abhängt, IN.fl)
 function inTxt(){const s=INS[IN.i],e=$('intro').querySelector('.inp');if(e)e.innerHTML=s.x(inV())}
 function inView(v){const s=INS[IN.i];if(s.g)IN.gv=v;else IN.v[IN.i]=v;if(!s.g)return inStep(IN.i);IN.bk=null;$('toast').innerHTML='';if(!IN.play)igDraw(IN.t,v,s.g.tips&&IN.t===s.g.t);
