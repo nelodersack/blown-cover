@@ -580,6 +580,8 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 .mzf .n svg{width:30px;height:30px}.mzf .n>b{font:600 13px var(--f-b)}.mzf .n small{font:500 12px/1.5 var(--f-b);color:var(--mut)}.mzf .n .mzc{font-size:13px!important;line-height:24px}
 .mzf .a{color:var(--mut);text-align:center;font:500 18px var(--f-b)}.mzf .n.z{box-shadow:inset 0 0 0 1.5px #58c322}
 /* §CSS-INTRO Spielerklärung: Knopf #inb oben links auf der Karte (wie #upb), Karte #intro unten, Demo-Fenster #inbx, Etiketten .intt */
+/* Introspiel-Übersicht (Manuel 23.11.): Pings fest, Spieler blass */
+body.inal .mkw.inm.hunter,body.inal .mkw.inm.hider,body.inal .mkw.inm.imm,body.inal .mkw.inm.out{opacity:.5}
 #inb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:auto!important;height:40px;min-height:0!important;margin:0!important;padding:0 14px 0 10px!important;gap:7px;border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--fg)!important;font:600 14px var(--f-b)!important}
 #inb .ic{width:19px;height:19px}#inb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ac);border:2px solid var(--bg)}#inb.new i{display:block}
 body.inx #panel,body.inx #upb,body.inx #inb,body.inx #cb,body.inx #mmbtn{display:none!important}
@@ -3571,7 +3573,9 @@ function inToast(m){const e=$('toast');while(e.children.length>=2)e.lastChild.re
 function inBox(h,cls=''){const e=$('inbx');if(!h){e.className='';e.innerHTML='';return}if(e.classList.contains('on')&&e.firstChild&&e.firstChild.className===cls){e.firstChild.innerHTML=h;return}e.innerHTML=`<div class="${cls}">${h}</div>`;e.className='on'}
 // Fang-Fenster wie im Spiel (Panel des Hunters bzw. Alarm #fa beim Hider)
 const inCatchGrid=sel=>`<div class=hd>Wen hast du gefangen?</div><div class=cgr>${['l','m','t'].map(k=>`<button class="cgt${k===sel?' on':''}">${inAv(k)}<b>${INP[k][0]}</b></button>`).join('')}</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small>`;
-const inAlarm=()=>`<div class=fe>FANGMELDUNG</div><div class=fr><div>30</div></div><div class=ft>Anna meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Gilt automatisch nach 30 s.</div><div class=row><button class=fy onclick="inAct()">Ja, erwischt</button><button class=g onclick="inToast('Im Spiel geht der Fall dann an die Gruppe.')">Nein</button></div>`;
+const inAlarm=()=>`<div class=fe>FANGMELDUNG</div><div class=fr><div>30</div></div><div class=ft>Anna meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Gilt automatisch nach 30 s.</div><div class=row><button class=fy onclick="inYes()">Ja, erwischt</button><button class=g onclick="inToast('Im Spiel geht der Fall dann an die Gruppe.')">Nein</button></div>`;
+// „Ja, erwischt“ im Introspiel: kurz bis zum Fang weiterspielen (Tom ist gefangen); Weiter läuft von dort zum nächsten Halt
+function inYes(){if(!IN)return;const s=INS[IN.i];if(!s.g){if(s.act)inAct();return}if(IN.play||IN.t>=IG.ct)return;IN.gen++;igPlay([[IG.ct+1,1200]],()=>{if(IN)IN.play=0})}
 function inAlarmRun(){const r=$('inbx').querySelector('.fr');if(!r)return;inAnim(9000,(e,q)=>{r.style.setProperty('--p',(100-q*30)+'%');r.firstChild.textContent=Math.ceil(30-q*9)})}
 // Grundaufstellung nach dem Vorsprung (Zuschauersicht): alle sichtbar
 function inAll(o={}){const P_=Object.assign({},INX,o.p||{});['a','b'].forEach(k=>inMk(k,'hunter',k,P_[k],o.tip?INP[k][0]:undefined));['l','m','t'].forEach(k=>{if(o.no&&o.no.includes(k))return;inMk(k,'hider',k,P_[k],o.tip?INP[k][0]:undefined)})}
@@ -3598,7 +3602,7 @@ function igPos(k,t){const w=IGW[k];if(t<=w[0][0])return[w[0][1],w[0][2]];
   const l=w[w.length-1];return[l[1],l[2]]}
 const igD=p=>Math.hypot(p[0],p[1]);
 function igR(t){let r=IG.r[0];IG.sh.forEach((s,i)=>{if(t>=s)r=IG.r[i]-(IG.r[i]-IG.r[i+1])*Math.min(1,(t-s)/15)});return r}
-const igNR=t=>{const i=IG.sh.findIndex(s=>s>t);return i<0?null:IG.r[i+1]},igNS=t=>{const s=IG.sh.find(s=>s>t);return s==null?null:s-t},
+const igNR=t=>{const i=IG.sh.findIndex(s=>s+15>t);return i<0?null:IG.r[i+1]},igNS=t=>{const s=IG.sh.find(s=>s>t);return s==null?null:s-t},
   igLP=t=>t<IG.p0?null:IG.p0+Math.floor((t-IG.p0)/IG.pi)*IG.pi,igNP=t=>t<IG.p0?IG.p0-t:IG.pi-((t-IG.p0)%IG.pi),
   igCaught=(k,t)=>k==='t'&&t>=IG.ct,igImm=(k,t)=>k==='m'&&t>=IG.im[0]&&t<IG.im[1],igOut=(k,t)=>t>=0&&igD(igPos(k,t))>igR(t)+2,
   igVis=(k,t)=>{if(igCaught(k,t))return false;for(let s=t;s>=t-120&&s>=0;s-=5)if(igOut(k,s))return true;return false},
@@ -3618,7 +3622,8 @@ const IGE=igEv();
 function igDraw(t,v,tips){if(!IN)return;IN.t=t;const want={},put=(id,kind,k,p,tip)=>{want[id]=1;inMk(id,kind,k,p,tip||'')};
   if(!IN.z)inZone(igR(t),igNR(t));else{IN.z.setRadius(igR(t));IN.nz.setRadius(igNR(t)||1)}IN.nz.setStyle({opacity:igNR(t)?.85:0});
   const H=['a','b'],X=['l','m','t'],ct=igPos('t',IG.ct),outTip=k=>{if(k!=='t'||t<IG.sh[0])return'';return igOut(k,t)?'Tom · live sichtbar':'Tom · noch 2 Min sichtbar'};
-  if(v==='all'){const sn=igSnap(igLP(t));X.forEach(k=>{if(sn[k]&&!igCaught(k,t))put('s'+k,'pingS',k,sn[k])});H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
+  document.body.classList.toggle('inal',v==='all');
+  if(v==='all'){const sn=igSnap(igLP(t));X.forEach(k=>{if(sn[k]&&!igCaught(k,t))put('s'+k,'ping',k,sn[k])});H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
     X.forEach(k=>{if(igCaught(k,t)){put('ct','catch',null,ct,'Tom gefangen');return}put(k,igImm(k,t)?'imm':igVis(k,t)?'out':'hider',k,igPos(k,t),tips?INP[k][0]:igVis(k,t)?outTip(k):'')})}
   if(v==='h'){put('a','me','a',igPos('a',t));put('b','mate','b',igPos('b',t));const lp=igLP(t),sn=igSnap(lp),xs=t>=IG.xp&&(lp==null||lp<IG.xp)?igSnap(IG.xp):null;
     X.forEach(k=>{if(igCaught(k,t))return;if(xs&&xs[k])put('x'+k,'xping',k,xs[k]);else if(sn[k])put('p'+k,'ping',k,sn[k]);if(igVis(k,t))put(k,'out',k,igPos(k,t),outTip(k))});
@@ -3682,11 +3687,11 @@ function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().
 // Kamerafahrt (flyTo): Leaflet skaliert Kreise währenddessen nur per CSS und schneidet am alten Ausschnitt ab, setRadius rechnet
 // zusätzlich neu → Zone/Safehouse verrutschen. Darum je Bild die Zeichenfläche neu aufsetzen (wenige Ebenen, billig).
 function inRz(){if(!IN)return;const s=new Set();IN.L.eachLayer(l=>{if(l._renderer)s.add(l._renderer)});s.forEach(r=>r._reset())}
-function inClose(go){if(!IN)return;map.off('zoom',inRz);IN.gen++;map.removeLayer(IN.L);$('hud').innerHTML='';inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
+function inClose(go){if(!IN)return;map.off('zoom',inRz);document.body.classList.remove('inal');IN.gen++;map.removeLayer(IN.L);$('hud').innerHTML='';inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
   document.body.classList.remove('inx');map.options.zoomSnap=IN.zs;map.setView(IN.c,IN.zm,{animate:false});IN=null;inBtn();updSync();panel(1);
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
-function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=0;IN.bk=null;IN.shc=null;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
+function inStep(i,d){document.body.classList.remove('inal');IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=0;IN.bk=null;IN.shc=null;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
   const s=INS[i],fz=s.g?igFz(s.g.t,inV()):null,ch=fz!==IN.fz;IN.fz=fz;if(s.g){IN.t=s.g.t;igDraw(s.g.t,inV(),s.g.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit(ch&&IN.f)}
 // Weiter: im Introspiel bis zum nächsten Haltepunkt abspielen (Karte bleibt stehen), sonst Schritt wechseln
 function inNext(){if(!IN||IN.play)return;const n=INS[IN.i+1];if(!n)return;if(!(n.g&&INS[IN.i].g&&n.g.go))return inStep(IN.i+1,1);
