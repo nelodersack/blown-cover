@@ -617,6 +617,10 @@ body.inx #intro{display:grid;gap:12px;align-content:start}
 .inm.ping svg,.inm.pingme svg,.inm.xping svg,.inm.catch svg,.inm.imm svg{animation:inPop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes inPop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}@keyframes inUp{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}@keyframes inSp{to{transform:rotate(360deg)}}
 #intro .inbody{display:grid;gap:12px;animation:inFd .22s ease-out}@keyframes inFd{from{opacity:0;transform:translateX(var(--dx,0))}to{opacity:1;transform:none}}
+/* Browser mit Leisten (kurzer Bildschirm): Karte kompakter, damit die Szene sichtbar bleibt (Manuel 23.11.) */
+@media (max-height:800px){#intro{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;max-height:60vh}#intro .inbody{gap:8px}
+#intro h2{font-size:24px}#intro .ink{font-size:12px;margin-bottom:-6px}#intro .inp{font-size:14px;line-height:1.4;min-height:0}#intro .inc{display:none}
+#intro button.inact,#intro .innav button,#intro .seg button{min-height:40px;padding-top:6px;padding-bottom:6px}#intro .inl>div{padding:7px 0;font-size:13.5px}#intro .tabs2 button{font-size:14px!important}}
 @media (prefers-reduced-motion:reduce){#intro .inbody,#inbx>div,.inm svg{animation:none!important}}
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
@@ -3646,7 +3650,7 @@ function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(
   else{if(a[IN.a][1]()!==false)IN.a++;IN.busy=Date.now()+600}
   const b=$('inact');if(b)b.innerHTML=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal'}
 // Karte auf die Szene: Zone über der Erklärkarte, unter dem HUD
-function inFit(){const R=340,dl=R/111320,dn=R/(111320*Math.cos(INC[0]*Math.PI/180)),b=L.latLngBounds([INC[0]-dl,INC[1]-dn],[INC[0]+dl,INC[1]+dn]),h=Math.max($('intro').offsetHeight,Math.round(innerHeight*.47));
+function inFit(){const R=340,dl=R/111320,dn=R/(111320*Math.cos(INC[0]*Math.PI/180)),b=L.latLngBounds([INC[0]-dl,INC[1]-dn],[INC[0]+dl,INC[1]+dn]),h=Math.max($('intro').offsetHeight,Math.round(innerHeight*(innerHeight<800?.4:.47)));
   const o={paddingTopLeft:[12,62],paddingBottomRight:[12,h+12]};if(!IN.f){IN.f=1;map.flyToBounds(b,Object.assign({duration:1.1},o))}else map.fitBounds(b,Object.assign({animate:true,duration:.35},o))}
 // §UPDATE App-Version prüfen (GitHub Releases): in der App bei älterer Version Dialog beim Öffnen + Kartenknopf `#upb` mit orangem Punkt,
 // nur auf dem Startbildschirm (nie in Lobby/Spiel); Android-Browser: derselbe Knopf ohne Punkt. Neueste Version höchstens alle 3 h abfragen.
