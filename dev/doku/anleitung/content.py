@@ -281,7 +281,7 @@ V.append(page("c-term", A, "Gehackt oder verteidigt",
 ))
 
 V.append(page("c-bonus", A, "Boni für Hider",
-    item("Immunität", "Aus dem Safehouse oder nach einem Hack. Du tauchst bei keinem Ping auf und kannst nicht live geortet werden. Dein Marker hat dann einen goldenen Ring. Fangen kann man dich trotzdem.", "immun") +
+    item("Immunität", "Aus dem Safehouse (einsetzen, wann du willst) oder automatisch nach einem Hack. Du tauchst bei keinem Ping auf und kannst nicht live geortet werden. Dein Marker hat dann einen goldenen Ring. Fangen kann man dich trotzdem.", "immun") +
     item("Satellitenbild", "Aus Meeting oder Dead Drop. Alle Hunter erscheinen 60&nbsp;s lang auf deiner Karte.") +
     item("Hunter-Radar", "Aus Meeting oder Dead Drop. Zeigt ein Ping-Intervall lang als Zahl, wie viele Hunter im Umkreis sind (Standard 180&nbsp;m). Keine Richtung, keine Positionen. Die Hunter merken nichts davon.", "radar")
 ))
