@@ -1,7 +1,9 @@
 # Spielregeln (PDF) bauen
 
-Zwei PDFs im Dossier-Stil, Seitenformat 90 × 160 mm (ein Handybildschirm pro Seite):
-`Blown_Cover_Kurzanleitung.pdf` (9 S.) und `Blown_Cover_Spielregeln.pdf` (28 S.).
+Dossier-Stil, Seitenformat 90 × 160 mm (ein Handybildschirm pro Seite): `Blown_Cover_Spielregeln.pdf` (28 S.).
+Der Build kopiert sie als `spielregeln.pdf` in die Website-Wurzel (Link am Ende der Spielerklärung in der App) – mitcommitten.
+Die Kurzanleitung (9 S.) ersetzt seit 23.11. die Spielerklärung in der App (`§INTRO` in `index.html`); bauen nur noch mit `build.py kurz`.
+**Ändert sich eine Regel oder ein Standardwert:** PDF und die Texte in `INS` (§INTRO) nachziehen.
 
 ## Nur Text geändert
 1. Text in `anleitung/content.py` ändern (`KURZ` = Kurzanleitung, `V` = Vollversion; Bausteine `page`, `item`, `side`, `fig`, `pair` …).

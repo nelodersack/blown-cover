@@ -1,7 +1,7 @@
 # Baut die Spielregeln als PDF im Dossier-Stil: Kurzanleitung + Vollversion.
 # Aufruf: python3 dev/doku/anleitung/build.py [zielordner]   (Standard: dev/out/anleitung)
 # Braucht google-chrome (headless) und einmalig npm für die Schriften (IBM Plex, OFL).
-import subprocess, sys, pathlib, shutil
+import shutil, subprocess, sys, pathlib
 D = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(D))
 import content as C
@@ -34,8 +34,15 @@ def build(pages, name, title, out):
                     "--virtual-time-budget=4000", f"--print-to-pdf={pdf}", f"file://{h}"], check=True, capture_output=True)
     print(pdf)
 
+# Aufruf: build.py [ordner] [kurz]
+# Die Kurzanleitung ersetzt seit 23.11. die Spielerklärung in der App (§INTRO); sie wird nur noch mit „kurz“ gebaut.
+# Die Spielregeln landen zusätzlich als spielregeln.pdf in der Website-Wurzel (Link am Ende der Spielerklärung) – danach committen.
 if __name__ == "__main__":
-    out = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else D.parent.parent / "out" / "anleitung"
+    a = [x for x in sys.argv[1:] if x != "kurz"]
+    out = pathlib.Path(a[0]) if a else D.parent.parent / "out" / "anleitung"
     out.mkdir(parents=True, exist_ok=True); fonts()
-    build(C.KURZ, "Blown_Cover_Kurzanleitung", "Blown Cover – Kurzanleitung", out)
+    if "kurz" in sys.argv:
+        build(C.KURZ, "Blown_Cover_Kurzanleitung", "Blown Cover – Kurzanleitung", out)
     build(C.V, "Blown_Cover_Spielregeln", "Blown Cover – Spielregeln", out)
+    shutil.copy(out / "Blown_Cover_Spielregeln.pdf", D.parent.parent.parent / "spielregeln.pdf")
+    print("→ spielregeln.pdf (Website)")

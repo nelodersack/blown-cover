@@ -7,16 +7,21 @@ from narr import S
 WORK = sys.argv[1]; VOICE = sys.argv[2] if len(sys.argv) > 2 else 'Charon'
 KEY = os.environ['BC_GTTS_KEY']
 os.makedirs(os.path.join(WORK, 'tts'), exist_ok=True)
-# Google liest englische Spielbegriffe richtig; nur wenige Ersetzungen
-PH = []
-def say(t):
-    for a, b in PH: t = t.replace(a, b)
+# Google liest englische Spielbegriffe meist richtig. Wo nicht (von Manuel gehört), Sprechfassung je Satz:
+OV = {(7, 0): ("Hider", "Haider"), (8, 1): ("Hider", "Haider")}
+ONLY = os.environ.get('BC_ONLY')   # z. B. "7.0,8.1": nur diese Sätze neu erzeugen
+def say(t, sc, i):
+    if (sc, i) in OV: t = t.replace(*OV[(sc, i)])
     return t
 meta = {}
 for sc, sents in S.items():
     meta[sc] = []
     for i, t in enumerate(sents):
-        body = {"input": {"text": say(t)}, "voice": {"languageCode": "de-DE", "name": f"de-DE-Chirp3-HD-{VOICE}"},
+        fn = os.path.join(WORK, 'tts', f's{sc:02d}_{i}.wav')
+        if ONLY and f'{sc}.{i}' not in ONLY.split(','):
+            old = json.load(open(os.path.join(WORK, 'tts', 'meta.json')))[str(sc)][i]
+            meta[sc].append(old); continue
+        body = {"input": {"text": say(t, sc, i)}, "voice": {"languageCode": "de-DE", "name": f"de-DE-Chirp3-HD-{VOICE}"},
                 "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 24000}}
         req = urllib.request.Request(f"https://texttospeech.googleapis.com/v1/text:synthesize?key={KEY}", data=json.dumps(body).encode(),
                                      headers={'Content-Type': 'application/json'})
