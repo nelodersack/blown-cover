@@ -3674,12 +3674,15 @@ const INS=[
 const inV=()=>{const s=INS[IN.i];return s.g?(IN.gv||'all'):IN.v[IN.i]||(s.vw||s.tabs||[[null]])[0][0]};
 const igVw=()=>[['all','Übersicht'],['h','Anna · Hunter'],['x',INP[igHx(IN.t==null?0:IN.t)][0]+' · Hider']];
 function inBtn(){const b=$('inb');if(!b)return;b.style.display=!G&&!RV&&!IN&&!RL.on?'inline-flex':'none';b.classList.toggle('new',!LS.inS)}
-function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().addTo(map),c:map.getCenter(),zm:map.getZoom(),f:0,zs:map.options.zoomSnap};map.options.zoomSnap=.1;LS.inS='1';
+function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().addTo(map),c:map.getCenter(),zm:map.getZoom(),f:0,zs:map.options.zoomSnap};map.options.zoomSnap=.1;map.on('zoom',inRz);LS.inS='1';
   document.body.classList.add('inx');inBtn();updSync();
   const el=$('intro');let x0=null,y0=0;el.ontouchstart=e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY};
   el.ontouchend=e=>{if(x0==null||!IN)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(Math.abs(dx)>60&&Math.abs(dy)<45){if(dx<0&&IN.i<INS.length-1)inNext();else if(dx>0&&IN.i)inStep(IN.i-1,-1)}};
   inStep(0)}
-function inClose(go){if(!IN)return;IN.gen++;map.removeLayer(IN.L);$('hud').innerHTML='';inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
+// Kamerafahrt (flyTo): Leaflet skaliert Kreise währenddessen nur per CSS und schneidet am alten Ausschnitt ab, setRadius rechnet
+// zusätzlich neu → Zone/Safehouse verrutschen. Darum je Bild die Zeichenfläche neu aufsetzen (wenige Ebenen, billig).
+function inRz(){if(!IN)return;const s=new Set();IN.L.eachLayer(l=>{if(l._renderer)s.add(l._renderer)});s.forEach(r=>r._reset())}
+function inClose(go){if(!IN)return;map.off('zoom',inRz);IN.gen++;map.removeLayer(IN.L);$('hud').innerHTML='';inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
   document.body.classList.remove('inx');map.options.zoomSnap=IN.zs;map.setView(IN.c,IN.zm,{animate:false});IN=null;inBtn();updSync();panel(1);
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
