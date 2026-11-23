@@ -617,6 +617,10 @@ body.inx #intro{display:grid;gap:12px;align-content:start}
 .inm.ping svg,.inm.pingme svg,.inm.xping svg,.inm.catch svg,.inm.imm svg{animation:inPop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes inPop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}@keyframes inUp{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}@keyframes inSp{to{transform:rotate(360deg)}}
 #intro .inbody{display:grid;gap:12px;animation:inFd .22s ease-out}@keyframes inFd{from{opacity:0;transform:translateX(var(--dx,0))}to{opacity:1;transform:none}}
+/* Startbildschirm auf kurzen Bildschirmen (Handy-Browser, Manuel 23.11.): kleineres Logo, engere Abstände, damit mehr Karte bleibt */
+@media (max-height:800px){#pb:has(>.logo2){gap:8px}#pb>.logo2{gap:12px;margin-top:0}#pb>.logo2 svg{width:42px;height:42px}#pb>.logo2 .logo{font-size:34px}
+#pb:has(>.logo2)>p.mut{font-size:14px!important;line-height:1.35!important}#pb:has(>.logo2) .slb{margin:4px 0 -4px}
+#pb:has(>.logo2) input,#pb:has(>.logo2) button:not(.slink){min-height:44px;margin-top:0;margin-bottom:0}#pb:has(>.logo2) .slink{min-height:32px!important}}
 /* Browser mit Leisten (kurzer Bildschirm): Karte kompakter, damit die Szene sichtbar bleibt (Manuel 23.11.) */
 @media (max-height:800px){#intro{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;max-height:60vh}#intro .inbody{gap:8px}
 #intro h2{font-size:24px}#intro .ink{font-size:12px;margin-bottom:-6px}#intro .inp{font-size:14px;line-height:1.4;min-height:0}#intro .inc{display:none}
