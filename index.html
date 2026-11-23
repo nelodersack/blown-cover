@@ -583,8 +583,8 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 #inb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:auto!important;height:40px;min-height:0!important;margin:0!important;padding:0 14px 0 10px!important;gap:7px;border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--fg)!important;font:600 14px var(--f-b)!important}
 #inb .ic{width:19px;height:19px}#inb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ac);border:2px solid var(--bg)}#inb.new i{display:block}
 body.inx #panel,body.inx #upb,body.inx #inb,body.inx #cb,body.inx #mmbtn{display:none!important}
-#intro{position:fixed;left:0;right:0;bottom:0;z-index:1100;display:none;max-height:64vh;overflow:auto;overscroll-behavior:contain;background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px #0005}
-body.inx #intro{display:grid;gap:12px;align-content:start}
+#intro{position:fixed;left:0;right:0;bottom:0;z-index:1100;display:none;max-height:46vh;max-height:46dvh;overflow:hidden;overscroll-behavior:contain;background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px #0005}
+body.inx #intro{display:flex;flex-direction:column;gap:12px}#intro>*{flex:none}#intro .insc{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;margin:0 -16px;padding:0 16px}
 #intro .inpr{display:flex;align-items:center;gap:12px}
 #intro .inbar{flex:1;display:flex;gap:4px}#intro .inbar i{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .25s}#intro .inbar i.on{background:var(--fg)}
 #intro .inpr small{font:500 13px var(--f-b);min-width:30px;text-align:right}
@@ -597,7 +597,7 @@ body.inx #intro{display:grid;gap:12px;align-content:start}
 #intro .seg{display:flex}#intro .seg button{flex:1;margin:0;font-size:14px}
 #intro .tabs2{margin-top:-2px}
 #intro button.inact{margin:0;background:none;color:var(--fg);border:1px solid var(--line);min-height:46px}#intro button.inact .ic{width:17px;height:17px;color:var(--ac)}
-#intro .innav{display:grid;grid-template-columns:1fr 2fr;gap:8px}#intro .innav button{margin:0}#intro .innav.one{grid-template-columns:1fr}
+#intro .infoot{display:grid;grid-template-columns:46px 1.35fr 1fr;gap:8px}#intro .infoot button{margin:0}#intro .infoot.nob{grid-template-columns:1fr 1fr}#intro .infoot.noa{grid-template-columns:46px 1fr}#intro .infoot .inact{order:2;padding-left:6px;padding-right:6px;white-space:nowrap;overflow:hidden;font-size:14px;gap:6px}#intro .infoot .inbk{order:1;padding:0}#intro .infoot .innx{order:3}#intro .inbk span{display:none}
 #intro .inl{display:grid}#intro .inl>div{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);font:400 14.5px/1.4 var(--f-b);color:#cfccc6}#intro .inl>div:first-child{border-top:1px solid var(--line)}
 #intro .slink .ic{width:16px;height:16px;vertical-align:-3px;margin-right:4px}#intro .inl .ic{width:20px;height:20px;flex:none;color:var(--mut);margin-top:1px}#intro .inl b{color:var(--fg);font-weight:600}
 #inbx{position:fixed;left:16px;right:16px;top:calc(64px + env(safe-area-inset-top,0px));z-index:1150;display:none;justify-items:center;pointer-events:none}#inbx.on{display:grid}
@@ -622,9 +622,9 @@ body.inx #intro{display:grid;gap:12px;align-content:start}
 #pb:has(>.logo2)>p.mut{font-size:14px!important;line-height:1.35!important}#pb:has(>.logo2) .slb{margin:4px 0 -4px}
 #pb:has(>.logo2) input,#pb:has(>.logo2) button:not(.slink){min-height:44px;margin-top:0;margin-bottom:0}#pb:has(>.logo2) .slink{min-height:32px!important}}
 /* Browser mit Leisten (kurzer Bildschirm): Karte kompakter, damit die Szene sichtbar bleibt (Manuel 23.11.) */
-@media (max-height:800px){#intro{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;max-height:60vh}#intro .inbody{gap:8px}
+@media (max-height:800px){#intro{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:8px}#intro .insc{margin:0 -14px;padding:0 14px}#intro .inbody{gap:8px}
 #intro h2{font-size:24px}#intro .ink{font-size:12px;margin-bottom:-6px}#intro .inp{font-size:14px;line-height:1.4;min-height:0}#intro .inc{display:none}
-#intro button.inact,#intro .innav button,#intro .seg button{min-height:40px;padding-top:6px;padding-bottom:6px}#intro .inl>div{padding:7px 0;font-size:13.5px}#intro .tabs2 button{font-size:14px!important}}
+#intro button.inact,#intro .infoot button,#intro .seg button{min-height:40px;padding-top:6px;padding-bottom:6px}#intro .ink{display:none}#intro .inq{width:30px!important;height:30px}#intro .inpr{margin-bottom:-2px}#intro .inl>div{padding:7px 0;font-size:13.5px}#intro .tabs2 button{font-size:14px!important}}
 @media (prefers-reduced-motion:reduce){#intro .inbody,#inbx>div,.inm svg{animation:none!important}}
 </style></head><body>
 <!-- §HTML Grundgerüst: map, hud, panel(pb/pf), Chat, Dialoge -->
@@ -3546,12 +3546,14 @@ function inZone(r,nr,ms){const c=inLL([0,0]);
 function inTask(id,p,kind){L.circle(inLL(p),{radius:40,color:'#7c6cff',weight:2,dashArray:'5 5',fillColor:'#7c6cff',fillOpacity:.15,interactive:false}).addTo(IN.L);return inMk(id,kind,null,p)}
 // HUD wie im Spiel (Restzeit, Zone, Ping); h = {r:Sek., z:Radius, zn:Sek. bis Schrumpfen, p:Sek. bis Ping, hot, x:[Zusatz]}
 function inHud(h){IN.h=Object.assign(IN.h||{},h);const o=IN.h,hp=(l,v,c='')=>`<span class="hp${c}"><small>${l}</small><b>${v}</b></span>`;
-  $('hud').innerHTML=o.vs!=null?hp('Vorsprung',fmt(o.vs*1000)):(o.r!=null?hp('Restzeit',fmt(o.r*1000)):'')+(o.z?hp('Zone '+o.z+' m',o.zn!=null?'−60 m in '+fmt(o.zn*1000):'Endgröße'):'')+(o.p!=null?hp('Ping in',fmt(o.p*1000),o.hot?' hot':''):'')+(o.x||[]).map(x=>`<span>${x}</span>`).join('')}
+  $('hud').innerHTML=o.vs!=null?hp('Vorsprung',fmt(o.vs*1000)):(o.r!=null?hp('Restzeit',fmt(o.r*1000)):'')+(o.z?hp('Zone '+o.z+' m',o.zn!=null?'−60 m in '+fmt(o.zn*1000):'Endgröße'):'')+(o.p!=null?hp('Ping in',fmt(o.p*1000),o.hot?' hot':''):'')+(o.im?`<span>Immunität ${fmt(o.im*1000)}</span>`:'')}
 // Countdown im HUD: Feld k von a nach b Sekunden in ms, danach done
-function inCnt(k,a,b,ms,done){inAnim(ms,(e,q)=>inHud({[k]:Math.round(a+(b-a)*q)}),done)}
+function inCnt(k,a,b,ms,done){IN.cnt=IN.cnt||{};IN.cnt[k]=1;const g=IN.gen;inAnim(ms,(e,q)=>inHud({[k]:Math.round(a+(b-a)*q)}),()=>{if(IN&&IN.gen===g)delete IN.cnt[k];if(done)done()})}
+// Während einer Szene läuft die Spielzeit im HUD mit (4-fach): Restzeit, Zone, Ping, Immunität; Felder mit eigenem Countdown (inCnt) ausgenommen
+setInterval(()=>{if(!IN||!IN.run||performance.now()>IN.run||!IN.h)return;const o={};['r','zn','p','im'].forEach(k=>{if(IN.h[k]>0&&!(IN.cnt&&IN.cnt[k]))o[k]=IN.h[k]-1});if(Object.keys(o).length)inHud(o)},250);
 function inToast(m){const e=$('toast');while(e.children.length>=2)e.lastChild.remove();const k=tCat(m),d=document.createElement('div');d.className='t';d.style.setProperty('--c',k[0]);
   d.innerHTML=ic(k[1]);const sp=document.createElement('span');sp.textContent=m;d.appendChild(sp);e.prepend(d);setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),180)},3800)}
-function inBox(h,cls=''){const e=$('inbx');if(!h){e.className='';e.innerHTML='';return}e.innerHTML=`<div class="${cls}">${h}</div>`;e.className='on'}
+function inBox(h,cls=''){const e=$('inbx');if(!h){e.className='';e.innerHTML='';return}if(e.classList.contains('on')&&e.firstChild&&e.firstChild.className===cls){e.firstChild.innerHTML=h;return}e.innerHTML=`<div class="${cls}">${h}</div>`;e.className='on'}
 // Fang-Fenster wie im Spiel (Panel des Hunters bzw. Alarm #fa beim Hider)
 const inCatchGrid=sel=>`<div class=hd>Wen hast du gefangen?</div><div class=cgr>${['l','m','t'].map(k=>`<button class="cgt${k===sel?' on':''}">${inAv(k)}<b>${INP[k][0]}</b></button>`).join('')}</div><small style="text-align:center;display:block">Nur gültig bis 40 m. Der Hider muss bestätigen.</small>`;
 const inAlarm=()=>`<div class=fe>FANGMELDUNG</div><div class=fr><div>30</div></div><div class=ft>Anna meldet,<br>dich gefangen zu haben</div><div class=fs>Antworte ehrlich. Gilt automatisch nach 30 s.</div><div class=row><button class=fy onclick="inAct()">Ja, erwischt</button><button class=g onclick="inToast('Im Spiel geht der Fall dann an die Gruppe.')">Nein</button></div>`;
@@ -3561,66 +3563,65 @@ function inAll(o={}){const P_=Object.assign({},INX,o.p||{});['a','b'].forEach(k=
 
 const INS=[
  {k:'Grundspiel',t:'Zwei Seiten',
-  x:()=>`Die <b>Hider</b> ${inSym('hider','l')} verstecken sich und müssen bis zum Ende frei bleiben. Die <b>Hunter</b> ${inSym('hunter','a')} jagen sie und müssen alle fangen, bevor die Zeit abläuft. Zu Beginn haben die Hider ein paar Minuten <b>Vorsprung</b>.`,
+  x:()=>`Die <b>Hider</b> (Kreise ${inSym('hider','l')}) verstecken sich und müssen bis zum Ablauf der Zeit frei bleiben. Die <b>Hunter</b> (Dreiecke ${inSym('hunter','a')}) jagen sie und müssen alle fangen, bevor die Zeit abläuft. Zu Beginn haben die Hider ein paar Minuten <b>Vorsprung</b>.`,
   c:'Hier jagen Anna und Ben. Lena, Max und Tom verstecken sich.',
   set(){inZone(320,260);inAll({tip:1,p:{l:[90,-90],m:[-20,100],t:[120,60],a:[-100,-120],b:[-130,20]}});IN.h={};inHud({vs:300})},
-  act:()=>[['Vorsprung starten',()=>{inCnt('vs',300,0,2600,()=>{IN.h={};inHud({r:3300,z:320,zn:240,p:180});inToast('Vorsprung vorbei: die Jagd beginnt')});['l','m','t'].forEach(k=>inGo(k,INX[k],2600))}]]},
+  act:()=>[['Vorsprung starten',()=>{IN.run=0;inCnt('vs',300,0,2600,()=>{IN.h={};inHud({r:3300,z:320,zn:240,p:180});inToast('Vorsprung vorbei: die Jagd beginnt')});['l','m','t'].forEach(k=>inGo(k,INX[k],2600))},0]]},
  {k:'Grundspiel',t:'Die Zone',
-  x:()=>`Der <b>rote Kreis</b> ist das Spielfeld. Er wird regelmäßig kleiner, der <b>gestrichelte</b> zeigt die nächste Größe. Wer als Hider draußen ist, ist für die Hunter <b>live sichtbar</b>, auch noch 2 Minuten nach der Rückkehr. Wer zu lange draußen bleibt, scheidet aus.`,
+  x:()=>`Der <b>rote Kreis</b> ist das Spielfeld. Er wird in regelmäßigen Abständen kleiner (siehe Mitte oben). Der <b>gestrichelte Kreis</b> zeigt immer die nächste Größe an. Ein Hider, der sich außerhalb der Zone befindet, ist für die Hunter <b>live sichtbar</b> – auch noch 2 Minuten nach der Rückkehr. Wer zu lange außerhalb bleibt, scheidet ganz aus.`,
   set(){inZone(320,260);inAll();inMk('t','hider','t',INX.t,'Tom');IN.h={};inHud({r:3060,z:320,zn:3,p:100})},
-  act:()=>[['Zone schrumpfen lassen',()=>inCnt('zn',3,0,1400,()=>{inZone(260,200,1200);inHud({z:260,zn:240});inT(()=>{inMk('t','out','t',INX.t,'Tom · live sichtbar');inToast('Hider Tom ist außerhalb der Zone')},1250)})],
-   ['Tom läuft zurück',()=>inGo('t',[170,150],1800,()=>inMk('t','out','t',[170,150],'Tom · noch 2 Min sichtbar'))]]},
+  act:()=>[['Zone schrumpfen lassen',()=>inCnt('zn',3,0,1400,()=>{inZone(260,200,1200);inHud({z:260,zn:240});inT(()=>{inMk('t','out','t',INX.t,'Tom · live sichtbar');inToast('Hider Tom ist außerhalb der Zone')},1250)}),3000],
+   ['Tom läuft zurück',()=>inGo('t',[170,150],1800,()=>inMk('t','out','t',[170,150],'Tom · noch 2 Min sichtbar')),1800]]},
  {k:'Grundspiel',t:'Der Ping',vw:[['h','Anna · Hunter'],['x','Max · Hider']],
-  x:v=>v==='h'?`Die Hunter sehen die Hider nicht. Nur alle paar Minuten zeigt ein <b>Ping</b>, wo jeder Hider gerade steht: ein Kreis in seiner Farbe mit Anfangsbuchstaben. Der Punkt bleibt bis zum nächsten Ping stehen, auch wenn der Hider längst weiterläuft.`
-   :`Bei jedem Ping bekommst du eine Meldung. Dein eigener Ping ist größer: So weißt du genau, was die Hunter von dir wissen. Du siehst auch die Pings deiner Mitspieler, die Hunter nicht. Den Countdown sehen beide Seiten.`,
+  x:v=>`In regelmäßigen Abständen (siehe rechts oben) verrät ein <b>Ping</b> den Huntern den <b>punktuellen</b> Standort der Hider. Der Punkt bleibt bis zum nächsten Ping stehen und dient ${v==='h'?'als':'zur'} Orientierung – die Hider bewegen sich natürlich weiter.`,
   c:v=>v==='h'?'Blass: wo die Hider wirklich sind. Das sieht der Hunter nicht.':'',
   set(v){inZone(260,200);const P_=Object.assign({},INX,{t:[170,150]});IN.p=P_;
    if(v==='h'){inMk('a','me','a',P_.a);inMk('b','mate','b',P_.b)}else inMk('m','me','m',P_.m);IN.h={};inHud({r:2880,z:260,zn:60,p:3,hot:v==='x'})},
-  act:v=>[['Ping abwarten',()=>inCnt('p',3,0,1500,()=>{const P_=IN.p;inHud({p:180,hot:false});
+  act:v=>[['Ping starten',()=>inCnt('p',3,0,1500,()=>{const P_=IN.p;inHud({p:180,hot:false});
    ['l','m','t'].forEach(k=>inMk('p'+k,v==='x'&&k==='m'?'pingme':'ping',k,P_[k]));
-   if(v==='x')inToast('Ping! Die Hunter sehen, wo du gerade bist');
-   inT(()=>{if(v==='h')['l','m','t'].forEach(k=>{inMk(k,'ghost',k,P_[k],k==='l'?'Lena jetzt':undefined);inGo(k,INY[k],2600)});else inGo('m',INY.m,2600)},900)})]]},
+   inToast(v==='x'?'Ping! Die Hunter sehen, wo du gerade bist':'Ping! Du siehst jetzt die Hider');
+   inT(()=>{if(v==='h')['l','m','t'].forEach(k=>{inMk(k,'ghost',k,P_[k],k==='l'?'Lena jetzt':undefined);inGo(k,INY[k],2600)});else inGo('m',INY.m,2600)},900)}),5000]]},
  {k:'Grundspiel',t:'Fangen',vw:[['h','Anna · Hunter'],['x','Tom · Hider']],
-  x:()=>`Zum Fangen <b>berührt</b> der Hunter den Hider und tippt <b>Fang melden</b>. Die Handys dürfen höchstens 40 m auseinander sein. Der Hider bestätigt, sonst gilt der Fang nach 30 Sekunden. Wer gefangen ist, schaut ab dann zu.`,
+  x:()=>`Zum Fangen <b>berührt</b> der Hunter den Hider in echt und drückt <b>Fang melden</b> in der App. Der Hider bestätigt oder lehnt ab – sonst gilt der Fang nach 30 Sekunden automatisch. Wer gefangen ist, hat ab dann Einsicht in die Positionen aller anderen und schaut zu.`,
   set(v){inZone(260,200);const A=[60,110];if(v==='h'){inMk('pt','ping','t',[170,150]);inMk('a','me','a',A);inMk('b','mate','b',INX.b);inMk('t','ghost','t',INY.t,'Tom')}
    else{inMk('t','me','t',INY.t);inMk('a','ghostH','a',A,'Anna')}IN.h={};inHud({r:2700,z:260,zn:180,p:120})},
-  act:v=>v==='h'?[['Anna holt Tom ein',()=>inGo('a',[10,160],2000)],
+  act:v=>v==='h'?[['Anna holt Tom ein',()=>inGo('a',[10,160],2000),2000],
    ['Fang melden',()=>{inBox(inCatchGrid());inT(()=>inBox(inCatchGrid('t')),700);inT(()=>inBox(`<div class=hd>Fang gemeldet</div><div class=wt><i></i>Warte auf Tom …</div>`),1500);
-    inT(()=>{inBox();inDel('t');inMk('ct','catch',null,INY.t,'Tom gefangen');inToast('Tom gefangen')},3300)}]]
-   :[['Anna holt Tom ein',()=>inGo('a',[10,160],2000,()=>{inBox(inAlarm(),'fa');inAlarmRun()})],
-    ['Ja, erwischt',()=>{if(!$('inbx').classList.contains('on'))return false;inBox();inMk('t','catch',null,INY.t,'Tom gefangen');inToast('Du bist gefangen und schaust ab jetzt zu')}]]},
+    inT(()=>{inBox();inDel('t');inMk('ct','catch',null,INY.t,'Tom gefangen');inToast('Tom gefangen')},3300)},3300]]
+   :[['Anna holt Tom ein',()=>inGo('a',[10,160],2000,()=>{inBox(inAlarm(),'fa');inAlarmRun()}),2000],
+    ['Ja, erwischt',()=>{if(!$('inbx').classList.contains('on'))return false;inBox();inMk('t','catch',null,INY.t,'Tom gefangen');inToast('Du bist gefangen und schaust ab jetzt zu')},1000]]},
  {k:'Grundspiel',t:'Aufgaben',vw:[['x','Max · Hider']],
-  x:()=>`Im Lauf der Runde erscheinen für die Hider <b>Aufgaben</b> als lila Quadrate. Sie sind freiwillig und bringen Vorteile. Im <b>Safehouse</b> bekommt der Erste drei Minuten Immunität. Eingesetzt taucht man bei keinem Ping auf. Fangen geht trotzdem.`,
-  c:'Dead Drop, Meeting und Terminal erklärt die App, sobald sie kommen.',
+  x:()=>`Im Lauf der Runde erscheinen <b>Aufgaben</b> für Hider als lila Quadrate. Sie sind freiwillig, bringen aber Vorteile. Im <b>Safehouse</b> z. B. bekommt der Erste drei Minuten Immunität. Eingesetzt taucht man in dieser Zeit bei keinem Ping mehr auf. Fangen geht trotzdem.`,
+  c:'Die anderen Aufgaben erklärt die App, sobald sie kommen.',
   set(){inZone(260,200);inMk('pl','ping','l',INX.l);inMk('pm','pingme','m',INX.m);inTask('sh',INSH,'t-sh');inMk('m','me','m',INY.m);IN.h={};inHud({r:2400,z:200,zn:120,p:150})},
-  act:()=>[['Max checkt ein',()=>inGo('m',[-10,55],1800,()=>{inToast('Safehouse: Platz 1, Immunität 3:00');IN.L.eachLayer(l=>{if(l instanceof L.Circle&&l!==IN.z&&l!==IN.nz)IN.L.removeLayer(l)});inDel('sh')})],
-   ['Immunität einsetzen',()=>{inMk('m','imm','m',[-10,55]);inHud({x:['Immunität 3:00']})}],
-   ['Ping abwarten',()=>{inHud({p:3,hot:true});inCnt('p',3,0,1500,()=>{inHud({p:180,hot:false});inDel('pm');inMk('pl','ping','l',INY.l);inToast('Ping: Du bist immun, die Hunter sehen dich nicht')})}]]},
+  act:()=>[['Max checkt ein',()=>inGo('m',[-10,55],1800,()=>{inToast('Safehouse: Platz 1, Immunität 3:00');IN.L.eachLayer(l=>{if(l instanceof L.Circle&&l!==IN.z&&l!==IN.nz)IN.L.removeLayer(l)});inDel('sh')}),1800],
+   ['Immunität einsetzen',()=>{inMk('m','imm','m',[-10,55]);inHud({im:180})},2500],
+   ['Ping starten',()=>{inHud({p:3,hot:true});inCnt('p',3,0,1500,()=>{inHud({p:180,hot:false});inDel('pm');inMk('pl','ping','l',INY.l);inToast('Ping: Du bist immun, die Hunter sehen dich nicht')})},3000]]},
  {k:'Grundspiel',t:'Boni',vw:[['h','Anna · Hunter']],
-  x:()=>`Nach jedem Fang wählt der Hunter einen <b>Bonus</b>: einen Hider kurz <b>live</b> verfolgen oder ein <b>Extra-Ping</b>, der sofort alle Hider ortet. Die Hider erfahren davon. Hider holen sich Boni über Aufgaben, zum Beispiel das Satellitenbild.`,
+  x:()=>`Nach jedem Fang <b>wählt</b> der Hunter als Belohnung einen von zwei <b>Boni</b>: entweder einen einzigen Hider über einen kurzen Zeitraum hinweg <b>live</b> orten oder einen <b>Extra-Ping</b>, der wie der reguläre Ping alle Hider punktuell anzeigt. Diese Boni können dann zu einem beliebigen späteren Zeitpunkt eingesetzt werden.`,
   c:'Wer immun ist, bleibt auch beim Extra-Ping verborgen.',
   set(){inZone(260,200);inMk('ct','catch',null,INY.t);inMk('pl','ping','l',INY.l);inMk('a','me','a',[10,160]);inMk('b','mate','b',INX.b);IN.h={};inHud({r:2280,z:200,zn:200,p:60})},
   act:()=>[['Bonus wählen',()=>{const bw=s=>`<div class=hd>Bonus wählen</div><div class=bw><div${s?'':' class=on'}>${ic('live')}Live-Standort<small>einen Hider 70 s verfolgen</small></div><div${s?' class=on':''}>${ic('extra')}Extra-Ping<small>sofort alle Hider orten</small></div></div>`;
-    inBox(bw(0));inT(()=>inBox(bw(1)),900);inT(()=>{inBox();inToast('Bonus Extra-Ping: einsetzbar nach 1:30')},2200)}],
-   ['Extra-Ping einsetzen',()=>{inDel('pl');inMk('xl','xping','l',[90,-150],'Lena · Extra-Ping');inMk('xm','stale','m',INX.m,'Max · nicht ortbar');inToast('Extra-Ping: alle Hider geortet')}]]},
+    inBox(bw(0));inT(()=>inBox(bw(1)),900);inT(()=>{inBox();inToast('Bonus Extra-Ping: einsetzbar nach 1:30')},2200)},2200],
+   ['Extra-Ping einsetzen',()=>{inDel('pl');inMk('xl','xping','l',[90,-150],'Lena · Extra-Ping');inMk('xm','stale','m',INX.m,'Max · nicht ortbar');inToast('Extra-Ping: alle Hider geortet')},2000]]},
  {k:'Grundspiel',t:'Wer gewinnt?',
-  x:()=>`Läuft die Zeit ab und ist noch ein Hider frei, gewinnen die <b>Hider</b>. Fangen die Hunter vorher alle, gewinnen die <b>Hunter</b>. Danach zeigt die App das Ergebnis, auf Wunsch mit dem Replay der ganzen Runde.`,
+  x:()=>`Läuft die Zeit ab und ist noch ein Hider frei, gewinnen die <b>Hider</b>. Werden alle geschnappt, gewinnen die <b>Hunter</b>. Danach zeigt die App das Ergebnis, auf Wunsch mit dem Replay der ganzen Runde.`,
   set(){inZone(200);inMk('ct','catch',null,INY.t);inMk('a','hunter','a',[60,-10]);inMk('b','hunter','b',[-40,80]);inMk('l','hider','l',[20,-120]);inMk('m','hider','m',[-110,40]);IN.h={};inHud({r:5,z:200,zn:null,p:40})},
   act:()=>[['Zeit ablaufen lassen',()=>inCnt('r',5,0,2200,()=>{const rw=(k,s,c)=>`<div class=rp>${inAv(k)}<b>${INP[k][0]}</b><small class=${c}>${s}</small></div>`;
-   inBox(`<h2>Hider gewinnen</h2>${rw('l','frei','ok')}${rw('m','frei','ok')}${rw('t','gefangen 34:12','bad')}${rw('a','1 Fang','')}${rw('b','—','')}`,'res')})]]},
+   inBox(`<h2>Hider gewinnen</h2>${rw('l','frei','ok')}${rw('m','frei','ok')}${rw('t','gefangen 34:12','bad')}${rw('a','1 Fang','')}${rw('b','—','')}`,'res')}),0]]},
  {k:'Für später',t:'Spielmodi',tabs:[['u','Untertauchen'],['mi','Mission'],['z','Zombie'],['k','Kopfgeld']],
   x:v=>({u:`Bisher war das der Modus <b>Untertauchen</b>, das Grundspiel: Aufgaben und Boni sind freiwillig, es reicht, bis zum Ende frei zu bleiben. Den Modus wählt der Host in der Lobby.`,
-   mi:`Dead Drops und Meetings sind <b>Pflicht</b>, die Hider gewinnen nur, wenn alle erledigt sind. Ein Safehouse gibt es nicht, dafür in den letzten Minuten die <b>Evakuierung</b>: Wer den Abholpunkt erreicht, ist in Sicherheit.`,
-   z:`Wer gefangen wird, scheidet nicht aus, sondern wird zum <b>Zombie</b> und jagt mit. Erst muss er 60 Sekunden im grünen Kreis am Fangort bleiben. Wer bei Zeitende frei ist, gewinnt.`,
-   k:`Für große Gruppen: Zwei bis vier <b>Hunter-Teams</b> jagen dieselben Hider, jedes für sich. Es gewinnt das Team mit den meisten Fängen. Unterwegs tauchen <b>Informanten</b> auf, die einem Team einen Vorteil bringen.`})[v],
+   mi:`Aufgaben sind <b>Pflicht</b>, die Hider gewinnen nur, wenn alle erledigt sind. In den letzten Minuten erscheint die <b>Evakuierung</b>: Wer den Abholpunkt erreicht, ist in Sicherheit.`,
+   z:`Wer gefangen wird, scheidet nicht aus, sondern wird zum <b>Zombie</b> und jagt mit.`,
+   k:`Für große Gruppen: Zwei bis vier <b>Hunter-Teams</b> jagen dieselben Hider, jedes für sich. Es gewinnt das Team mit den meisten Fängen. Unterwegs tauchen <b>Informanten</b> auf, die den Teams gegeneinander Vorteile bringen.`})[v],
   set(v){IN.h={};$('hud').innerHTML='';
    if(v==='u'){inZone(260,200);inAll()}
    if(v==='mi'){inZone(260,200);inAll();inTask('dd',[150,60],'t-dd');inTask('ev',[-150,-60],'t-ev');inMk('dd','t-dd',null,[150,60],'Dead Drop');inMk('ev','t-ev',null,[-150,-60],'Evakuierung')}
    if(v==='z'){inZone(260,200);inAll({no:['t']});L.circle(inLL([-20,190]),{radius:30,color:'#58c322',weight:2,dashArray:'6 5',fillColor:'#58c322',fillOpacity:.12,interactive:false}).addTo(IN.L);inMk('t','zomb','t',[-20,190],'Tom · Zombie')}
    if(v==='k'){inZone(260,200);INP.a[1]=INP.b[1]=0;inAll();inMk('a','hunter','a',INX.a,'Team 1');inMk('b','hunter','b',INX.b);inMk('c','hunter','c',[170,40],'Team 2');inMk('d','hunter','d',[80,160])}}},
  {k:'Vor der ersten Runde',t:'Los geht\'s',
-  x:()=>LINKC?`Du bist schon eingeladen: Gib deinen Namen ein und tritt der Lobby bei. Dort wählst du deine Seite.`:`Einer erstellt das Spiel, legt die Zone fest und teilt den Link. Alle anderen öffnen den Link und wählen ihre Seite.`,
-  l:()=>[['phone','<b>Android:</b> Blown-Cover-App, der Bildschirm darf aus sein. <b>iPhone:</b> Seite offen und Bildschirm an lassen.'],['gps','Standort auf „genau“, WLAN aus, mobile Daten an, Energiesparmodus aus.'],['batt','Akku voll laden, Powerbank einpacken.'],['shield','Auf den Verkehr achten, keine Privatgrundstücke betreten.']],
+  x:()=>LINKC?`Du bist schon eingeladen: Gib deinen Namen ein und tritt der Lobby bei. Dort wählst du deine Seite.`:`Der Host erstellt das Spiel, legt die Zone fest und teilt den Link. Alle anderen öffnen den Link und wählen ihr Team.`,
+  l:()=>[['phone','<b>App (nur Android):</b> Der Bildschirm darf aus sein.<br><b>Browser (iPhone):</b> Seite offen und Bildschirm an lassen, <b>sonst fehlt das GPS</b>.'],['gps','Standort auf „genau“, WLAN und Energiesparmodus aus, mobile Daten an.'],['batt','Akku voll laden, eine Powerbank schadet nicht.'],['shield','Auf den Verkehr achten, keine Privatgrundstücke betreten.']],
   set(){inZone(320);inAll();IN.h={};$('hud').innerHTML=''}}];
 const inV=()=>{const s=INS[IN.i];return IN.v[IN.i]||(s.vw||s.tabs||[[null]])[0][0]};
 function inBtn(){const b=$('inb');if(!b)return;b.style.display=!G&&!RV&&!IN&&!RL.on?'inline-flex':'none';b.classList.toggle('new',!LS.inS)}
@@ -3633,28 +3634,26 @@ function inClose(go){if(!IN)return;IN.gen++;map.removeLayer(IN.L);$('hud').inner
   document.body.classList.remove('inx');map.options.zoomSnap=IN.zs;map.setView(IN.c,IN.zm,{animate:false});IN=null;inBtn();updSync();panel(1);
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
-function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
+function inStep(i,d){IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
   INS[i].set(inV());inCard(d);inFit()}
 function inView(v){IN.v[IN.i]=v;inStep(IN.i)}
 function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],c=typeof s.c==='function'?s.c(v):s.c,last=IN.i===n-1;
   const ab=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal';
   $('intro').innerHTML=`<div class=inpr><div class=inbar>${INS.map((_,j)=>`<i class="${j<=IN.i?'on':''}"></i>`).join('')}</div><small>${IN.i+1}/${n}</small><button class=inq onclick="inClose()" aria-label="Erklärung schließen"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class=inbody style="--dx:${(d||0)*16}px"><div class=ink>${s.k}</div><h2>${s.t}</h2>
+  <div class=insc><div class=inbody style="--dx:${(d||0)*16}px"><div class=ink>${s.k}</div><h2>${s.t}</h2>
   ${s.vw&&s.vw.length>1?`<div class=seg role=tablist>${s.vw.map(([k,l])=>`<button class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   ${s.tabs?`<div class=tabs2 role=tablist>${s.tabs.map(([k,l])=>`<button class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   <p class=inp>${s.x(v)}</p>${c?`<p class=inc>${c}</p>`:''}
   ${s.l?`<div class=inl>${s.l().map(([i,t])=>`<div>${ic(i)}<span>${t}</span></div>`).join('')}</div>`:''}
-  ${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}
-  ${last?`<button onclick="inClose(1)" style="margin:0">${LINKC?'Lobby '+esc(LINKC)+' beitreten':'Spiel erstellen'}</button><a class=slink href="spielregeln.pdf" target=_blank rel=noopener style="text-align:center;display:block;margin-top:-2px">${ic('book')} Volle Spielanleitung (PDF)</a>`:''}</div>
-  <div class="innav${IN.i&&!last?'':' one'}">${IN.i?`<button class=g onclick="inStep(${IN.i-1},-1)">Zurück</button>`:''}${last?'':`<button onclick="inStep(${IN.i+1},1)">Weiter</button>`}</div>`;
-  $('intro').scrollTop=0}
+  ${last?`<a class=slink href="spielregeln.pdf" target=_blank rel=noopener style="text-align:center;display:block">${ic('book')} Volle Spielanleitung (PDF)</a>`:''}</div></div>
+  <div class="infoot${IN.i?'':' nob'}${a.length?'':' noa'}">${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}${IN.i?`<button class="g inbk" onclick="inStep(${IN.i-1},-1)" aria-label="Zurück"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Zurück</span></button>`:''}${last?`<button class=innx onclick="inClose(1)">${LINKC?'Lobby '+esc(LINKC)+' beitreten':'Spiel erstellen'}</button>`:`<button class=innx onclick="inStep(${IN.i+1},1)">Weiter</button>`}</div>`}
 // Nächsten Teil der Szene abspielen; am Ende „Noch einmal“ (Szene neu aufbauen)
 function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(IN.busy&&Date.now()<IN.busy)return;
-  if(IN.a>=a.length){IN.gen++;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';s.set(v);IN.a=0}
-  else{if(a[IN.a][1]()!==false)IN.a++;IN.busy=Date.now()+600}
+  if(IN.a>=a.length){IN.gen++;IN.run=0;IN.cnt={};IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';s.set(v);IN.a=0}
+  else{const x=a[IN.a];if(x[1]()!==false){IN.a++;if(x[2])IN.run=performance.now()+x[2]}IN.busy=Date.now()+600}
   const b=$('inact');if(b)b.innerHTML=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal'}
 // Karte auf die Szene: Zone über der Erklärkarte, unter dem HUD
-function inFit(){const R=340,dl=R/111320,dn=R/(111320*Math.cos(INC[0]*Math.PI/180)),b=L.latLngBounds([INC[0]-dl,INC[1]-dn],[INC[0]+dl,INC[1]+dn]),h=Math.max($('intro').offsetHeight,Math.round(innerHeight*(innerHeight<800?.4:.47)));
+function inFit(){const R=340,dl=R/111320,dn=R/(111320*Math.cos(INC[0]*Math.PI/180)),b=L.latLngBounds([INC[0]-dl,INC[1]-dn],[INC[0]+dl,INC[1]+dn]),h=$('intro').offsetHeight;
   const o={paddingTopLeft:[12,62],paddingBottomRight:[12,h+12]};if(!IN.f){IN.f=1;map.flyToBounds(b,Object.assign({duration:1.1},o))}else map.fitBounds(b,Object.assign({animate:true,duration:.35},o))}
 // §UPDATE App-Version prüfen (GitHub Releases): in der App bei älterer Version Dialog beim Öffnen + Kartenknopf `#upb` mit orangem Punkt,
 // nur auf dem Startbildschirm (nie in Lobby/Spiel); Android-Browser: derselbe Knopf ohne Punkt. Neueste Version höchstens alle 3 h abfragen.
