@@ -582,6 +582,16 @@ button.mzi{display:grid!important;justify-items:center;gap:5px;width:100%!import
 /* §CSS-INTRO Spielerklärung: Knopf #inb oben links auf der Karte (wie #upb), Karte #intro unten, Demo-Fenster #inbx, Etiketten .intt */
 /* Introspiel-Übersicht (Manuel 23.11.): Pings fest und über den blassen Hidern; Hunter und live sichtbare Hider (out) voll */
 body.inal .mkw.inm.hider,body.inal .mkw.inm.imm{opacity:.5}
+/* Begrüßung beim allerersten Öffnen (Manuel 24.11.): Vollbild über der Karte, leitet ins Intro über */
+#wel{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 28px calc(28px + env(safe-area-inset-bottom,0px));text-align:center;background:radial-gradient(120% 80% at 50% 40%,#1b1e22f2,#0f1113fa);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);transition:opacity .4s ease}
+#wel.out{opacity:0;pointer-events:none}
+#wel .wlg{display:flex;flex-direction:column;align-items:center;gap:14px;animation:welIn .7s ease both}
+#wel .wlg svg{width:92px;height:92px}
+#wel .logo{font-size:52px;text-align:center}
+#wel p{max-width:300px;margin:4px 0 18px;color:var(--mut);font:500 17px/1.45 var(--f-b);animation:welIn .7s .15s ease both}
+#wel .wbt{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px;animation:welIn .7s .3s ease both}
+#wel .wbt>button:first-child{width:100%}
+@keyframes welIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 #inb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:auto!important;height:40px;min-height:0!important;margin:0!important;padding:0 14px 0 10px!important;gap:7px;border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--fg)!important;font:600 14px var(--f-b)!important}
 #inb .ic{width:19px;height:19px}#inb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ac);border:2px solid var(--bg)}#inb.new i{display:block}
 body.inx #panel,body.inx #upb,body.inx #inb,body.inx #cb,body.inx #mmbtn{display:none!important}
@@ -3053,7 +3063,7 @@ function panel0(force){const el=$('pb');if(IN&&(G||RV))inClose();updSync();inBtn
     el.innerHTML=`<div class=logo2>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p class=mut style="font-size:15px;line-height:1.45">${LINKC?`Du wurdest in die Lobby <b style="color:var(--fg)">${esc(LINKC)}</b> eingeladen. Gib deinen Namen ein und tritt bei.`:'Verstecken in echt. Hunter gegen Hider, die Zone wird kleiner.'}</p>
   <div class=slb>Dein Name</div><input id=nm placeholder="Name" value="${esc(me.name)}" maxlength=16 aria-label="Dein Name">
   ${LINKC?`<input id=cd type=hidden value="${esc(LINKC)}"><button onclick="jn()">Lobby ${esc(LINKC)} beitreten</button>
-  <button class=slink onclick="LINKC='';panel()">Stattdessen eigenes Spiel erstellen</button><small id=gs hidden></small>`:`<button id=mkb onclick="mk()">Spiel erstellen</button>
+  <button class=slink onclick="LINKC='';panel()">Stattdessen eigenes Spiel erstellen</button>${LS.inS?'':`<button class=slink onclick="inOpen()">Neu hier? So geht's (2 Min)</button>`}<small id=gs hidden></small>`:`<button id=mkb onclick="mk()">Spiel erstellen</button>
   <div class=slb>Mit Code beitreten</div><div class=sjn><input id=cd placeholder="Code" maxlength=6 aria-label="Code"><button onclick="jn()">Beitreten</button></div>
   <button class=slink onclick="rlOpen()">Replay ansehen</button><small id=gs hidden></small>`}`;return}
   const g=G,me_=P()[uid]||{},host=g.host===uid,t=now(),run=g.status==='running'&&t>=rs(g);
@@ -3680,6 +3690,14 @@ const INS=[
   set(){inZone(320);inAll();IN.h={};$('hud').innerHTML=''}}];
 const inV=()=>{const s=INS[IN.i];return s.g?(IN.gv||'all'):IN.v[IN.i]||(s.vw||s.tabs||[[null]])[0][0]};
 const igVw=()=>[['all','Übersicht'],['h','Anna · Hunter'],['x',INP[igHx(IN.t==null?0:IN.t)][0]+' · Hider']];
+// Begrüßung (Manuel 24.11.): nur ganz Neue (kein Intro gesehen, nie einen Namen eingegeben, nicht übersprungen), nie bei
+// Einladungslink (dort Hinweiszeile), Wiedereinstieg oder Testumgebung (__T, außer __WEL gesetzt). „So geht's“ blendet über ins Intro.
+function welChk(){if(LS.inS||LS.n||LS.c||LS.welS||LINKC||G||RV||IN||$('wel')||(window.__T&&!window.__WEL))return;
+  const w=document.createElement('div');w.id='wel';w.setAttribute('role','dialog');w.setAttribute('aria-label','Willkommen');
+  w.innerHTML=`<div class=wlg>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p>Tauch unter. Erfülle deine Aufträge. Lass dich nicht fangen.</p>
+  <div class=wbt><button onclick="welGo(1)">So geht's (2 Min)</button><button class=slink onclick="welGo(0)">Überspringen</button></div>`;
+  document.body.appendChild(w)}
+function welGo(go){const w=$('wel');if(!w)return;if(!go)LS.welS='1';w.classList.add('out');setTimeout(()=>w.remove(),420);if(go)inOpen()}
 function inBtn(){const b=$('inb');if(!b)return;b.style.display=!G&&!RV&&!IN&&!RL.on?'inline-flex':'none';b.classList.toggle('new',!LS.inS)}
 function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().addTo(map),c:map.getCenter(),zm:map.getZoom(),f:0,zs:map.options.zoomSnap};map.options.zoomSnap=.1;map.on('zoom',inRz);LS.inS='1';
   document.body.classList.add('inx');inBtn();updSync();
@@ -3747,10 +3765,10 @@ async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){
   const av=appVer();if(c&&c.v&&Date.now()-c.t<3*36e5&&!(av&&!verLt(av,c.v)))UPD=c.v;
   else try{const r=await fetch(REL,{headers:{Accept:'application/vnd.github+json'}});if(r.ok){const j=await r.json(),v=String(j.tag_name||'').replace(/^v/,'');if(/^\d+(\.\d+)*$/.test(v)&&(j.assets||[]).some(a=>a.name==='BlownCover.apk')){UPD=v;LS.updC=JSON.stringify({v,t:Date.now()})}}}catch(e){}
   updSync();
-  if(updNew()&&!updAsked&&!G&&!LS.c){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). ${updIn()?'Bitte installiere die neue Version.':'Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt. Deine Einstellungen bleiben erhalten.'}`,ok:'Jetzt laden',no:'Später'}))updGo()}}
+  if(updNew()&&!updAsked&&!G&&!LS.c&&!IN&&!$('wel')){updAsked=true;if(await dlg({t:'Update verfügbar',x:`Version ${esc(UPD)} der App ist da (installiert: ${esc(appVer())}). ${updIn()?'Bitte installiere die neue Version.':'Der Download öffnet sich im Browser, danach installierst du das Update wie gewohnt. Deine Einstellungen bleiben erhalten.'}`,ok:'Jetzt laden',no:'Später'}))updGo()}}
 // §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
-panel();setTimeout(updCheck,1500);ksBadge();
+panel();welChk();setTimeout(updCheck,1500);ksBadge();
 setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
