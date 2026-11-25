@@ -48,21 +48,50 @@ with app(390, 844, hash='?c=ABCD') as (pg, ev, errs):
     print('errors:', errs)
     assert not errs
 
-# Introspiel: durchspielen bis „Wer gewinnt?“, Haltepunkte und Zurück
+# Introspiel in Teilen (25.11.): Weiter Teil für Teil, Sicht-Hinweis bei need, Spotlight/Pulsieren, Zurück
 with app(390, 844, hash='') as (pg, ev, errs):
     pg.wait_for_timeout(500)
-    pg.click('#inb'); pg.wait_for_timeout(300)
-    gs = ev("INS.map((s,i)=>s.g?i:-1).filter(i=>i>=0)")
-    for i in gs[1:]:
-        ev("inNext()")
-        for _ in range(60):
-            if not ev("IN.play"): break
+    pg.click('#inb'); pg.wait_for_timeout(1500)
+    last = ev("INS.map((s,i)=>s.p?i:-1).filter(i=>i>=0).pop()")
+    seen = 0
+    for _ in range(80):
+        k = ev("[IN.i,IN.j]")
+        pt = ev("JSON.stringify({t:inPt().t,need:inPt().need||null,spot:inPt().spot||null,pulse:inPt().pulse||null})")
+        import json; pt = json.loads(pt)
+        assert abs(ev("IN.t") - pt['t']) < .01, (k, ev("IN.t"), pt)
+        if pt['need'] and ev("inV()") not in pt['need']:
+            assert ev("$('intro').querySelector('.innx').disabled"), ('Weiter nicht gesperrt', k)
+            assert 'Tippe oben' in ev("$('intro').querySelector('.inp').textContent")
             pg.wait_for_timeout(300)
-        assert ev("IN.i") == i and abs(ev("IN.t") - ev(f"INS[{i}].g.t")) < .01, (i, ev("IN.t"))
+            assert ev("!!document.querySelector('.inspt')"), ('Reiter ohne Ring', k)
+            ev(f"inView('{pt['need'][0]}')")
+        pg.wait_for_timeout(450 + max(0, ev("Math.round((IN.fe||0)-performance.now())")))
+        if pt['spot']:
+            assert ev("!!$('insp')&&$('insp').classList.contains('on')"), ('Spotlight fehlt', k, pt)
+            if k == [0, 2] or k == [5, 1]: shot(pg, f'intro_teil_{k[0]}_{k[1]}.png')
+        if pt['pulse']:
+            assert ev("document.querySelectorAll('.inpl').length") > 0, ('Pulsieren fehlt', k, pt)
+        seen += 1
+        if k[0] == last and k[1] == ev(f"INS[{last}].p.length-1"): break
+        ev("inNext()")
+        for _ in range(80):
+            pg.wait_for_timeout(250)
+            if not ev("IN.play"): break
+    assert seen >= 25, seen
     assert 'Hider gewinnen' in ev("$('inbx').textContent")
-    ev(f"inStep({gs[4]},-1)"); pg.wait_for_timeout(200)
+    ev("inNext()"); pg.wait_for_timeout(300)
+    assert ev("IN.i") == last + 1 and not ev("!!$('insp')&&$('insp').classList.contains('on')")
+    ev("inBack()"); pg.wait_for_timeout(300)
+    assert ev("[IN.i,IN.j]") == [last, ev(f"INS[{last}].p.length-1")]
+    ev("inStep(4,1,2)"); pg.wait_for_timeout(200)
     for v in ['all', 'h', 'x']:
         ev(f"inView('{v}')"); pg.wait_for_timeout(100)
     assert ev("$('inbx').classList.contains('on')"), 'Fangmeldung fehlt beim Hider'
+    ev("$('inbx').querySelector('.fy').click()"); pg.wait_for_timeout(2500)
+    assert ev("[IN.i,IN.j]") == [4, 3], ev("[IN.i,IN.j]")
+    ev("IN.gv='all';inStep(0,1)"); pg.wait_for_timeout(200)
+    assert ev("!IN.mk.a&&!IN.mk.b"), 'Hunter in 1a sichtbar'
+    ev("inNext()"); pg.wait_for_timeout(200)
+    assert ev("!!IN.mk.a&&!!IN.mk.b"), 'Hunter in 1b fehlen'
     print('errors:', errs)
     assert not errs
