@@ -3610,13 +3610,13 @@ function inAll(o={}){const P_=Object.assign({},INX,o.p||{});['a','b'].forEach(k=
 // −300 = Beginn Vorsprung, 3600 = Ende). Haltepunkte (INS mit g) halten die Runde an; „Weiter“ spielt bis zum nächsten (g.go = [[bis t, ms]…]).
 // Alles auf der Karte, im HUD und in den Fenstern wird aus t und der Ansicht berechnet (igDraw), darum kann „Zurück“ an jeden Haltepunkt springen.
 // Ansichten: all = Übersicht (alle live), h = Anna (Hunter), x = Hider (Tom bis zu seinem Fang, danach Max).
-const IG={end:3600,p0:360,pi:180,sh:[243,603,963],r:[320,260,200,140],ct:640,im:[1010,1190],sh0:900,shIn:1000,xp:745,SH:[20,-20]},
+const IG={end:3600,p0:360,pi:180,sh:[150,603,963],r:[320,260,200,140],ct:640,im:[1010,1190],sh0:900,shIn:1000,xp:745,SH:[20,-20]},
   // Ankerpunkte [t, Nord, Ost, 'f' = gerade zum nächsten Anker]; dazwischen läuft jeder weiter (igBuild: Zwischenziele alle 45 s, Hunter ±85 m, Hider ±60 m, in der Zone)
   IGA={a:[[-300,-100,-120,'f'],[0,-100,-120],[362,-70,-60,'f'],[560,40,140,'f'],[628,0,170,'f'],[640,0,170,'f'],[700,10,160],[3600,30,30]],
     b:[[-300,-130,20,'f'],[0,-130,20],[3600,20,-30]],
     l:[[-300,90,-90,'f'],[0,150,-170],[3600,10,-60]],
     m:[[-300,-20,100,'f'],[0,-140,170],[860,-60,110],[905,-55,100,'f'],[1000,20,-20,'f'],[1015,20,-20],[3600,-40,60]],
-    t:[[-300,120,60,'f'],[0,190,170],[180,195,185,'f'],[262,205,195,'f'],[300,170,150],[600,-20,190,'f'],[3600,-20,190,'f']]},
+    t:[[-300,120,60,'f'],[0,190,170],[150,200,190,'f'],[175,218,205,'f'],[215,170,150],[600,-20,190,'f'],[3600,-20,190,'f']]},
   IGW=igBuild();
 // Wege bauen: zwischen zwei Ankern alle 45 s ein Zwischenziel um die gerade Linie (±45 m, fester Zufall), immer 20 m innerhalb der Zone
 function igBuild(){let s=7;const rnd=()=>{s=(s*16807)%2147483647;return s/2147483647},o={};
@@ -3649,7 +3649,7 @@ function igDraw(t,v,tips){if(!IN)return;IN.t=t;const want={},put=(id,kind,k,p,ti
   if(!IN.z)inZone(igR(t),igNR(t));else{IN.z.setRadius(igR(t));IN.nz.setRadius(igNR(t)||1)}IN.nz.setStyle({opacity:igNR(t)?.85:0});
   const H=['a','b'],X=['l','m','t'],ct=igPos('t',IG.ct),outTip=k=>{if(k!=='t'||t<IG.sh[0])return'';return igOut(k,t)?'Tom · live sichtbar':'Tom · noch 2 Min sichtbar'};
   document.body.classList.toggle('inal',v==='all');
-  if(v==='all'){const sn=igSnap(igLP(t));X.forEach(k=>{if(sn[k]&&!igCaught(k,t))put('s'+k,'ping',k,sn[k])});H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
+  if(v==='all'){const lp=igLP(t),sn=igSnap(lp),xs=t>=IG.xp&&(lp==null||lp<IG.xp)?igSnap(IG.xp):null;X.forEach(k=>{if(igCaught(k,t))return;if(xs&&xs[k])put('x'+k,'xping',k,xs[k]);else if(sn[k])put('s'+k,'ping',k,sn[k])});H.forEach(k=>put(k,'hunter',k,igPos(k,t),tips?INP[k][0]:''));
     X.forEach(k=>{if(igCaught(k,t)){put('ct','catch',null,ct,'Tom gefangen');return}put(k,igImm(k,t)?'imm':igVis(k,t)?'out':'hider',k,igPos(k,t),tips?INP[k][0]:igVis(k,t)?outTip(k):'')})}
   if(v==='h'){put('a','me','a',igPos('a',t));put('b','mate','b',igPos('b',t));const lp=igLP(t),sn=igSnap(lp),xs=t>=IG.xp&&(lp==null||lp<IG.xp)?igSnap(IG.xp):null;
     X.forEach(k=>{if(igCaught(k,t))return;if(xs&&xs[k])put('x'+k,'xping',k,xs[k]);else if(sn[k])put('p'+k,'ping',k,sn[k]);if(igVis(k,t))put(k,'out',k,igPos(k,t),outTip(k))});
@@ -3680,38 +3680,37 @@ function igPlay(segs,done){const g=IN.gen,v=()=>inV();let i=0,t0=IN.t,s0=perform
   requestAnimationFrame(st)}
 const INS=[
  {k:'Grundspiel',t:'Zwei Seiten',tips:1,p:[
-  {hide:['a','b'],x:()=>`Die <b>Hider</b> (Kreise ${inSym('hider','l')}) verstecken sich und müssen bis zum Ablauf der Zeit frei bleiben.`,c:'Hier verstecken sich Lena, Max und Tom.'},
+  {hide:['a','b'],pulse:'hid',x:()=>`Die <b>Hider</b> (Kreise ${inSym('hider','l')}) verstecken sich und müssen bis zum Ablauf der Zeit frei bleiben.`,c:'Hier verstecken sich Lena, Max und Tom.'},
   {pulse:'hunt',x:()=>`Die <b>Hunter</b> (Dreiecke ${inSym('hunter','a')}) jagen sie und müssen alle fangen, bevor die Zeit abläuft.`,c:'Hier jagen Anna und Ben.'},
   {spot:'hud:vs',x:()=>`Zu Beginn haben die Hider ein paar Minuten <b>Vorsprung</b>. Die Kachel oben zählt ihn herunter.`}]},
  {k:'Grundspiel',t:'Die Zone',p:[
   {go:[[5,3500]],spot:'hud:r',x:()=>`Der Vorsprung ist vorbei, die Jagd beginnt. Links oben läuft jetzt die <b>Restzeit</b> der Runde.`},
-  {go:[[120,1800]],pulse:'zone',x:()=>`Der <b>rote Kreis</b> ist das Spielfeld.`},
+  {go:[[100,1500]],pulse:'zone',x:()=>`Der <b>rote Kreis</b> ist das Spielfeld.`},
   {spot:'hud:z',x:()=>`Er wird in regelmäßigen Abständen kleiner. Die Kachel in der Mitte zeigt, wann und um wie viel.`},
   {pulse:'nz',x:()=>`Der <b>gestrichelte Kreis</b> zeigt immer die nächste Größe an.`}]},
  {k:'Grundspiel',t:'Außerhalb der Zone',p:[
-  {go:[[262,3500]],toast:{all:'Hider Tom ist außerhalb der Zone',h:'Hider Tom ist außerhalb der Zone',x:'Du bist außerhalb der Zone – die Hunter sehen dich live'},spot:'toast',x:()=>`Die Zone ist geschrumpft, Tom steht jetzt draußen. Wichtiges wie das meldet die App oben als kurze <b>Meldung</b>.`},
+  {go:[[175,3000]],toast:'Hider Tom ist außerhalb der Zone',spot:'toast',x:()=>`Die Zone ist geschrumpft, Tom steht jetzt draußen. Wichtiges wie das meldet die App oben als kurze <b>Meldung</b>.`},
   {pulse:'tom',x:()=>`Ein Hider, der sich außerhalb der Zone befindet, ist für die Hunter <b>live sichtbar</b> – auch noch 2 Minuten nach der Rückkehr.`},
   {x:()=>`Wer zu lange außerhalb bleibt, scheidet ganz aus.`}]},
  {k:'Grundspiel',t:'Der Ping',p:[
-  {go:[[300,2000]],spot:'hud:p',x:()=>`Rechts oben läuft der Countdown bis zum nächsten <b>Ping</b>.`},
-  {go:[[363,2500]],pulse:'pings',x:()=>`Dann verrät der Ping den Huntern den <b>punktuellen</b> Standort der Hider.`,c:v=>v==='all'?'Kräftig: der Ping-Punkt. Blass: wo die Hider wirklich sind.':''},
-  {go:[[385,1800]],x:()=>`Der Punkt bleibt bis zum nächsten Ping stehen und dient als Orientierung – die Hider bewegen sich natürlich weiter.`},
-  {spot:'seg',x:()=>`Hier wechselst du die Sicht: was Anna als Hunter sieht, was Tom als Hider sieht, oder alles auf einmal.`}]},
+  {go:[[345,3500]],spot:'hud:p',x:()=>`Tom ist wieder unsichtbar. Rechts oben läuft der Countdown bis zum nächsten <b>Ping</b>.`},
+  {go:[[362,1500]],pulse:'pings',x:()=>`Jetzt verrät der Ping den Huntern den <b>punktuellen</b> Standort der Hider.`,c:'Kräftig: der Ping-Punkt. Blass: wo die Hider wirklich sind.'},
+  {go:[[400,2500]],x:()=>`Der Punkt bleibt bis zum nächsten Ping stehen und dient als Orientierung – die Hider bewegen sich natürlich weiter.`}]},
  {k:'Grundspiel',t:'Fangen',p:[
   {go:[[540,3500],[630,3500]],x:()=>`Zum Fangen <b>berührt</b> der Hunter den Hider in echt …`},
-  {go:[[633,900]],need:['h','all'],spot:'box',x:()=>`… und drückt <b>Fang melden</b> in der App. Dann tippt er auf die Farbe des Hiders.`},
-  {need:['x'],ask:'Tom bekommt jetzt einen Alarm.',spot:'box',x:()=>`Der Hider bestätigt oder lehnt ab – sonst gilt der Fang nach 30 Sekunden automatisch.`},
+  {go:[[633,900]],spot:'box',x:()=>`… und drückt <b>Fang melden</b> in der App. Dann tippt er auf die Farbe des Hiders.`},
+  {v:'x',spot:'box',x:()=>`Tom bekommt einen Alarm aufs Handy. Er bestätigt oder lehnt ab – sonst gilt der Fang nach 30 Sekunden automatisch.`},
   {go:[[643,1500]],x:()=>`Wer gefangen ist, hat ab dann Einsicht in die Positionen aller anderen und schaut zu.`}]},
  {k:'Grundspiel',t:'Boni',p:[
-  {go:[[652,1500]],need:['h','all'],spot:'box1',x:()=>`Nach jedem Fang <b>wählt</b> der Hunter als Belohnung einen von zwei <b>Boni</b>: entweder einen einzigen Hider über einen kurzen Zeitraum hinweg <b>live</b> orten …`},
-  {go:[[657,700]],need:['h','all'],spot:'box2',x:()=>`… oder einen <b>Extra-Ping</b>, der wie der reguläre Ping alle Hider punktuell anzeigt.`},
+  {go:[[652,1500]],spot:'box1',x:()=>`Nach jedem Fang <b>wählt</b> der Hunter als Belohnung einen von zwei <b>Boni</b>: entweder einen einzigen Hider über einen kurzen Zeitraum hinweg <b>live</b> orten …`},
+  {go:[[657,700]],spot:'box2',x:()=>`… oder einen <b>Extra-Ping</b>, der wie der reguläre Ping alle Hider punktuell anzeigt.`},
   {go:[[740,2500],[747,1500]],pulse:'pings',x:()=>`Diese Boni können dann zu einem beliebigen späteren Zeitpunkt eingesetzt werden. Hier setzt Anna ihren Extra-Ping ein.`}]},
  {k:'Grundspiel',t:'Aufgaben',p:[
-  {go:[[760,2000],[905,3000]],need:['x','all'],pulse:'sh',x:()=>`Im Lauf der Runde erscheinen <b>Aufgaben</b> für Hider als lila Quadrate.`},
+  {go:[[760,2000],[905,3000]],pulse:'sh',x:()=>`Im Lauf der Runde erscheinen <b>Aufgaben</b> für Hider als lila Quadrate.`},
   {x:()=>`Sie sind freiwillig, bringen aber Vorteile.`,c:'Die anderen Aufgaben erklärt die App, sobald sie kommen.'}]},
  {k:'Grundspiel',t:'Safehouse',p:[
   {go:[[1000,3000],[1003,600]],x:()=>`Im <b>Safehouse</b> z. B. bekommt der Erste drei Minuten Immunität.`},
-  {go:[[1012,1200]],need:['x'],spot:'hud:im',x:()=>`Eingesetzt läuft sie oben herunter. In dieser Zeit taucht man bei keinem Ping mehr auf.`},
+  {go:[[1012,1200]],v:'x',spot:'hud:im',x:()=>`Eingesetzt läuft sie auf dem Handy oben herunter. In dieser Zeit taucht man bei keinem Ping mehr auf.`},
   {go:[[1083,2500]],x:()=>`Beim Ping eben war Max unsichtbar. Fangen geht trotzdem.`}]},
  {k:'Grundspiel',t:'Wer gewinnt?',p:[
   {go:[[3590,9000],[3600,800]],spot:'hud:r',x:()=>`Läuft die Zeit ab und ist noch ein Hider frei, gewinnen die <b>Hider</b>. Werden alle geschnappt, gewinnen die <b>Hunter</b>.`},
@@ -3747,12 +3746,12 @@ function inSpot(sel){let o=$('insp');document.querySelectorAll('.inspt').forEach
   requestAnimationFrame(()=>o.classList.add('on'))}
 // Hervorhebung auf der Karte: Objekt pulsiert dreimal
 function inPulse(k){document.querySelectorAll('.inpl').forEach(e=>e.classList.remove('inpl'));if(!k||!IN)return;const mk=id=>IN.mk[id]&&IN.mk[id]._icon,E=[];
-  if(k==='zone')E.push(IN.z&&IN.z._path);if(k==='nz')E.push(IN.nz&&IN.nz._path);if(k==='hunt')E.push(mk('a'),mk('b'));if(k==='tom')E.push(mk('t'));if(k==='sh')E.push(mk('sh'),IN.shc&&IN.shc._path);
+  if(k==='zone')E.push(IN.z&&IN.z._path);if(k==='nz')E.push(IN.nz&&IN.nz._path);if(k==='hunt')E.push(mk('a'),mk('b'));if(k==='hid')E.push(mk('l'),mk('m'),mk('t'));if(k==='tom')E.push(mk('t'));if(k==='sh')E.push(mk('sh'),IN.shc&&IN.shc._path);
   if(k==='pings')Object.values(IN.mk).forEach(m=>{if(/ping/.test(m._k))E.push(m._icon)});E.filter(Boolean).forEach(e=>e.classList.add('inpl'))}
 // Wirkung des aktuellen Teils: gehaltene Meldung, Pulsieren, Spotlight (nach der Kamerafahrt)
 function inFx(){inSpot();inPulse();const p=inPt();if(!p)return;const v=inV(),ok=inOk(),g=IN.gen;
-  if(p.toast&&ok&&!$('toast').querySelector('[data-k]')){$('toast').innerHTML='';inToast(p.toast[v]||p.toast.all,1)}
-  setTimeout(()=>{if(!IN||IN.gen!==g||inPt()!==p||IN.play)return;if(!inOk())return inSpot('tab:'+p.need[0]);if(p.pulse)inPulse(p.pulse);if(p.spot)inSpot(p.spot)},Math.max(0,(IN.fe||0)-performance.now())+120)}
+  if(p.toast&&ok&&!$('toast').querySelector('[data-k]')){$('toast').innerHTML='';inToast(p.toast,1)}
+  setTimeout(()=>{if(!IN||IN.gen!==g||inPt()!==p||IN.play)return;if(!inOk())return inSpot('tab:'+p.need[0]);if(p.pulse)inPulse(p.pulse);if(p.spot&&p.spot!=='toast')$('toast').querySelectorAll('div:not([data-k])').forEach(e=>e.remove());if(p.spot)inSpot(p.spot)},Math.max(0,(IN.fe||0)-performance.now())+120)}
 const igVw=()=>[['all','Übersicht'],['h','Anna · Hunter'],['x',INP[igHx(IN.t==null?0:IN.t)][0]+' · Hider']];
 // Begrüßung (Manuel 24.11.): nur ganz Neue (kein Intro gesehen, nie einen Namen eingegeben, nicht übersprungen), nie bei
 // Einladungslink (dort Hinweiszeile), Wiedereinstieg oder Testumgebung (__T, außer __WEL gesetzt). „So geht's“ blendet über ins Intro.
@@ -3776,15 +3775,15 @@ function inClose(go){if(!IN)return;inSpot();const o=$('insp');if(o)o.remove();ma
   if(go){const n=$('nm');if(n&&!n.value.trim()){n.focus();toast('Gib zuerst deinen Namen ein.')}else if(LINKC)jn();else mk()}}
 // d: Richtung fürs Einblenden (1 vor, -1 zurück)
 function inStep(i,d,j){document.body.classList.remove('inal');inSpot();inPulse();IN.i=i;IN.a=0;IN.gen++;IN.run=0;IN.cnt={};IN.fl={};IN.play=0;IN.bk=null;IN.shc=null;IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';INP.a[1]=0;INP.b[1]=8;
-  const s=INS[i];IN.j=s.p?(j<0?s.p.length-1:(j||0)):0;const p=inPt();IN.hd=p&&p.hide||null;
+  const s=INS[i];IN.j=s.p?(j<0?s.p.length-1:(j||0)):0;const p=inPt();IN.hd=p&&p.hide||null;if(p)IN.gv=p.v||'all';
   const fz=p?igFz(p.t,inV()):null,ch=fz!==IN.fz;IN.fz=fz;if(p){IN.t=p.t;igDraw(p.t,inV(),s.tips)}else{IN.t=null;s.set(inV())}inCard(d);inFit(ch&&IN.f);inFx()}
 // Zurück: einen Teil zurück, im ersten Teil zum letzten Teil des vorigen Kapitels
 function inBack(){if(!IN)return;if(INS[IN.i].p&&IN.j>0)return inStep(IN.i,-1,IN.j-1);if(IN.i)inStep(IN.i-1,-1,-1)}
 // Weiter: nächster Teil bzw. nächstes Kapitel; im Introspiel erst bis dorthin abspielen (Karte bleibt stehen), Text wechselt am Ziel
 function inNext(){if(!IN||IN.play)return;const s=INS[IN.i];if(s.p&&!inOk())return;let i=IN.i,j=(IN.j||0)+1;if(!s.p||j>=s.p.length){i++;j=0}
   const n=INS[i];if(!n)return;const p=n.p&&n.p[j];if(!p||!s.p)return inStep(i,1);
-  inSpot();inPulse();IN.gen++;$('toast').innerHTML='';const fin=()=>{IN.play=0;IN.i=i;IN.j=j;IN.hd=p.hide||null;igDraw(p.t,inV(),n.tips);inCard(1);inFx()};
-  if(!p.go)return fin();
+  inSpot();inPulse();IN.gen++;$('toast').innerHTML='';const v0=IN.gv;IN.gv=p.v||'all';const fin=()=>{IN.play=0;IN.i=i;IN.j=j;IN.hd=p.hide||null;igDraw(p.t,inV(),n.tips);inCard(1);inFx()};
+  if(!p.go){if(IN.gv!==v0){const fz=igFz(p.t,IN.gv),ch=fz!==IN.fz;IN.fz=fz;if(ch)inFit(1)}return fin()}
   IN.play=1;IN.hd=null;const b=$('intro').querySelector('.innx');if(b){b.disabled=true;b.innerHTML='<span class=insp></span>'}const bk=$('intro').querySelector('.inbk');if(bk){const i0=IN.i,j0=IN.j;bk.onclick=()=>inStep(i0,0,j0)}
   igPlay(p.go,()=>{const g=IN.gen,w=(IN.fe||0)-performance.now();IN.play=1;const f=()=>{if(IN&&IN.gen===g)fin()};if(w>0)setTimeout(f,w);else f()})}
 // Text der Karte neu (wenn er vom Fortschritt der Szene abhängt, IN.fl)
@@ -3796,7 +3795,7 @@ function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],pt
   const ab=IN.a<a.length?ic('play')+esc(a[IN.a][0]):ic('redo')+'Noch einmal';
   $('intro').innerHTML=`<div class=inpr><div class=inbar>${INS.map((_,j)=>`<i class="${j<IN.i?'on':''}"${j===IN.i?` style="background:linear-gradient(90deg,var(--fg) ${q}%,var(--line) ${q}%)"`:''}></i>`).join('')}</div><small>${IN.i+1}/${n}</small><button class=inq onclick="inClose()" aria-label="Erklärung schließen"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class=insc><div class=inbody style="--dx:${(d||0)*16}px"><div class=ink>${s.k}</div><h2>${s.t}</h2>
-  ${(s.p?igVw():s.vw)&&(s.p?igVw():s.vw).length>1?`<div class=seg role=tablist>${(s.p?igVw():s.vw).map(([k,l])=>`<button data-v="${k}" class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
+  ${!s.p&&s.vw&&s.vw.length>1?`<div class=seg role=tablist>${s.vw.map(([k,l])=>`<button data-v="${k}" class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   ${s.tabs?`<div class=tabs2 role=tablist>${s.tabs.map(([k,l])=>`<button class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   <p class=inp>${pt?(ok?pt.x(v):inAsk(pt)):s.x(v)}</p>${c?`<p class=inc>${c}</p>`:''}
   ${s.l?`<div class=inl>${s.l().map(([i,t])=>`<div>${ic(i)}<span>${t}</span></div>`).join('')}</div>`:''}
@@ -3810,7 +3809,9 @@ function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(
 // Karte auf die Szene: Zone über der Erklärkarte, unter dem HUD
 // Fokus (Manuel 23.11.): bei Momenten an einem bestimmten Ort gleitet die Karte langsam dorthin und danach zurück auf die ganze Zone.
 // IGZ = [von t, bis t, Mitte [Nord, Ost], halbe Breite m, Ansichten, Abstand oben px (Platz fürs Demo-Fenster)]; die Fahrt dauert 1,6 s, „Weiter“ hält erst, wenn sie fertig ist.
-const IGZ=[[215,290,[175,165],120,'all h x'],[585,690,[-10,180],90,'all h x',250],[855,1090,[-15,40],120,'all x']],
+// Ping-Detail: der Hider, der sich zwischen Ping (360) und 400 am weitesten bewegt; Ausschnitt um Punkt und Figur
+const IGPZ=()=>{let b=null;['l','m','t'].forEach(k=>{const a=igPos(k,360),c=igPos(k,400),d=Math.hypot(a[0]-c[0],a[1]-c[1]);if(!b||d>b.d)b={d,k,m:[(a[0]+c[0])/2,(a[1]+c[1])/2]}});return b.m};
+const IGZ=[[140,225,[190,180],120,'all h x'],[380,420,IGPZ(),100,'all h x'],[585,690,[-10,180],90,'all h x',250],[855,1090,[-15,40],120,'all x']],
   igFz=(t,v)=>{const z=IGZ.findIndex(z=>t>=z[0]&&t<z[1]&&z[4].split(' ').includes(v));return z<0?null:z};
 function inFit(fly){const z=IN.fz!=null?IGZ[IN.fz]:null,c=z?inLL(z[2]):INC,R=z?z[3]:340,dl=R/111320,dn=R/(111320*Math.cos(c[0]*Math.PI/180)),b=L.latLngBounds([c[0]-dl,c[1]-dn],[c[0]+dl,c[1]+dn]),h=$('intro').offsetHeight;
   const o={paddingTopLeft:[12,z&&z[5]||62],paddingBottomRight:[12,h+12]};if(!IN.f||fly){const d=IN.f?1.6:1.1;IN.f=1;IN.fe=performance.now()+d*1000+80;map.flyToBounds(b,Object.assign({duration:d,easeLinearity:.2},o))}else map.fitBounds(b,Object.assign({animate:true,duration:.35},o))}
