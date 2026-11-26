@@ -1,5 +1,5 @@
 """Spielerklärung (§INTRO): Knopf auf dem Startbildschirm, alle Schritte, Ansichten und Aktionen ohne Fehler,
-Schließen stellt Karte und Panel wieder her, Knopf weg in Lobby/Spiel, Einladungslink zeigt „Lobby … beitreten“."""
+Schließen stellt Karte und Panel wieder her, Knopf weg in Lobby/Spiel, Ende: „Zurück zum Menü“ (auch mit Einladungslink)."""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from harness import app, shot
@@ -24,7 +24,8 @@ with app(390, 844, hash='') as (pg, ev, errs):
                 ev("IN.busy=0;inAct()"); pg.wait_for_timeout(200)
                 assert ev("IN.a") == 0
         assert ev("$('intro').scrollHeight") > 0
-    assert ev("$('intro').textContent.includes('Spiel erstellen')")
+    assert ev("$('intro').textContent.includes('Zurück zum Menü')")
+    assert not ev("!!document.querySelector('.inapk')")
     shot(pg, 'intro_ende.png')
     ev("inClose()"); pg.wait_for_timeout(200)
     assert not ev("document.body.classList.contains('inx')")
@@ -44,7 +45,9 @@ with app(390, 844, hash='?c=ABCD') as (pg, ev, errs):
     pg.wait_for_timeout(600)
     pg.click('#inb'); pg.wait_for_timeout(300)
     ev("inStep(INS.length-1,1)")
-    assert 'Lobby ABCD beitreten' in ev("$('intro').textContent")
+    assert 'Zurück zum Menü' in ev("$('intro').textContent")
+    ev("$('intro').querySelector('.innx').click()"); pg.wait_for_timeout(200)
+    assert ev("IN") is None and 'ABCD' in ev("$('pb').textContent")
     print('errors:', errs)
     assert not errs
 

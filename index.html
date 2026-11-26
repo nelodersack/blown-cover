@@ -3695,7 +3695,7 @@ const INS=[
  {k:'Grundspiel',t:'Der Ping',p:[
   {go:[[345,3500]],spot:'hud:p',x:()=>`In regelmäßigen Abständen erfolgt der <b>Ping</b>.`},
   {go:[[362,1500]],pulse:'pings',x:()=>`Er verrät den Huntern den <b>punktuellen</b> Standort der Hider.`,c:'Kräftig: der Ping-Punkt. Blass: wo die Hider wirklich sind.'},
-  {go:[[400,2500]],pulse:'max',x:()=>`Er bleibt <b>bis zum nächsten Ping</b> auf der Karte und dient als Orientierung – die Hider bewegen sich natürlich weiter.`}]},
+  {go:[[400,2500]],pulse:'max',x:()=>`Der Punkt bleibt <b>bis zum nächsten Ping</b> auf der Karte und dient als Orientierung – die Hider bewegen sich natürlich weiter.`}]},
  {k:'Grundspiel',t:'Fangen',p:[
   {go:[[540,3000],[630,3500]],x:()=>`Zum Fangen <b>berührt</b> der Hunter den Hider in echt …`},
   {go:[[633,900]],spot:'box',x:()=>`… und drückt <b>Fang melden</b> in der App.`},
@@ -3800,8 +3800,8 @@ function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],pt
   ${s.tabs?`<div class=tabs2 role=tablist>${s.tabs.map(([k,l])=>`<button class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   <p class=inp>${pt?(ok?pt.x(v):inAsk(pt)):s.x(v)}</p>${c?`<p class=inc>${c}</p>`:''}
   ${s.l?`<div class=inl>${s.l().map(([i,t])=>`<div>${ic(i)}<span>${t}</span></div>`).join('')}</div>`:''}
-  ${last?`<a class=slink href="${NB?'https://github.com/nelodersack/blown-cover/blob/main/spielregeln.pdf':'spielregeln.pdf'}" target=_blank rel=noopener onclick="return inPdf()" style="text-align:center;display:block">${ic('book')} Volle Spielanleitung (PDF)</a>`:''}</div></div>
-  <div class="infoot${IN.i||IN.j?'':' nob'}${a.length?'':' noa'}">${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}${IN.i||IN.j?`<button class="g inbk" onclick="inBack()" aria-label="Zurück"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Zurück</span></button>`:''}${last?`<button class=innx onclick="inClose(1)">${LINKC?'Lobby '+esc(LINKC)+' beitreten':'Spiel erstellen'}</button>`:`<button class=innx onclick="inNext()"${IN.play||!ok?' disabled':''}>${IN.play?'<span class=insp></span>':'Weiter'}</button>`}</div>`}
+  ${last?`<a class=slink href="${NB?'https://github.com/nelodersack/blown-cover/blob/main/spielregeln.pdf':'spielregeln.pdf'}" target=_blank rel=noopener onclick="return inPdf()" style="text-align:center;display:block">${ic('book')} Volle Spielanleitung (PDF)</a>${!NB&&/Android/i.test(navigator.userAgent)?`<p class=inc style="text-align:center">Du hast Android? Mit der App läuft das GPS auch bei ausgeschaltetem Bildschirm.</p><button class="g inapk" onclick="updGo()" style="width:100%">App herunterladen</button>`:''}`:''}</div></div>
+  <div class="infoot${IN.i||IN.j?'':' nob'}${a.length?'':' noa'}">${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}${IN.i||IN.j?`<button class="g inbk" onclick="inBack()" aria-label="Zurück"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Zurück</span></button>`:''}${last?`<button class=innx onclick="inClose()">Zurück zum Menü</button>`:`<button class=innx onclick="inNext()"${IN.play||!ok?' disabled':''}>${IN.play?'<span class=insp></span>':'Weiter'}</button>`}</div>`}
 // Nächsten Teil der Szene abspielen; am Ende „Noch einmal“ (Szene neu aufbauen)
 function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(IN.busy&&Date.now()<IN.busy)return;
   if(IN.a>=a.length){IN.gen++;IN.run=0;IN.cnt={};IN.fl={};inTxt();IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';s.set(v);IN.a=0}
