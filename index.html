@@ -593,18 +593,19 @@ body.inal .mkw.inm.hider,body.inal .mkw.inm.imm{opacity:.5}
 @keyframes inspT{50%{box-shadow:0 0 0 5px #ffffff55!important}}
 .mkw.inm>svg{animation:inFd .45s ease both}
 @keyframes inFd{from{opacity:0;transform:scale(.6)}}
-.mkw.inpl>svg{animation:inPlM 1s ease-in-out 4;transform-origin:50% 50%}
+.mkw.inpl>svg,.inm.inpl.ping>svg,.inm.inpl.pingme>svg,.inm.inpl.xping>svg,.inm.inpl.pingS>svg{animation:inPlM 1s ease-in-out 4;transform-origin:50% 50%}
 @keyframes inPlM{50%{transform:scale(1.8)}}
 path.inpl{animation:inPlZ 1s ease-in-out 3}
 @keyframes inPlZ{50%{stroke-width:7px}}
-#wel{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 28px calc(28px + env(safe-area-inset-bottom,0px));text-align:center;background:radial-gradient(120% 80% at 50% 40%,#1b1e22f2,#0f1113fa);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);transition:opacity .4s ease}
-#wel.out{opacity:0;pointer-events:none}
-#wel .wlg{display:flex;flex-direction:column;align-items:center;gap:14px;animation:welIn .7s ease both}
+#apo .wlg svg.ic{width:56px;height:56px;color:var(--fg)}#apo h2{margin:0;font:700 26px/1.2 var(--f-b)}
+#wel,#apo{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 28px calc(28px + env(safe-area-inset-bottom,0px));text-align:center;background:radial-gradient(120% 80% at 50% 40%,#1b1e22f2,#0f1113fa);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);transition:opacity .4s ease}
+#wel.out,#apo.out{opacity:0;pointer-events:none}
+#wel .wlg,#apo .wlg{display:flex;flex-direction:column;align-items:center;gap:14px;animation:welIn .7s ease both}
 #wel .wlg svg{width:92px;height:92px}
 #wel .logo{font-size:52px;text-align:center}
-#wel p{max-width:300px;margin:4px 0 18px;color:var(--mut);font:500 17px/1.45 var(--f-b);animation:welIn .7s .15s ease both}
-#wel .wbt{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px;animation:welIn .7s .3s ease both}
-#wel .wbt>button:first-child{width:100%}
+#wel p,#apo p{max-width:300px;margin:4px 0 18px;color:var(--mut);font:500 17px/1.45 var(--f-b);animation:welIn .7s .15s ease both}
+#wel .wbt,#apo .wbt{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px;animation:welIn .7s .3s ease both}
+#wel .wbt>button:first-child,#apo .wbt>button:first-child{width:100%}
 @keyframes welIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 #inb{position:fixed;left:10px;top:calc(60px + env(safe-area-inset-top,0px));z-index:1200;display:none;width:auto!important;height:40px;min-height:0!important;margin:0!important;padding:0 14px 0 10px!important;gap:7px;border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--fg)!important;font:600 14px var(--f-b)!important}
 #inb .ic{width:19px;height:19px}#inb i{display:none;position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:var(--ac);border:2px solid var(--bg)}#inb.new i{display:block}
@@ -3690,7 +3691,7 @@ const INS=[
   {pulse:'nz',x:()=>`Der <b>gestrichelte Kreis</b> zeigt immer die nächste Größe an.`}]},
  {k:'Grundspiel',t:'Außerhalb der Zone',p:[
   {go:[[167,2500]],x:()=>``},
-  {go:[[175,1000]],pulse:'tom',x:()=>`Ein Hider, der sich außerhalb der Zone befindet, ist für die Hunter <b>live sichtbar</b> – auch noch 2 Minuten nach der Rückkehr.`},
+  {go:[[175,1000]],x:()=>`Ein Hider, der sich außerhalb der Zone befindet, ist für die Hunter <b>live sichtbar</b> – auch noch 2 Minuten nach der Rückkehr.`},
   {x:()=>`Wer zu lange außerhalb bleibt, scheidet ganz aus.`}]},
  {k:'Grundspiel',t:'Der Ping',p:[
   {go:[[345,3500]],spot:'hud:p',x:()=>`In regelmäßigen Abständen erfolgt der <b>Ping</b>.`},
@@ -3758,10 +3759,18 @@ const igVw=()=>[['all','Übersicht'],['h','Anna · Hunter'],['x',INP[igHx(IN.t==
 // Einladungslink (dort Hinweiszeile), Wiedereinstieg oder Testumgebung (__T, außer __WEL gesetzt). „So geht's“ blendet über ins Intro.
 function welChk(){if(LS.inS||LS.n||LS.c||LS.welS||LINKC||G||RV||IN||$('wel')||(window.__T&&!window.__WEL))return;
   const w=document.createElement('div');w.id='wel';w.setAttribute('role','dialog');w.setAttribute('aria-label','Willkommen');
-  w.innerHTML=`<div class=wlg>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p>Tauch unter. Erfülle deine Aufträge. Lass dich nicht fangen.</p>
+  w.innerHTML=`<div class=wlg>${LOGO}<div class=logo>Blown<br><span>Cover</span></div></div><p>Willkommen bei Blown Cover – Fangen in echt.</p>
   <div class=wbt><button onclick="welGo(1)">So geht's (3 Min)</button><button class=slink onclick="welGo(0)">Überspringen</button></div>`;
   document.body.appendChild(w)}
-function welGo(go){const w=$('wel');if(!w)return;if(!go)LS.welS='1';w.classList.add('out');setTimeout(()=>w.remove(),420);if(go)inOpen()}
+function welGo(go){const w=$('wel');if(!w)return;if(!go)LS.welS='1';w.classList.add('out');setTimeout(()=>w.remove(),420);if(go)inOpen();else setTimeout(apChk,450)}
+// App-Hinweis (Manuel 27.11.): nur Android-Browser, einmal (LS.apS), erst nach weggedrückter Begrüßung oder fertigem Intro; danach auch beim Laden, falls verpasst
+const apAnd=()=>!NB&&/Android/i.test(navigator.userAgent);
+function apChk(){if(LS.apS||!apAnd()||!(LS.welS||LS.inS)||LINKC||G||RV||IN||$('wel')||$('apo')||(window.__T&&!window.__APO))return;LS.apS='1';
+  const w=document.createElement('div');w.id='apo';w.className='wel2';w.setAttribute('role','dialog');w.setAttribute('aria-label','App herunterladen');
+  w.innerHTML=`<div class=wlg><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><h2>Hol dir die App</h2></div><p>Mit der Android-App läuft das GPS auch bei ausgeschaltetem Bildschirm – und Updates kommen direkt in der App.</p>
+  <div class=wbt><button onclick="apGo(1)">App herunterladen</button><button class=slink onclick="apGo(0)">Später</button></div>`;
+  document.body.appendChild(w)}
+function apGo(go){const w=$('apo');if(!w)return;w.classList.add('out');setTimeout(()=>w.remove(),420);if(go)updGo()}
 function inBtn(){const b=$('inb');if(!b)return;b.style.display=!G&&!RV&&!IN&&!RL.on?'inline-flex':'none';b.classList.toggle('new',!LS.inS)}
 function inOpen(){if(G||RV||IN)return;IN={i:0,v:{},gen:0,mk:{},L:L.layerGroup().addTo(map),c:map.getCenter(),zm:map.getZoom(),f:0,zs:map.options.zoomSnap};map.options.zoomSnap=.1;map.on('zoom',inRz);LS.inS='1';
   document.body.classList.add('inx');inBtn();updSync();
@@ -3800,8 +3809,8 @@ function inCard(d){const s=INS[IN.i],v=inV(),n=INS.length,a=s.act?s.act(v):[],pt
   ${s.tabs?`<div class=tabs2 role=tablist>${s.tabs.map(([k,l])=>`<button class="${k===v?'on':''}" onclick="inView('${k}')" role=tab aria-selected="${k===v}">${l}</button>`).join('')}</div>`:''}
   <p class=inp>${pt?(ok?pt.x(v):inAsk(pt)):s.x(v)}</p>${c?`<p class=inc>${c}</p>`:''}
   ${s.l?`<div class=inl>${s.l().map(([i,t])=>`<div>${ic(i)}<span>${t}</span></div>`).join('')}</div>`:''}
-  ${last?`<a class=slink href="${NB?'https://github.com/nelodersack/blown-cover/blob/main/spielregeln.pdf':'spielregeln.pdf'}" target=_blank rel=noopener onclick="return inPdf()" style="text-align:center;display:block">${ic('book')} Volle Spielanleitung (PDF)</a>${!NB&&/Android/i.test(navigator.userAgent)?`<p class=inc style="text-align:center">Du hast Android? Mit der App läuft das GPS auch bei ausgeschaltetem Bildschirm.</p><button class="g inapk" onclick="updGo()" style="width:100%">App herunterladen</button>`:''}`:''}</div></div>
-  <div class="infoot${IN.i||IN.j?'':' nob'}${a.length?'':' noa'}">${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}${IN.i||IN.j?`<button class="g inbk" onclick="inBack()" aria-label="Zurück"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Zurück</span></button>`:''}${last?`<button class=innx onclick="inClose()">Zurück zum Menü</button>`:`<button class=innx onclick="inNext()"${IN.play||!ok?' disabled':''}>${IN.play?'<span class=insp></span>':'Weiter'}</button>`}</div>`}
+  ${last?`<a class=slink href="${NB?'https://github.com/nelodersack/blown-cover/blob/main/spielregeln.pdf':'spielregeln.pdf'}" target=_blank rel=noopener onclick="return inPdf()" style="text-align:center;display:block">${ic('book')} Volle Spielanleitung (PDF)</a>`:''}</div></div>
+  <div class="infoot${IN.i||IN.j?'':' nob'}${a.length?'':' noa'}">${a.length?`<button class=inact id=inact onclick="inAct()">${ab}</button>`:''}${IN.i||IN.j?`<button class="g inbk" onclick="inBack()" aria-label="Zurück"><svg class=ic viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Zurück</span></button>`:''}${last?`<button class=innx onclick="inClose();setTimeout(apChk,300)">Zurück zum Menü</button>`:`<button class=innx onclick="inNext()"${IN.play||!ok?' disabled':''}>${IN.play?'<span class=insp></span>':'Weiter'}</button>`}</div>`}
 // Nächsten Teil der Szene abspielen; am Ende „Noch einmal“ (Szene neu aufbauen)
 function inAct(){if(!IN)return;const s=INS[IN.i],v=inV(),a=s.act?s.act(v):[];if(IN.busy&&Date.now()<IN.busy)return;
   if(IN.a>=a.length){IN.gen++;IN.run=0;IN.cnt={};IN.fl={};inTxt();IN.L.clearLayers();IN.mk={};IN.z=IN.nz=null;IN.h={};inBox();$('toast').innerHTML='';s.set(v);IN.a=0}
@@ -3843,6 +3852,6 @@ async function updCheck(){let c=null;try{c=JSON.parse(LS.updC||'null')}catch(e){
 // §BOOT Anmeldung, Wiedereinstieg
 (TEST?firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION):Promise.resolve()).then(()=>firebase.auth().signInAnonymously()).then(u=>{uid=u.user.uid;
   if(LS.c){appReady(()=>{});startGPS();join(LS.c)}else panel()}).catch(e=>{$('panel').innerHTML='<h2>Anmeldefehler</h2>'+esc(e.message)});
-panel();welChk();setTimeout(updCheck,1500);ksBadge();
+panel();welChk();apChk();setTimeout(updCheck,1500);ksBadge();
 setInterval(()=>{if(G&&G.status==='lobby')panel()},3000);
 </script></body></html>
